@@ -1,0 +1,66 @@
+/* src/components/Header.css */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    background: linear-gradient(90deg, #ff6b6b, #f94d9a);
+    color: white;
+    padding: 0.5rem 1rem;  /* Padding reducido para un header más pequeño */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Se elimina la propiedad height para permitir ajuste automático */
+  }
+  
+  
+  .profileContainer {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .profileInfo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .userDetails {
+    text-align: left;
+  }
+  
+  .userRole {
+    font-size: 0.8em;
+    color: #ffdddd;
+  }
+  
+  .dropdownMenu {
+    position: absolute;
+    right: 0;
+    margin-top: 0.5rem;
+    background: #fff;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1000;
+  }
+  
+  .menuList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .menuItem {
+    padding: 0.5em 1em;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  

@@ -1,0 +1,56 @@
+/* src/modules/Usuarios/AuthForm.css */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #f3ec78, #af4261);
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .auth-card {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  .auth-card h2 {
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  
+  .auth-card p {
+    margin-bottom: 1.5rem;
+    color: #666;
+  }
+  
+  .auth-card button {
+    background-color: #f05454;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .auth-card button:hover {
+    background-color: #ff6f61;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  

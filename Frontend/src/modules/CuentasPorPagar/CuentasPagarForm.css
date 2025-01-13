@@ -1,0 +1,186 @@
+/* Contenedor principal */
+.cuentas-pagar-module {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.cuentas-pagar-module h2 {
+    color: #e63946; /* Rojo para el título */
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-transform: capitalize;
+}
+
+/* Botón de alternar formulario */
+.toggle-form-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.toggle-form-button:hover {
+    background: #0056b3;
+}
+
+/* Sección de totales y filtros */
+.totales-y-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    width: 90%;
+    max-width: 800px;
+}
+
+.totales-y-filtros .total-semana,
+.totales-y-filtros .total-mes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    background: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.totales-y-filtros .filtro-mes {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filtro-mes select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    width: 100%;
+}
+
+.filtro-mes select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Tabla */
+.cuentas-table {
+    width: 90%;
+    max-width: 800px;
+    margin: 1rem auto;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cuentas-table th,
+.cuentas-table td {
+    padding: 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+}
+
+.cuentas-table th {
+    background: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+}
+
+.cuentas-table tr:hover {
+    background: #f9f9f9;
+}
+
+/* Filas de tabla por estado */
+.cuentas-table tr.pagada {
+    background: #d4edda; /* Verde claro */
+}
+
+.cuentas-table tr.pendiente {
+    background: #fff3cd; /* Amarillo claro */
+}
+
+/* Botones de acciones */
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Botones generales */
+.icon-button {
+    width: 2.5rem; /* Tamaño más grande para mejor visibilidad */
+    height: 2.5rem;
+    background: none;
+    border: none;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.icon-button svg {
+    font-size: 1.2rem;
+}
+
+/* Botón de editar */
+.edit-button {
+    background-color: #4caf50;
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #45a049;
+}
+
+/* Botón de eliminar */
+.delete-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Botón de pagar */
+.pay-button {
+    background-color: #ffc107 !important; /* Amarillo claro */
+    color: white !important;
+    border: 2px solid #e0a800 !important; /* Borde amarillo más oscuro */
+    padding: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.pay-button:hover {
+    background-color: #e0a800 !important; /* Amarillo más oscuro al pasar el mouse */
+    transform: scale(1.05); /* Efecto de zoom */
+}
+
+

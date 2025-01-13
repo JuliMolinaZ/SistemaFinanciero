@@ -1,0 +1,60 @@
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #1e1e1e; /* Fondo gris oscuro */
+    color: #ffffff; /* Texto blanco */
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.2); /* Color tenue para el borde estático */
+    border-top-color: #1d72b8; /* Azul vibrante para el borde giratorio */
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 1rem;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .loading-text {
+    font-size: 1.5rem; /* Texto más grande */
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #57b3f9; /* Azul claro para el texto */
+  }
+  
+  .loading-bar {
+    width: 80%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2); /* Fondo tenue para la barra */
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  .loading-bar-progress {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #1d72b8, #57b3f9); /* Degradado azul brillante */
+    border-radius: 5px;
+    animation: progress 2s ease-in-out infinite;
+  }
+  
+  @keyframes progress {
+    0% {
+      width: 0%;
+    }
+    50% {
+      width: 50%;
+    }
+    100% {
+      width: 100%;
+    }
+  }

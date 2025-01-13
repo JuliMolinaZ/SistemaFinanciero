@@ -1,0 +1,152 @@
+.recuperacion-module {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centrar contenido horizontalmente */
+    text-align: center; /* Centrar texto */
+}
+
+.recuperacion-module h2 {
+    color: #e63946; /* Color rojo para el título */
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-transform: capitalize;
+}
+
+.recuperacion-form {
+    width: 90%;
+    max-width: 400px; /* Limitar el ancho del formulario */
+    margin: 1rem auto; /* Centrar formulario */
+    padding: 2rem; /* Incrementar el padding para espacio interno */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left; /* Alinear texto del formulario a la izquierda */
+}
+
+.recuperacion-form label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.recuperacion-form input {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1.5rem; /* Mayor separación entre campos */
+    font-size: 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+    box-sizing: border-box; /* Asegurar que el padding no afecta el ancho */
+}
+
+.recuperacion-form input:focus {
+    border-color: #007bff;
+    outline: none;
+    background: #fff;
+}
+
+.recuperacion-form .submit-button {
+    width: 100%;
+    padding: 0.8rem; /* Mayor padding para el botón */
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.recuperacion-form .submit-button:hover {
+    background: #0056b3;
+}
+
+.recuperacion-table {
+    width: 90%;
+    max-width: 800px;
+    margin: 1rem auto;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.recuperacion-table th,
+.recuperacion-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+}
+
+.recuperacion-table th {
+    background: #f4f4f4;
+    font-weight: bold;
+    color: #333;
+}
+
+.recuperacion-table tr:hover {
+    background: #f9f9f9;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.icon-button {
+    width: 2rem;
+    height: 2rem;
+    background: none;
+    border: none;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.icon-button svg {
+    color: white;
+    font-size: 1rem;
+}
+
+.edit-button {
+    background-color: #4caf50;
+}
+
+.edit-button:hover {
+    background-color: #45a049;
+}
+
+.delete-button {
+    background-color: #f44336;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+.toggle-form-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 1.5rem;
+  }
+  
+  .toggle-form-button:hover {
+    background: #0056b3;
+  }
+  

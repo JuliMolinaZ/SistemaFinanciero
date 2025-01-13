@@ -1,0 +1,15 @@
+# Ignorar módulos de Node.js en cualquier subdirectorio
+**/node_modules/
+
+# Ignorar archivos de entorno en cualquier subdirectorio
+**/.env
+
+# Ignorar archivos de log
+*.log
+logs/
+
+# Ignorar archivos temporales del sistema
+.DS_Store
+
+# Ignorar la carpeta de build de React
+Frontend/build/

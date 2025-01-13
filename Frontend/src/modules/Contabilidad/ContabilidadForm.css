@@ -1,0 +1,143 @@
+.contabilidad-module {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.contabilidad-form {
+    width: 90%;
+    max-width: 400px; /* Límite del formulario */
+    margin: 1rem auto;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contabilidad-form label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+.contabilidad-form input {
+    width: 100%; /* Garantiza que el ancho no exceda el contenedor */
+    padding: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+    box-sizing: border-box; /* Incluye el padding en el ancho total */
+}
+
+.contabilidad-form input:focus {
+    border-color: #007bff;
+    outline: none;
+    background: #fff;
+}
+
+.contabilidad-form button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    width: 100%;
+}
+
+.contabilidad-form button:hover {
+    background: #0056b3;
+}
+
+.contabilidad-table {
+    width: 90%;
+    max-width: 800px;
+    border-collapse: collapse;
+    margin: 1rem auto;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contabilidad-table th,
+.contabilidad-table td {
+    padding: 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+}
+
+.contabilidad-table th {
+    background: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+}
+
+.contabilidad-table tr:hover {
+    background: #f9f9f9;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.icon-button {
+    width: 1.8rem;
+    height: 1.8rem;
+    background: none;
+    border: none;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.icon-button svg {
+    color: white;
+    font-size: 0.9rem;
+}
+
+.edit-button {
+    background-color: #4caf50;
+}
+
+.edit-button:hover {
+    background-color: #45a049;
+}
+
+.delete-button {
+    background-color: #f44336;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+.toggle-form-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.toggle-form-button:hover {
+    background: #0056b3;
+}
