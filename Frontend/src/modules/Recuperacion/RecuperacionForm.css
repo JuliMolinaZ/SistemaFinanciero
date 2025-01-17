@@ -149,4 +149,44 @@
   .toggle-form-button:hover {
     background: #0056b3;
   }
+  /* Botones para alternar estado recuperado */
+.toggle-button {
+    border: none;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .toggle-yes {
+    background-color: #4caf50; /* Verde para Sí */
+  }
+  .toggle-no {
+    background-color: #f44336; /* Rojo para No */
+  }
   
+  /* Contenedor para totales y filtro */
+  .totals-filter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem 0;
+  }
+  .totals {
+    margin-bottom: 1rem;
+  }
+  .filter-month {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  .filter-month label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .filter-month select {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }

@@ -5,8 +5,15 @@ const recuperacionController = require('../controllers/recuperacionController');
 
 router.get('/', recuperacionController.getAllRecuperaciones);
 router.get('/:id', recuperacionController.getRecuperacionById);
-router.post('/', recuperacionController.createRecuperacion);
+
+// Añadir middleware de depuración para POST
+router.post('/', (req, res, next) => {
+  console.log("POST /api/recuperacion - body:", req.body);
+  next();
+}, recuperacionController.createRecuperacion);
+
 router.put('/:id', recuperacionController.updateRecuperacion);
 router.delete('/:id', recuperacionController.deleteRecuperacion);
+router.put('/:id/toggle', recuperacionController.toggleRecuperado);
 
 module.exports = router;

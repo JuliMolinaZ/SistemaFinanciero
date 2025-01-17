@@ -1,3 +1,4 @@
+/* File: ProjectModule.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProjectModule.css';
@@ -64,11 +65,13 @@ const ProjectModule = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value,
-      monto_con_iva: name === 'monto_sin_iva' ? (value * 1.16).toFixed(2) : formData.monto_con_iva, // Calcula automáticamente el monto con IVA
-    });
+      ...(name === 'monto_sin_iva' && {
+        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2)  // Calcula automáticamente el monto con IVA al cambiar monto_sin_iva
+      })
+    }));
   };
 
   const handleSubmit = async (e) => {

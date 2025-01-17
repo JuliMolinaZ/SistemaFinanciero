@@ -1,3 +1,4 @@
+/* File: ContabilidadForm.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ContabilidadForm.css';
@@ -9,7 +10,10 @@ const ContabilidadForm = () => {
   const [movimiento, setMovimiento] = useState({
     fecha: '',
     concepto: '',
-    monto: ''
+    monto: '',
+    tipo: 'cargo',
+    facturaPDF: null,
+    facturaXML: null,
   });
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,24 +36,41 @@ const ContabilidadForm = () => {
     if (showForm) {
       setIsEditing(false);
       setEditingId(null);
-      setMovimiento({ fecha: '', concepto: '', monto: '' });
+      setMovimiento({ fecha: '', concepto: '', monto: '', tipo: 'cargo', facturaPDF: null, facturaXML: null });
     }
     setShowForm(!showForm);
   };
 
   const handleChange = (e) => {
-    setMovimiento({ ...movimiento, [e.target.name]: e.target.value });
+    const { name, value, files } = e.target;
+    if(name === 'facturaPDF' || name === 'facturaXML') {
+      setMovimiento(prev => ({ ...prev, [name]: files[0] }));
+    } else {
+      setMovimiento(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const formData = new FormData();
+      formData.append('fecha', movimiento.fecha);
+      formData.append('concepto', movimiento.concepto);
+      formData.append('monto', movimiento.monto);
+      formData.append('tipo', movimiento.tipo);
+      if(movimiento.facturaPDF) formData.append('facturaPDF', movimiento.facturaPDF);
+      if(movimiento.facturaXML) formData.append('facturaXML', movimiento.facturaXML);
+
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/contabilidad/${editingId}`, movimiento);
+        await axios.put(`http://localhost:5000/api/contabilidad/${editingId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       } else {
-        await axios.post('http://localhost:5000/api/contabilidad', movimiento);
+        await axios.post('http://localhost:5000/api/contabilidad', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       }
-      setMovimiento({ fecha: '', concepto: '', monto: '' });
+      setMovimiento({ fecha: '', concepto: '', monto: '', tipo: 'cargo', facturaPDF: null, facturaXML: null });
       setIsEditing(false);
       setEditingId(null);
       fetchMovimientos();
@@ -59,9 +80,28 @@ const ContabilidadForm = () => {
     }
   };
 
+  // Helper para formatear la fecha a yyyy-MM-dd para inputs de tipo date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const yyyy = date.getFullYear();
+    let mm = date.getMonth() + 1;
+    let dd = date.getDate();
+    if(dd < 10) dd = '0' + dd;
+    if(mm < 10) mm = '0' + mm;
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const handleEdit = (id) => {
     const movimientoToEdit = movimientos.find((m) => m.id === id);
-    setMovimiento(movimientoToEdit);
+    setMovimiento({
+      fecha: formatDate(movimientoToEdit.fecha),
+      concepto: movimientoToEdit.concepto || '',
+      monto: movimientoToEdit.monto || '',
+      tipo: movimientoToEdit.tipo || 'cargo',
+      facturaPDF: null,
+      facturaXML: null,
+    });
     setIsEditing(true);
     setEditingId(id);
     setShowForm(true);
@@ -70,7 +110,6 @@ const ContabilidadForm = () => {
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar este movimiento contable?');
     if (!confirmDelete) return;
-
     try {
       await axios.delete(`http://localhost:5000/api/contabilidad/${id}`);
       setMovimientos(movimientos.filter((m) => m.id !== id));
@@ -79,11 +118,22 @@ const ContabilidadForm = () => {
     }
   };
 
+  const downloadXLS = () => {
+    window.location.href = 'http://localhost:5000/api/contabilidad/xls';
+  };
+
+  const isMovimientoCompleto = (mov) => {
+    return mov.facturaPDF && mov.facturaXML;
+  };
+
   return (
     <section className="contabilidad-module">
       <h2>Módulo Contable</h2>
       <button onClick={toggleForm} className="toggle-form-button">
         {showForm ? 'Cerrar formulario' : 'Registrar Movimiento'}
+      </button>
+      <button onClick={downloadXLS} className="toggle-form-button">
+        Descargar XLS
       </button>
 
       {showForm && (
@@ -93,7 +143,7 @@ const ContabilidadForm = () => {
             type="date"
             id="fecha"
             name="fecha"
-            value={movimiento.fecha}
+            value={movimiento.fecha || ''}
             onChange={handleChange}
             required
           />
@@ -103,7 +153,7 @@ const ContabilidadForm = () => {
             type="text"
             id="concepto"
             name="concepto"
-            value={movimiento.concepto}
+            value={movimiento.concepto || ''}
             onChange={handleChange}
             required
           />
@@ -113,9 +163,39 @@ const ContabilidadForm = () => {
             type="number"
             id="monto"
             name="monto"
-            value={movimiento.monto}
+            value={movimiento.monto || ''}
             onChange={handleChange}
             required
+          />
+
+          <label htmlFor="tipo">Tipo:</label>
+          <select
+            id="tipo"
+            name="tipo"
+            value={movimiento.tipo || 'cargo'}
+            onChange={handleChange}
+            required
+          >
+            <option value="cargo">Cargo</option>
+            <option value="abono">Abono</option>
+          </select>
+
+          <label htmlFor="facturaPDF">Factura PDF:</label>
+          <input
+            type="file"
+            id="facturaPDF"
+            name="facturaPDF"
+            accept="application/pdf"
+            onChange={handleChange}
+          />
+
+          <label htmlFor="facturaXML">Factura XML:</label>
+          <input
+            type="file"
+            id="facturaXML"
+            name="facturaXML"
+            accept=".xml"
+            onChange={handleChange}
           />
 
           <button type="submit" className="submit-button">
@@ -131,26 +211,38 @@ const ContabilidadForm = () => {
             <th>Fecha</th>
             <th>Concepto</th>
             <th>Monto</th>
+            <th>Tipo</th>
+            <th>Completo</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {movimientos.map((m) => (
             <tr key={m.id}>
-              <td>{new Date(m.fecha).toLocaleDateString()}</td>
+              <td>{m.fecha ? new Date(m.fecha).toLocaleDateString() : 'Sin fecha'}</td>
               <td>{m.concepto}</td>
               <td>{m.monto}</td>
+              <td>{m.tipo}</td>
+              <td>{isMovimientoCompleto(m) ? 'Completo' : 'Incompleto'}</td>
               <td className="actions">
-                <button
-                  className="icon-button edit-button"
-                  onClick={() => handleEdit(m.id)}
-                >
+                {m.facturaPDF ? (
+                  <a href={m.facturaPDF} target="_blank" rel="noopener noreferrer">
+                    <button className="icon-button pdf-button" title="Ver PDF">📄</button>
+                  </a>
+                ) : (
+                  <button className="icon-button pdf-button disabled" title="PDF no cargado" disabled>📄</button>
+                )}
+                {m.facturaXML ? (
+                  <a href={m.facturaXML} target="_blank" rel="noopener noreferrer">
+                    <button className="icon-button xml-button" title="Ver XML">📄</button>
+                  </a>
+                ) : (
+                  <button className="icon-button xml-button disabled" title="XML no cargado" disabled>📄</button>
+                )}
+                <button className="icon-button edit-button" onClick={() => handleEdit(m.id)}>
                   <FontAwesomeIcon icon={faEdit} />
                 </button>
-                <button
-                  className="icon-button delete-button"
-                  onClick={() => handleDelete(m.id)}
-                >
+                <button className="icon-button delete-button" onClick={() => handleDelete(m.id)}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </td>

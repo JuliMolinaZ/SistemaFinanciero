@@ -1,3 +1,4 @@
+/* File: CuentasCobrarForm.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CuentasCobrarForm.css';
@@ -16,6 +17,7 @@ const CuentasCobrarForm = () => {
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [filterByMonth, setFilterByMonth] = useState('');
 
   useEffect(() => {
     fetchCuentas();
@@ -55,7 +57,14 @@ const CuentasCobrarForm = () => {
   };
 
   const handleChange = (e) => {
-    setCuenta({ ...cuenta, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCuenta(prev => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'monto_sin_iva' && {
+        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2)  // Cálculo automático del IVA
+      })
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -100,6 +109,11 @@ const CuentasCobrarForm = () => {
       console.error('Error al eliminar cuenta por cobrar:', error);
     }
   };
+
+  // Filtrar cuentas por mes si se ha seleccionado un mes
+  const cuentasFiltradas = filterByMonth
+    ? cuentas.filter(c => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth))
+    : cuentas;
 
   return (
     <section className="cuentas-cobrar-module">
@@ -152,8 +166,7 @@ const CuentasCobrarForm = () => {
             id="monto_con_iva"
             name="monto_con_iva"
             value={cuenta.monto_con_iva}
-            onChange={handleChange}
-            required
+            readOnly
           />
 
           <button type="submit" className="submit-button">
@@ -161,6 +174,22 @@ const CuentasCobrarForm = () => {
           </button>
         </form>
       )}
+
+      <div>
+        <label htmlFor="filterByMonth">Filtrar por Mes:</label>
+        <select
+          id="filterByMonth"
+          value={filterByMonth}
+          onChange={(e) => setFilterByMonth(e.target.value)}
+        >
+          <option value="">Todos los meses</option>
+          {Array.from({ length: 12 }, (_, i) => (
+            <option key={i + 1} value={i + 1}>
+              {new Date(0, i).toLocaleString('default', { month: 'long' })}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <h3>Cuentas por Cobrar Registradas</h3>
       <table className="cuentas-table">
@@ -174,7 +203,7 @@ const CuentasCobrarForm = () => {
           </tr>
         </thead>
         <tbody>
-          {cuentas.map((c) => (
+          {cuentasFiltradas.map((c) => (
             <tr key={c.id}>
               <td>{proyectos.find((p) => p.id === c.proyecto_id)?.nombre || 'N/A'}</td>
               <td>{c.concepto}</td>

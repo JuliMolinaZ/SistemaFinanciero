@@ -141,3 +141,31 @@
 .toggle-form-button:hover {
     background: #0056b3;
 }
+.pdf-button,
+.xml-button {
+  background-color: #2196F3; /* Azul para PDF, puedes ajustar */
+  color: white;
+  border: none;
+  border-radius: 0.3rem;
+  padding: 0.3rem 0.5rem;
+  margin-right: 0.3rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.xml-button {
+  background-color: #FF9800; /* Naranja para XML, puedes ajustar */
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pdf-button:hover:not(.disabled) {
+  background-color: #1976D2;
+}
+
+.xml-button:hover:not(.disabled) {
+  background-color: #F57C00;
+}

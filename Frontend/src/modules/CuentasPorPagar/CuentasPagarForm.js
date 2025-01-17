@@ -1,3 +1,4 @@
+/* File: CuentasPagarForm.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CuentasPagarForm.css';
@@ -22,6 +23,11 @@ const CuentasPagarForm = () => {
   const [filterByMonth, setFilterByMonth] = useState('');
   const [totalSemana, setTotalSemana] = useState(0);
   const [totalMes, setTotalMes] = useState(0);
+  
+  // Estados para filtrado semanal
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [cuentasFiltradas, setCuentasFiltradas] = useState([]);
 
   useEffect(() => {
     fetchCuentas();
@@ -68,16 +74,30 @@ const CuentasPagarForm = () => {
   };
 
   const handleChange = (e) => {
-    setCuenta({ ...cuenta, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCuenta(prev => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'monto_neto' && {
+        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2)  // Cálculo automático del IVA
+      })
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Establecer proveedor_id en null si la categoría no es 'proveedor'
+    let cuentaAEnviar = { ...cuenta };
+    if (cuentaAEnviar.categoria !== 'proveedor') {
+      cuentaAEnviar.proveedor_id = null;
+    }
+  
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/cuentas-pagar/${editingId}`, cuenta);
+        await axios.put(`http://localhost:5000/api/cuentas-pagar/${editingId}`, cuentaAEnviar);
       } else {
-        await axios.post('http://localhost:5000/api/cuentas-pagar', cuenta);
+        await axios.post('http://localhost:5000/api/cuentas-pagar', cuentaAEnviar);
       }
       fetchCuentas();
       toggleForm();
@@ -125,15 +145,27 @@ const CuentasPagarForm = () => {
       (c) => new Date(c.fecha) >= startOfWeek && new Date(c.fecha) <= endOfWeek
     );
     setTotalSemana(
-      cuentasSemana.reduce((acc, curr) => acc + parseFloat(curr.monto_neto || 0), 0)
+      cuentasSemana.reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0)
     );
 
     const cuentasMes = cuentas.filter(
       (c) => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth)
     );
     setTotalMes(
-      cuentasMes.reduce((acc, curr) => acc + parseFloat(curr.monto_neto || 0), 0)
+      cuentasMes.reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0)
     );
+  };
+
+  // Función para filtrar cuentas por un rango de fechas semanal
+  const filtrarPorFecha = () => {
+    if (!fechaInicio || !fechaFin) return;
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    const filtradas = cuentas.filter((c) => {
+      const fechaCuenta = new Date(c.fecha);
+      return fechaCuenta >= inicio && fechaCuenta <= fin;
+    });
+    setCuentasFiltradas(filtradas);
   };
 
   return (
@@ -171,8 +203,7 @@ const CuentasPagarForm = () => {
             id="monto_con_iva"
             name="monto_con_iva"
             value={cuenta.monto_con_iva}
-            onChange={handleChange}
-            required
+            readOnly
           />
 
           <label htmlFor="categoria">Categoría:</label>
@@ -225,6 +256,8 @@ const CuentasPagarForm = () => {
 
       <div>
         <h3>Total de la Semana: ${totalSemana.toFixed(2)}</h3>
+        <h3>Total del Mes: ${totalMes.toFixed(2)}</h3>
+
         <label htmlFor="filterByMonth">Filtrar por Mes:</label>
         <select
           id="filterByMonth"
@@ -238,7 +271,14 @@ const CuentasPagarForm = () => {
             </option>
           ))}
         </select>
-        <h3>Total del Mes: ${totalMes.toFixed(2)}</h3>
+
+        <div>
+          <label>Desde:</label>
+          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <label>Hasta:</label>
+          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <button onClick={filtrarPorFecha}>Filtrar por semana</button>
+        </div>
       </div>
 
       <h3>Cuentas por Pagar Registradas</h3>
@@ -256,7 +296,7 @@ const CuentasPagarForm = () => {
           </tr>
         </thead>
         <tbody>
-          {cuentas.map((c) => (
+          {(cuentasFiltradas.length > 0 ? cuentasFiltradas : cuentas).map((c) => (
             <tr
               key={c.id}
               style={{
@@ -271,22 +311,13 @@ const CuentasPagarForm = () => {
               <td>{new Date(c.fecha).toLocaleDateString()}</td>
               <td>{c.pagado ? 'Sí' : 'No'}</td>
               <td className="actions">
-                <button
-                  className="icon-button edit-button"
-                  onClick={() => handleEdit(c.id)}
-                >
+                <button className="icon-button edit-button" onClick={() => handleEdit(c.id)}>
                   <FontAwesomeIcon icon={faEdit} />
                 </button>
-                <button
-                  className="icon-button delete-button"
-                  onClick={() => handleDelete(c.id)}
-                >
+                <button className="icon-button delete-button" onClick={() => handleDelete(c.id)}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
-                <button
-                  className="icon-button pay-button"
-                  onClick={() => handleTogglePagado(c.id)}
-                >
+                <button className="icon-button pay-button" onClick={() => handleTogglePagado(c.id)}>
                   <FontAwesomeIcon icon={faDollarSign} />
                 </button>
               </td>
@@ -299,3 +330,4 @@ const CuentasPagarForm = () => {
 };
 
 export default CuentasPagarForm;
+
