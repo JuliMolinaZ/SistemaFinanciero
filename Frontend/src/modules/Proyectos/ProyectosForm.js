@@ -1,4 +1,3 @@
-/* File: ProjectModule.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProjectModule.css';
@@ -8,7 +7,8 @@ import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 const ProjectModule = () => {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
-  const [phases, setPhases] = useState([]);
+  const [costs, setCosts] = useState([]);
+  const [newCost, setNewCost] = useState({ concepto: '', factura: '', monto: '' });
   const [selectedProject, setSelectedProject] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -19,12 +19,10 @@ const ProjectModule = () => {
     monto_sin_iva: '',
     monto_con_iva: '',
   });
-  const [selectedPhase, setSelectedPhase] = useState(null);
 
   useEffect(() => {
     fetchProjects();
     fetchClients();
-    fetchPhases();
   }, []);
 
   const fetchProjects = async () => {
@@ -45,117 +43,101 @@ const ProjectModule = () => {
     }
   };
 
-  const fetchPhases = async () => {
+  const fetchCosts = async (projectId) => {
     try {
-      const response = await axios.get('http://localhost:5000/api/phases');
-      setPhases(response.data);
+      const response = await axios.get(`http://localhost:5000/api/project-costs/${projectId}`);
+      setCosts(response.data);
     } catch (error) {
-      console.error('Error al obtener fases:', error);
+      console.error('Error al obtener los costos:', error);
     }
   };
 
-  const toggleForm = () => {
-    if (showForm) {
-      setIsEditing(false);
-      setEditingProjectId(null);
-      setFormData({ nombre: '', cliente_id: '', monto_sin_iva: '', monto_con_iva: '' });
-    }
-    setShowForm(!showForm);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value,
-      ...(name === 'monto_sin_iva' && {
-        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2)  // Calcula automáticamente el monto con IVA al cambiar monto_sin_iva
-      })
-    }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleAddCost = async (e) => {
     e.preventDefault();
     try {
-      if (isEditing) {
-        await axios.put(`http://localhost:5000/api/projects/${editingProjectId}`, formData);
-      } else {
-        await axios.post('http://localhost:5000/api/projects', formData);
-      }
-      setFormData({ nombre: '', cliente_id: '', monto_sin_iva: '', monto_con_iva: '' });
-      setShowForm(false);
-      setIsEditing(false);
-      setEditingProjectId(null);
-      fetchProjects();
+      await axios.post(`http://localhost:5000/api/project-costs/${selectedProject.id}`, newCost);
+      fetchCosts(selectedProject.id);
+      setNewCost({ concepto: '', factura: '', monto: '' });
     } catch (error) {
-      console.error('Error al enviar el formulario:', error);
+      console.error('Error al agregar costo:', error);
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm('¿Estás seguro de que quieres eliminar este proyecto?');
+  const handleEditCost = async (costId) => {
+    const updatedConcept = prompt('Ingrese el nuevo concepto:');
+    const updatedAmount = prompt('Ingrese el nuevo monto (MXN):');
+    const updatedInvoice = prompt('Ingrese la nueva factura (opcional):');
+
+    if (!updatedConcept || !updatedAmount) {
+      alert('El concepto y el monto son obligatorios.');
+      return;
+    }
+
+    try {
+      await axios.put(`http://localhost:5000/api/project-costs/${costId}`, {
+        concepto: updatedConcept,
+        monto: parseFloat(updatedAmount),
+        factura: updatedInvoice || null,
+      });
+      fetchCosts(selectedProject.id);
+      alert('Costo actualizado correctamente.');
+    } catch (error) {
+      console.error('Error al actualizar el costo:', error);
+      alert('No se pudo actualizar el costo.');
+    }
+  };
+
+  const handleDeleteCost = async (costId) => {
+    const confirmDelete = window.confirm('¿Está seguro de que desea eliminar este costo?');
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/projects/${id}`);
-      setProjects(projects.filter((project) => project.id !== id));
+      await axios.delete(`http://localhost:5000/api/project-costs/${costId}`);
+      fetchCosts(selectedProject.id);
+      alert('Costo eliminado correctamente.');
     } catch (error) {
-      console.error('Error al eliminar el proyecto:', error);
+      console.error('Error al eliminar el costo:', error);
+      alert('No se pudo eliminar el costo.');
     }
-  };
-
-  const handleEdit = (project) => {
-    setIsEditing(true);
-    setEditingProjectId(project.id);
-    setFormData({
-      nombre: project.nombre,
-      cliente_id: project.cliente_id,
-      monto_sin_iva: project.monto_sin_iva,
-      monto_con_iva: project.monto_con_iva,
-    });
-    setShowForm(true);
   };
 
   const handleSelectProject = (project) => {
     setSelectedProject(project);
-    setSelectedPhase(project.phase_id || '');
-  };
-
-  const calculateProjectTotal = (projectId) => {
-    const project = projects.find((proj) => proj.id === projectId);
-    const projectPhases = phases.filter((phase) => phase.project_id === projectId);
-    const totalPhases = projectPhases.reduce((acc, phase) => acc + parseFloat(phase.monto || 0), 0);
-    return parseFloat(project?.monto_sin_iva || 0) + totalPhases;
-  };
-
-  const handleAssignPhase = async () => {
-    if (!selectedPhase || !selectedProject) {
-      alert('Por favor selecciona una fase y un proyecto.');
-      return;
-    }
-    try {
-      await axios.put(`http://localhost:5000/api/projects/${selectedProject.id}/phase`, {
-        phaseId: selectedPhase,
-      });
-
-      setProjects((prevProjects) =>
-        prevProjects.map((project) =>
-          project.id === selectedProject.id ? { ...project, phase_id: selectedPhase } : project
-        )
-      );
-
-      alert('Fase asignada correctamente');
-      setSelectedProject(null);
-      setSelectedPhase(null);
-    } catch (error) {
-      console.error('Error al asignar fase:', error);
-      alert('Ocurrió un error al asignar la fase.');
-    }
+    fetchCosts(project.id);
   };
 
   const closeCard = () => {
     setSelectedProject(null);
-    setSelectedPhase(null);
+    setCosts([]);
+  };
+
+  const toggleForm = () => {
+    setShowForm(!showForm);
+    setIsEditing(false);
+    setEditingProjectId(null);
+    setFormData({ nombre: '', cliente_id: '', monto_sin_iva: '', monto_con_iva: '' });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+      ...(name === 'monto_sin_iva' && {
+        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2),
+      }),
+    }));
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(amount);
+  };
+
+  const calculateTotalProjects = () => {
+    return projects.reduce((total, project) => total + parseFloat(project.monto_sin_iva || 0), 0);
   };
 
   return (
@@ -166,7 +148,7 @@ const ProjectModule = () => {
       </button>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="project-form">
+        <form className="project-form">
           <label>Nombre del Proyecto:</label>
           <input
             type="text"
@@ -214,6 +196,10 @@ const ProjectModule = () => {
         </form>
       )}
 
+      <div className="total-projects">
+        <h4>Total de Proyectos: {formatCurrency(calculateTotalProjects())}</h4>
+      </div>
+
       <h3>Proyectos Registrados</h3>
       <table className="projects-table">
         <thead>
@@ -221,7 +207,6 @@ const ProjectModule = () => {
             <th>Nombre</th>
             <th>Cliente</th>
             <th>Total del Proyecto</th>
-            <th>Fase Actual</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -232,28 +217,23 @@ const ProjectModule = () => {
               <td>
                 {clients.find((client) => client.id === project.cliente_id)?.nombre || 'Sin asignar'}
               </td>
-              <td>${calculateProjectTotal(project.id).toFixed(2)}</td>
+              <td>{formatCurrency(project.monto_sin_iva)}</td>
               <td>
-                {phases.find((phase) => phase.id === project.phase_id)?.nombre || 'Sin asignar'}
-              </td>
-              <td className="actions">
                 <button
                   className="icon-button edit-button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleEdit(project);
+                    setEditingProjectId(project.id);
+                    setFormData({
+                      nombre: project.nombre,
+                      cliente_id: project.cliente_id,
+                      monto_sin_iva: project.monto_sin_iva,
+                      monto_con_iva: project.monto_con_iva,
+                    });
+                    setShowForm(true);
                   }}
                 >
                   <FontAwesomeIcon icon={faEdit} />
-                </button>
-                <button
-                  className="icon-button delete-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(project.id);
-                  }}
-                >
-                  <FontAwesomeIcon icon={faTrash} />
                 </button>
               </td>
             </tr>
@@ -264,35 +244,81 @@ const ProjectModule = () => {
       {selectedProject && (
         <>
           <div className="overlay" onClick={closeCard}></div>
-          <div className="project-card">
+          <div className="project-details-card">
             <button className="close-button" onClick={closeCard}>
               &times;
             </button>
-            <h3>Información del Proyecto</h3>
-            <p><strong>Nombre:</strong> {selectedProject.nombre}</p>
+            <h3>Detalles del Proyecto</h3>
+            <p>
+              <strong>Nombre:</strong> {selectedProject.nombre}
+            </p>
             <p>
               <strong>Cliente:</strong>{' '}
-              {clients.find((client) => client.id === selectedProject.cliente_id)?.nombre || 'Sin asignar'}
+              {clients.find((client) => client.id === selectedProject.cliente_id)?.nombre}
             </p>
-            <p><strong>Monto sin IVA:</strong> {selectedProject.monto_sin_iva}</p>
-            <p><strong>Monto con IVA:</strong> {selectedProject.monto_con_iva}</p>
-            <p><strong>Total del Proyecto:</strong> ${calculateProjectTotal(selectedProject.id).toFixed(2)}</p>
+            <p>
+              <strong>Monto sin IVA:</strong> {formatCurrency(selectedProject.monto_sin_iva)}
+            </p>
+            <p>
+              <strong>Monto Restante:</strong>{' '}
+              {formatCurrency(
+                parseFloat(selectedProject.monto_sin_iva) -
+                  costs.reduce((acc, cost) => acc + parseFloat(cost.monto), 0)
+              )}
+            </p>
 
-            <h4>Fases Predefinidas</h4>
-            <select
-              value={selectedPhase}
-              onChange={(e) => setSelectedPhase(Number(e.target.value))}
-            >
-              <option value="">Seleccione una fase</option>
-              {phases.map((phase) => (
-                <option key={phase.id} value={phase.id}>
-                  {phase.nombre}
-                </option>
+            <h4>Costos Asociados</h4>
+            <ul>
+              {costs.map((cost) => (
+                <li key={cost.id}>
+                  <span>
+                    {cost.concepto}: {formatCurrency(cost.monto)}{' '}
+                    {cost.factura && `(Factura: ${cost.factura})`}
+                  </span>
+                  <div>
+                    <button
+                      className="icon-button edit-button"
+                      onClick={() => handleEditCost(cost.id)}
+                    >
+                      <FontAwesomeIcon icon={faEdit} />
+                    </button>
+                    <button
+                      className="icon-button delete-button"
+                      onClick={() => handleDeleteCost(cost.id)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </div>
+                </li>
               ))}
-            </select>
-            <button className="submit-button" onClick={handleAssignPhase}>
-              Asignar Fase
-            </button>
+            </ul>
+
+            <form onSubmit={handleAddCost}>
+              <h4>Agregar Costo</h4>
+              <input
+                type="text"
+                placeholder="Concepto"
+                value={newCost.concepto}
+                onChange={(e) => setNewCost({ ...newCost, concepto: e.target.value })}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Factura (Opcional)"
+                value={newCost.factura}
+                onChange={(e) => setNewCost({ ...newCost, factura: e.target.value })}
+              />
+              <input
+                type="number"
+                placeholder="Monto"
+                value={newCost.monto}
+                onChange={(e) => setNewCost({ ...newCost, monto: e.target.value })}
+                required
+              />
+              <button type="submit" className="submit-button">
+                Agregar Costo
+              </button>
+            </form>
           </div>
         </>
       )}
@@ -301,3 +327,7 @@ const ProjectModule = () => {
 };
 
 export default ProjectModule;
+
+
+
+

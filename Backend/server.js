@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -12,6 +11,7 @@ app.use(bodyParser.json());
 
 // Importar rutas
 const authRoutes = require('./routes/auth');
+const permisosRoutes = require('./routes/permisos');
 const usuariosRoutes = require('./routes/usuarios');
 const clientsRoutes = require('./routes/clients');
 const projectsRoutes = require('./routes/projects');
@@ -23,7 +23,10 @@ const categoriasRoutes = require('./routes/categorias');
 const recuperacionRoutes = require('./routes/recuperacion');
 const rolesRoutes = require('./routes/roles');
 const assetsRoutes = require('./routes/assets');
-const phasesRoutes = require('./routes/phases'); // Nuevo archivo de rutas para fases
+const phasesRoutes = require('./routes/phases');
+const costosFijosRoutes = require('./routes/costosFijos');
+const graphRoutes = require('./routes/realtimeGraph');
+const projectCostsRoutes = require('./routes/projectCosts');
 
 // Middleware para logs de solicitudes (opcional, útil para depuración)
 app.use((req, res, next) => {
@@ -44,17 +47,21 @@ app.use('/api/categorias', categoriasRoutes);
 app.use('/api/recuperacion', recuperacionRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/assets', assetsRoutes);
-app.use('/api/phases', phasesRoutes); // Usar archivo de rutas para las fases
+app.use('/api/phases', phasesRoutes);
+app.use('/api/permisos', permisosRoutes);
+app.use('/api/costos-fijos', costosFijosRoutes);
+app.use('/api/graph', graphRoutes);
+app.use('/api/project-costs', projectCostsRoutes);
 
 // Manejo de rutas no encontradas
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
 // Manejo de errores global
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
-  res.status(500).json({ error: 'Ocurrió un error en el servidor' });
+  res.status(500).json({ error: 'Ocurrió un error en el servidor.' });
 });
 
 // Puerto del servidor

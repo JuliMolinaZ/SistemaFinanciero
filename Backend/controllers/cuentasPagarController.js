@@ -35,12 +35,16 @@ exports.getCuentaPagarById = async (req, res) => {
 // Crear una nueva cuenta por pagar
 exports.createCuentaPagar = async (req, res) => {
   try {
-    const { concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado } = req.body;
+    const { concepto, monto_neto, requiere_iva, categoria, proveedor_id, fecha, pagado } = req.body;
+
+    // Calcular el monto con IVA si corresponde
+    const monto_con_iva = requiere_iva ? monto_neto * 1.16 : monto_neto;
+
     const [result] = await db.query(
-      'INSERT INTO cuentas_por_pagar (concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado || 0]
+      'INSERT INTO cuentas_por_pagar (concepto, monto_neto, monto_con_iva, requiere_iva, categoria, proveedor_id, fecha, pagado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [concepto, monto_neto, monto_con_iva, requiere_iva, categoria, proveedor_id, fecha, pagado || 0]
     );
-    res.status(201).json({ id: result.insertId, concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado });
+    res.status(201).json({ id: result.insertId, concepto, monto_neto, monto_con_iva, requiere_iva, categoria, proveedor_id, fecha, pagado });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -50,13 +54,17 @@ exports.createCuentaPagar = async (req, res) => {
 exports.updateCuentaPagar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado } = req.body;
+    const { concepto, monto_neto, requiere_iva, categoria, proveedor_id, fecha, pagado } = req.body;
+
+    // Calcular el monto con IVA si corresponde
+    const monto_con_iva = requiere_iva ? monto_neto * 1.16 : monto_neto;
+
     const [result] = await db.query(
-      'UPDATE cuentas_por_pagar SET concepto = ?, monto_neto = ?, monto_con_iva = ?, categoria = ?, proveedor_id = ?, fecha = ?, pagado = ? WHERE id = ?',
-      [concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado, id]
+      'UPDATE cuentas_por_pagar SET concepto = ?, monto_neto = ?, monto_con_iva = ?, requiere_iva = ?, categoria = ?, proveedor_id = ?, fecha = ?, pagado = ? WHERE id = ?',
+      [concepto, monto_neto, monto_con_iva, requiere_iva, categoria, proveedor_id, fecha, pagado, id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Cuenta por Pagar no encontrada' });
-    res.json({ id, concepto, monto_neto, monto_con_iva, categoria, proveedor_id, fecha, pagado });
+    res.json({ id, concepto, monto_neto, monto_con_iva, requiere_iva, categoria, proveedor_id, fecha, pagado });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

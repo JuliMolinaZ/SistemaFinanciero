@@ -10,7 +10,7 @@ import avatar4 from '../../assets/avatars/avatar4.svg';
 import avatar5 from '../../assets/avatars/avatar5.svg';
 import avatar6 from '../../assets/avatars/avatar6.svg';
 
-const roles = ["Administrador", "Developer", "Contador", "QA"]; // Ajusta según tus roles
+const roles = ["Administrador", "Developer", "Contador", "QA", 'Juan Carlos']; // Ajusta según tus roles
 const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6]; // Arreglo de avatares importados
 
 const MyProfile = () => {

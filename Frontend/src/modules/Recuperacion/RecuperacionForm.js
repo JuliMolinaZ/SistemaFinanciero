@@ -138,7 +138,7 @@ const RecuperacionForm = () => {
 
   return (
     <section className="recuperacion-module">
-      <h2>Módulo Recuperación Monetaria</h2>
+      <h2>MoneyFlow Recovery</h2>
       <button className="toggle-form-button" onClick={toggleForm}>
         {showForm ? 'Cerrar formulario' : 'Registrar Recuperación'}
       </button>

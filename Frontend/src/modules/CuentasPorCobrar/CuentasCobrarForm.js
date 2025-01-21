@@ -1,4 +1,3 @@
-/* File: CuentasCobrarForm.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CuentasCobrarForm.css';
@@ -58,11 +57,11 @@ const CuentasCobrarForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCuenta(prev => ({
+    setCuenta((prev) => ({
       ...prev,
       [name]: value,
       ...(name === 'monto_sin_iva' && {
-        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2)  // Cálculo automático del IVA
+        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2) // Cálculo automático del IVA
       })
     }));
   };
@@ -110,10 +109,24 @@ const CuentasCobrarForm = () => {
     }
   };
 
-  // Filtrar cuentas por mes si se ha seleccionado un mes
+  const calculateTotals = () => {
+    const totalSinIVA = cuentas.reduce((acc, cuenta) => acc + parseFloat(cuenta.monto_sin_iva || 0), 0);
+    const totalConIVA = cuentas.reduce((acc, cuenta) => acc + parseFloat(cuenta.monto_con_iva || 0), 0);
+    return { totalSinIVA, totalConIVA };
+  };
+
   const cuentasFiltradas = filterByMonth
-    ? cuentas.filter(c => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth))
+    ? cuentas.filter((c) => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth))
     : cuentas;
+
+  const { totalSinIVA, totalConIVA } = calculateTotals();
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(amount);
+  };
 
   return (
     <section className="cuentas-cobrar-module">
@@ -175,6 +188,12 @@ const CuentasCobrarForm = () => {
         </form>
       )}
 
+      {/* Totales */}
+      <div className="totales-container">
+        <h4>Total sin IVA: {formatCurrency(totalSinIVA)}</h4>
+        <h4>Total con IVA: {formatCurrency(totalConIVA)}</h4>
+      </div>
+
       <div>
         <label htmlFor="filterByMonth">Filtrar por Mes:</label>
         <select
@@ -207,8 +226,8 @@ const CuentasCobrarForm = () => {
             <tr key={c.id}>
               <td>{proyectos.find((p) => p.id === c.proyecto_id)?.nombre || 'N/A'}</td>
               <td>{c.concepto}</td>
-              <td>{c.monto_sin_iva}</td>
-              <td>{c.monto_con_iva}</td>
+              <td>{formatCurrency(c.monto_sin_iva)}</td>
+              <td>{formatCurrency(c.monto_con_iva)}</td>
               <td className="actions">
                 <button
                   className="icon-button edit-button"
@@ -232,3 +251,5 @@ const CuentasCobrarForm = () => {
 };
 
 export default CuentasCobrarForm;
+
+

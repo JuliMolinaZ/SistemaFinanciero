@@ -1,4 +1,3 @@
-/* File: CuentasPagarForm.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CuentasPagarForm.css';
@@ -12,6 +11,7 @@ const CuentasPagarForm = () => {
     concepto: '',
     monto_neto: '',
     monto_con_iva: '',
+    requiere_iva: false,
     categoria: '',
     proveedor_id: '',
     fecha: '',
@@ -20,11 +20,10 @@ const CuentasPagarForm = () => {
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [filterByMonth, setFilterByMonth] = useState('');
-  const [totalSemana, setTotalSemana] = useState(0);
-  const [totalMes, setTotalMes] = useState(0);
-  
-  // Estados para filtrado semanal
+  const [totalPagadas, setTotalPagadas] = useState(0);
+  const [totalPorPagar, setTotalPorPagar] = useState(0);
+
+  const [filtroMes, setFiltroMes] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [cuentasFiltradas, setCuentasFiltradas] = useState([]);
@@ -35,8 +34,12 @@ const CuentasPagarForm = () => {
   }, []);
 
   useEffect(() => {
-    calculateTotals();
-  }, [cuentas, filterByMonth]);
+    filtrarCuentas();
+  }, [filtroMes, fechaInicio, fechaFin, cuentas]);
+
+  useEffect(() => {
+    calcularTotales(cuentasFiltradas);
+  }, [cuentasFiltradas]);
 
   const fetchCuentas = async () => {
     try {
@@ -58,41 +61,49 @@ const CuentasPagarForm = () => {
 
   const toggleForm = () => {
     setShowForm(!showForm);
-    if (showForm) {
-      setIsEditing(false);
-      setEditingId(null);
-      setCuenta({
-        concepto: '',
-        monto_neto: '',
-        monto_con_iva: '',
-        categoria: '',
-        proveedor_id: '',
-        fecha: '',
-        pagado: false,
-      });
-    }
+    if (showForm) resetForm();
+  };
+
+  const resetForm = () => {
+    setIsEditing(false);
+    setEditingId(null);
+    setCuenta({
+      concepto: '',
+      monto_neto: '',
+      monto_con_iva: '',
+      requiere_iva: false,
+      categoria: '',
+      proveedor_id: '',
+      fecha: '',
+      pagado: false,
+    });
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCuenta(prev => ({
+    setCuenta((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === 'monto_neto' && {
-        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2)  // Cálculo automático del IVA
-      })
+      ...(name === 'monto_neto' && prev.requiere_iva && {
+        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2),
+      }),
+    }));
+  };
+
+  const handleCheckboxChange = (e) => {
+    const { checked } = e.target;
+    setCuenta((prev) => ({
+      ...prev,
+      requiere_iva: checked,
+      monto_con_iva: checked ? (parseFloat(prev.monto_neto || 0) * 1.16).toFixed(2) : prev.monto_neto,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Establecer proveedor_id en null si la categoría no es 'proveedor'
-    let cuentaAEnviar = { ...cuenta };
-    if (cuentaAEnviar.categoria !== 'proveedor') {
-      cuentaAEnviar.proveedor_id = null;
-    }
-  
+    const cuentaAEnviar = { ...cuenta };
+    if (cuentaAEnviar.categoria !== 'proveedor') cuentaAEnviar.proveedor_id = null;
+
     try {
       if (isEditing) {
         await axios.put(`http://localhost:5000/api/cuentas-pagar/${editingId}`, cuentaAEnviar);
@@ -115,8 +126,7 @@ const CuentasPagarForm = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por pagar?');
-    if (!confirmDelete) return;
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por pagar?')) return;
 
     try {
       await axios.delete(`http://localhost:5000/api/cuentas-pagar/${id}`);
@@ -135,92 +145,118 @@ const CuentasPagarForm = () => {
     }
   };
 
-  const calculateTotals = () => {
-    const currentDate = new Date();
-    const startOfWeek = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
+  const calcularTotales = (cuentas) => {
+    const totalPagadas = cuentas
+      .filter((c) => c.pagado)
+      .reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0);
+    const totalPorPagar = cuentas
+      .filter((c) => !c.pagado)
+      .reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0);
 
-    const cuentasSemana = cuentas.filter(
-      (c) => new Date(c.fecha) >= startOfWeek && new Date(c.fecha) <= endOfWeek
-    );
-    setTotalSemana(
-      cuentasSemana.reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0)
-    );
-
-    const cuentasMes = cuentas.filter(
-      (c) => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth)
-    );
-    setTotalMes(
-      cuentasMes.reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0)
-    );
+    setTotalPagadas(totalPagadas);
+    setTotalPorPagar(totalPorPagar);
   };
 
-  // Función para filtrar cuentas por un rango de fechas semanal
-  const filtrarPorFecha = () => {
-    if (!fechaInicio || !fechaFin) return;
-    const inicio = new Date(fechaInicio);
-    const fin = new Date(fechaFin);
-    const filtradas = cuentas.filter((c) => {
-      const fechaCuenta = new Date(c.fecha);
-      return fechaCuenta >= inicio && fechaCuenta <= fin;
-    });
+  const filtrarCuentas = () => {
+    let filtradas = cuentas;
+
+    if (filtroMes) {
+      filtradas = filtradas.filter(
+        (c) => new Date(c.fecha).getMonth() + 1 === parseInt(filtroMes, 10)
+      );
+    }
+
+    if (fechaInicio && fechaFin) {
+      const inicio = new Date(fechaInicio);
+      const fin = new Date(fechaFin);
+      filtradas = filtradas.filter((c) => {
+        const fechaCuenta = new Date(c.fecha);
+        return fechaCuenta >= inicio && fechaCuenta <= fin;
+      });
+    }
+
     setCuentasFiltradas(filtradas);
+  };
+
+  const formatoMoneda = (valor) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(valor);
   };
 
   return (
     <section className="cuentas-pagar-module">
-      <h2>Módulo Cuentas por Pagar</h2>
+      <h2>Cuentas por Pagar</h2>
       <button onClick={toggleForm} className="toggle-form-button">
         {showForm ? 'Cerrar formulario' : 'Registrar Cuenta'}
       </button>
 
       {showForm && (
         <form onSubmit={handleSubmit} className="cuentas-form">
-          <label htmlFor="concepto">Concepto:</label>
-          <input
-            type="text"
-            id="concepto"
-            name="concepto"
-            value={cuenta.concepto}
-            onChange={handleChange}
-            required
-          />
+          <div className="field-group">
+            <label htmlFor="concepto">Concepto:</label>
+            <input
+              type="text"
+              id="concepto"
+              name="concepto"
+              value={cuenta.concepto}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <label htmlFor="monto_neto">Monto Neto:</label>
-          <input
-            type="number"
-            id="monto_neto"
-            name="monto_neto"
-            value={cuenta.monto_neto}
-            onChange={handleChange}
-            required
-          />
+          <div className="field-group inline">
+            <div className="field-group">
+              <label htmlFor="monto_neto">Monto Neto:</label>
+              <input
+                type="number"
+                id="monto_neto"
+                name="monto_neto"
+                value={cuenta.monto_neto}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-          <label htmlFor="monto_con_iva">Monto con IVA:</label>
-          <input
-            type="number"
-            id="monto_con_iva"
-            name="monto_con_iva"
-            value={cuenta.monto_con_iva}
-            readOnly
-          />
+            <div className="checkbox-group">
+              <input
+                type="checkbox"
+                checked={cuenta.requiere_iva}
+                onChange={handleCheckboxChange}
+              />
+              <label>¿Requiere IVA?</label>
+            </div>
+          </div>
 
-          <label htmlFor="categoria">Categoría:</label>
-          <select
-            id="categoria"
-            name="categoria"
-            value={cuenta.categoria}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Seleccione...</option>
-            <option value="proveedor">Pago a Proveedor</option>
-            <option value="otro">Otro</option>
-          </select>
+          <div className="field-group">
+            <label htmlFor="monto_con_iva">Monto con IVA:</label>
+            <input
+              type="number"
+              id="monto_con_iva"
+              name="monto_con_iva"
+              value={cuenta.monto_con_iva}
+              readOnly
+            />
+          </div>
+
+          <div className="field-group">
+            <label htmlFor="categoria">Categoría:</label>
+            <select
+              id="categoria"
+              name="categoria"
+              value={cuenta.categoria}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Seleccione...</option>
+              <option value="proveedor">Pago a Proveedor</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
 
           {cuenta.categoria === 'proveedor' && (
-            <div>
+            <div className="field-group">
               <label htmlFor="proveedor_id">Seleccionar Proveedor:</label>
               <select
                 id="proveedor_id"
@@ -238,15 +274,17 @@ const CuentasPagarForm = () => {
             </div>
           )}
 
-          <label htmlFor="fecha">Fecha:</label>
-          <input
-            type="date"
-            id="fecha"
-            name="fecha"
-            value={cuenta.fecha}
-            onChange={handleChange}
-            required
-          />
+          <div className="field-group">
+            <label htmlFor="fecha">Fecha:</label>
+            <input
+              type="date"
+              id="fecha"
+              name="fecha"
+              value={cuenta.fecha}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
           <button type="submit" className="submit-button">
             {isEditing ? 'Actualizar Cuenta' : 'Registrar Cuenta'}
@@ -254,30 +292,44 @@ const CuentasPagarForm = () => {
         </form>
       )}
 
-      <div>
-        <h3>Total de la Semana: ${totalSemana.toFixed(2)}</h3>
-        <h3>Total del Mes: ${totalMes.toFixed(2)}</h3>
-
-        <label htmlFor="filterByMonth">Filtrar por Mes:</label>
-        <select
-          id="filterByMonth"
-          value={filterByMonth}
-          onChange={(e) => setFilterByMonth(e.target.value)}
-        >
-          <option value="">Seleccione un mes</option>
-          {Array.from({ length: 12 }, (_, i) => (
-            <option key={i + 1} value={i + 1}>
-              {new Date(0, i).toLocaleString('default', { month: 'long' })}
-            </option>
-          ))}
-        </select>
-
-        <div>
+      {/* Filtros */}
+      <div className="totales-y-filtros">
+        <div className="filtro-mes">
+          <label htmlFor="filtroMes">Filtrar por Mes:</label>
+          <select
+            id="filtroMes"
+            value={filtroMes}
+            onChange={(e) => setFiltroMes(e.target.value)}
+          >
+            <option value="">Todos los meses</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filtro-rango">
           <label>Desde:</label>
-          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <input
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
           <label>Hasta:</label>
-          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
-          <button onClick={filtrarPorFecha}>Filtrar por semana</button>
+          <input
+            type="date"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
+        </div>
+        <div className="total-semana">
+          <span>Cuentas Pagadas:</span>
+          <span>{formatoMoneda(totalPagadas)}</span>
+        </div>
+        <div className="total-semana">
+          <span>Cuentas por Pagar:</span>
+          <span>{formatoMoneda(totalPorPagar)}</span>
         </div>
       </div>
 
@@ -296,28 +348,23 @@ const CuentasPagarForm = () => {
           </tr>
         </thead>
         <tbody>
-          {(cuentasFiltradas.length > 0 ? cuentasFiltradas : cuentas).map((c) => (
-            <tr
-              key={c.id}
-              style={{
-                backgroundColor: c.pagado ? '#d4edda' : '#fff3cd',
-              }}
-            >
+          {cuentasFiltradas.map((c) => (
+            <tr key={c.id} className={c.pagado ? 'pagada' : 'pendiente'}>
               <td>{c.concepto}</td>
-              <td>{c.monto_neto}</td>
-              <td>{c.monto_con_iva}</td>
+              <td>{formatoMoneda(c.monto_neto)}</td>
+              <td>{formatoMoneda(c.monto_con_iva)}</td>
               <td>{c.categoria}</td>
               <td>{proveedores.find((p) => p.id === c.proveedor_id)?.nombre || 'N/A'}</td>
               <td>{new Date(c.fecha).toLocaleDateString()}</td>
               <td>{c.pagado ? 'Sí' : 'No'}</td>
               <td className="actions">
-                <button className="icon-button edit-button" onClick={() => handleEdit(c.id)}>
+                <button onClick={() => handleEdit(c.id)} className="icon-button edit-button">
                   <FontAwesomeIcon icon={faEdit} />
                 </button>
-                <button className="icon-button delete-button" onClick={() => handleDelete(c.id)}>
+                <button onClick={() => handleDelete(c.id)} className="icon-button delete-button">
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
-                <button className="icon-button pay-button" onClick={() => handleTogglePagado(c.id)}>
+                <button onClick={() => handleTogglePagado(c.id)} className="icon-button pay-button">
                   <FontAwesomeIcon icon={faDollarSign} />
                 </button>
               </td>
@@ -330,4 +377,5 @@ const CuentasPagarForm = () => {
 };
 
 export default CuentasPagarForm;
+
 

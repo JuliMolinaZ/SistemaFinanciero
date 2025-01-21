@@ -5,13 +5,18 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    background-color: #f5f5f5; /* Fondo sutil */
+    min-height: 100vh;
 }
 
 .cuentas-pagar-module h2 {
     color: #e63946; /* Rojo para el título */
-    font-size: 1.8rem;
+    font-size: 2rem; /* Tamaño más grande */
     margin-bottom: 1.5rem;
-    text-transform: capitalize;
+    font-weight: bold;
+    border-bottom: 2px solid #e63946;
+    padding-bottom: 0.5rem;
+    text-transform: uppercase;
 }
 
 /* Botón de alternar formulario */
@@ -19,84 +24,97 @@
     background: #007bff;
     color: white;
     border: none;
-    padding: 0.7rem 1.5rem;
-    border-radius: 5px;
-    font-size: 1rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s ease;
-    margin-bottom: 1.5rem;
+    transition: background 0.3s ease, transform 0.2s ease;
+    margin-bottom: 2rem;
 }
 
 .toggle-form-button:hover {
     background: #0056b3;
+    transform: scale(1.05);
 }
 
-/* Sección de totales y filtros */
+/* Filtros y totales */
 .totales-y-filtros {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-around;
     gap: 1rem;
+    width: 100%;
+    max-width: 900px;
     margin-bottom: 2rem;
-    width: 90%;
-    max-width: 800px;
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.totales-y-filtros .total-semana,
-.totales-y-filtros .total-mes {
+.filtro-mes,
+.filtro-rango,
+.total-semana {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    font-size: 1.1rem;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    max-width: 280px;
+}
+
+.filtro-mes label,
+.filtro-rango label {
     font-weight: bold;
-    padding: 0.5rem 1rem;
-    background: #f9f9f9;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 1rem;
+    color: #555;
 }
 
-.totales-y-filtros .filtro-mes {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-    background: #f9f9f9;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.filtro-mes select {
+.filtro-mes select,
+.filtro-rango input {
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ddd;
     border-radius: 5px;
-    background: white;
     width: 100%;
+    box-sizing: border-box;
+    background: white;
 }
 
-.filtro-mes select:focus {
+.filtro-mes select:focus,
+.filtro-rango input:focus {
     border-color: #007bff;
     outline: none;
 }
 
+.total-semana span {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+}
+
 /* Tabla */
 .cuentas-table {
-    width: 90%;
-    max-width: 800px;
-    margin: 1rem auto;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
     border-collapse: collapse;
-    background: #fff;
+    font-size: 1rem;
+    background: #ffffff;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .cuentas-table th,
 .cuentas-table td {
-    padding: 0.6rem;
-    text-align: left;
+    padding: 0.8rem;
+    text-align: center;
     border-bottom: 1px solid #ddd;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .cuentas-table th {
@@ -107,6 +125,7 @@
 
 .cuentas-table tr:hover {
     background: #f9f9f9;
+    cursor: pointer;
 }
 
 /* Filas de tabla por estado */
@@ -125,9 +144,8 @@
     gap: 0.5rem;
 }
 
-/* Botones generales */
 .icon-button {
-    width: 2.5rem; /* Tamaño más grande para mejor visibilidad */
+    width: 2.5rem;
     height: 2.5rem;
     background: none;
     border: none;
@@ -141,7 +159,7 @@
 }
 
 .icon-button svg {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 /* Botón de editar */
@@ -166,21 +184,32 @@
 
 /* Botón de pagar */
 .pay-button {
-    background-color: #ffc107 !important; /* Amarillo claro */
-    color: white !important;
-    border: 2px solid #e0a800 !important; /* Borde amarillo más oscuro */
-    padding: 0.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease;
+    background-color: #ffc107;
+    color: white;
+    border: 2px solid #e0a800;
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
 .pay-button:hover {
-    background-color: #e0a800 !important; /* Amarillo más oscuro al pasar el mouse */
-    transform: scale(1.05); /* Efecto de zoom */
+    background-color: #e0a800;
+    transform: scale(1.05);
 }
+
+/* Totales destacados */
+.total-semana {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    background: #f8f9fa;
+}
+
 
 
