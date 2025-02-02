@@ -1,3 +1,4 @@
+// src/modules/CuentasPagar/CuentasPagarForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CuentasPagarForm.css';
@@ -7,6 +8,7 @@ import { faEdit, faTrash, faDollarSign } from '@fortawesome/free-solid-svg-icons
 const CuentasPagarForm = () => {
   const [cuentas, setCuentas] = useState([]);
   const [proveedores, setProveedores] = useState([]);
+  const [categorias, setCategorias] = useState([]); // Nuevo estado para categorías
   const [cuenta, setCuenta] = useState({
     concepto: '',
     monto_neto: '',
@@ -31,6 +33,7 @@ const CuentasPagarForm = () => {
   useEffect(() => {
     fetchCuentas();
     fetchProveedores();
+    fetchCategorias(); // Llamada para obtener categorías
   }, []);
 
   useEffect(() => {
@@ -43,7 +46,7 @@ const CuentasPagarForm = () => {
 
   const fetchCuentas = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/cuentas-pagar');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/cuentas-pagar');
       setCuentas(response.data);
     } catch (error) {
       console.error('Error al obtener cuentas por pagar:', error);
@@ -52,10 +55,19 @@ const CuentasPagarForm = () => {
 
   const fetchProveedores = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/proveedores');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
       setProveedores(response.data);
     } catch (error) {
       console.error('Error al obtener proveedores:', error);
+    }
+  };
+
+  const fetchCategorias = async () => { // Nueva función para obtener categorías
+    try {
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
+      setCategorias(response.data);
+    } catch (error) {
+      console.error('Error al obtener categorías:', error);
     }
   };
 
@@ -102,13 +114,15 @@ const CuentasPagarForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const cuentaAEnviar = { ...cuenta };
+    
+    // Si la categoría seleccionada no es 'proveedor', desasignar 'proveedor_id'
     if (cuentaAEnviar.categoria !== 'proveedor') cuentaAEnviar.proveedor_id = null;
 
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/cuentas-pagar/${editingId}`, cuentaAEnviar);
+        await axios.put(`/api/cuentas-pagar/${editingId}`, cuentaAEnviar);
       } else {
-        await axios.post('http://localhost:5000/api/cuentas-pagar', cuentaAEnviar);
+        await axios.post('/api/cuentas-pagar', cuentaAEnviar);
       }
       fetchCuentas();
       toggleForm();
@@ -129,7 +143,7 @@ const CuentasPagarForm = () => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por pagar?')) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/cuentas-pagar/${id}`);
+      await axios.delete(`/api/cuentas-pagar/${id}`);
       fetchCuentas();
     } catch (error) {
       console.error('Error al eliminar cuenta por pagar:', error);
@@ -138,7 +152,7 @@ const CuentasPagarForm = () => {
 
   const handleTogglePagado = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/cuentas-pagar/${id}/pagado`);
+      await axios.put(`/api/cuentas-pagar/${id}/pagado`);
       fetchCuentas();
     } catch (error) {
       console.error('Error al alternar el estado de pagado:', error);
@@ -252,6 +266,11 @@ const CuentasPagarForm = () => {
               <option value="">Seleccione...</option>
               <option value="proveedor">Pago a Proveedor</option>
               <option value="otro">Otro</option>
+              {categorias.map((categoria) => (
+                <option key={categoria.id} value={categoria.nombre}>
+                  {categoria.nombre}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -377,5 +396,6 @@ const CuentasPagarForm = () => {
 };
 
 export default CuentasPagarForm;
+
 
 

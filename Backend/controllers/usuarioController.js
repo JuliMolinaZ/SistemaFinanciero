@@ -85,7 +85,6 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// Actualizar un usuario por firebase_uid
 exports.updateUserByFirebaseUid = async (req, res) => {
   try {
     const { firebase_uid } = req.params;
@@ -97,7 +96,9 @@ exports.updateUserByFirebaseUid = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-    res.json({ firebase_uid, name, role, avatar });
+    // Opcional: recuperar datos actualizados desde la base de datos
+    const [rows] = await db.query('SELECT * FROM users WHERE firebase_uid = ?', [firebase_uid]);
+    res.json(rows[0]);
   } catch (error) {
     console.error('Error en updateUserByFirebaseUid:', error);
     res.status(500).json({ error: error.message });

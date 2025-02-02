@@ -1,171 +1,322 @@
-.contabilidad-module {
-    padding: 1rem;
+/* src/modules/Contabilidad/ContabilidadForm.css */
+
+:root {
+    --color-fondo: #f5f5f5;
+    --color-titulo: #e63946; /* Rojo principal */
+    --color-subtitulo: #ffffff; /* Blanco */
+    --color-texto: #333333;
+    --color-texto-secundario: #555555;
+    --color-fondo-logotipo: #ffffff;
+    --color-borde-logotipo: #ddd;
+    --color-fondo-formulario: rgba(255, 255, 255, 0.2);
+    --color-sombra: rgba(0, 0, 0, 0.1);
+    --color-animacion: #ffd700; /* Amarillo/dorado */
+    --color-hover-rojo: #c12c33; /* Un rojo más oscuro para hover */
+    --color-hover-amarillo: #e6c200; /* Amarillo más oscuro para hover */
+  }
+  
+  /* Reset básico */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Roboto', sans-serif; /* O la que uses */
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+  }
+  
+  /* Contenedor principal del módulo */
+  .contabilidad-module {
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-color: #ffffff; /* Fondo blanco */
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.contabilidad-form {
+    position: relative;
+  }
+  
+  .contabilidad-module h2 {
+    color: var(--color-titulo);
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 4px var(--color-sombra);
+  }
+  
+  /* Botones principales (Registrar y Descargar XLS) */
+  .buttons-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .toggle-form-button {
+    background: var(--color-titulo); /* Rojo */
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-weight: 600;
+  }
+  
+  .toggle-form-button:hover {
+    background: var(--color-hover-rojo);
+    transform: translateY(-2px);
+  }
+  
+  /* Formulario */
+  .contabilidad-form {
     width: 90%;
-    max-width: 400px; /* Límite del formulario */
+    max-width: 600px;
     margin: 1rem auto;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.contabilidad-form label {
+    padding: 2rem;
+    border-radius: 10px;
+    background: #fff; /* Fondo blanco para contraste */
+    box-shadow: 0 4px 15px var(--color-sombra);
+    transition: all 0.3s ease;
+  }
+  
+  /* 
+    Cuando el formulario esté oculto, 
+    usamos display: none para que no ocupe espacio extra 
+  */
+  .contabilidad-form.hidden {
+    display: none;
+  }
+  
+  .contabilidad-form .error-message {
+    color: var(--color-titulo);
+    margin-bottom: 1rem;
     font-weight: bold;
-    font-size: 0.9rem;
-    color: #333;
+    text-align: center;
+  }
+  
+  .contabilidad-form label {
+    font-weight: 600;
+    color: var(--color-texto);
     margin-bottom: 0.3rem;
     display: block;
-}
-
-.contabilidad-form input {
-    width: 100%; /* Garantiza que el ancho no exceda el contenedor */
-    padding: 0.5rem;
-    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+  
+  .contabilidad-form input[type="date"],
+  .contabilidad-form input[type="text"],
+  .contabilidad-form input[type="number"],
+  .contabilidad-form select,
+  .contabilidad-form textarea,
+  .contabilidad-form input[type="file"] {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    margin-top: 0.3rem;
     font-size: 0.9rem;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background: #f9f9f9;
-    box-sizing: border-box; /* Incluye el padding en el ancho total */
-}
-
-.contabilidad-form input:focus {
-    border-color: #007bff;
+    background: #fafafa;
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+  
+  .contabilidad-form input[type="date"]:focus,
+  .contabilidad-form input[type="text"]:focus,
+  .contabilidad-form input[type="number"]:focus,
+  .contabilidad-form select:focus,
+  .contabilidad-form textarea:focus,
+  .contabilidad-form input[type="file"]:focus {
+    border-color: var(--color-titulo);
     outline: none;
     background: #fff;
-}
-
-.contabilidad-form button {
-    background: #007bff;
-    color: white;
+  }
+  
+  /* Disposición de los campos de cargo/abono */
+  .contabilidad-form .amount-fields {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .contabilidad-form .amount-fields .field {
+    flex: 1;
+  }
+  
+  .contabilidad-form textarea {
+    resize: vertical;
+  }
+  
+  /* Botón de Enviar (Registrar/Actualizar) */
+  .contabilidad-form button.submit-button {
+    background: var(--color-animacion); /* Amarillo */
+    color: #000; /* Texto negro para mejor contraste */
     border: none;
-    padding: 0.6rem 1rem;
+    padding: 0.8rem 1rem;
     border-radius: 5px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease;
     width: 100%;
-}
-
-.contabilidad-form button:hover {
-    background: #0056b3;
-}
-
-.contabilidad-table {
+    margin-top: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .contabilidad-form button.submit-button:hover {
+    background: var(--color-hover-amarillo);
+    transform: translateY(-2px);
+  }
+  
+  /* Título Movimientos Registrados */
+  .contabilidad-module h3 {
+    font-size: 1.4rem;
+    color: var(--color-titulo);
+    font-weight: 700;
+    margin-top: 2rem;
+    text-shadow: 0 2px 4px var(--color-sombra);
+  }
+  
+  /* Tabla de Movimientos */
+  .contabilidad-table {
     width: 90%;
-    max-width: 800px;
+    max-width: 1100px;
     border-collapse: collapse;
-    margin: 1rem auto;
+    margin: 1.5rem auto 2rem;
     background: #fff;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.contabilidad-table th,
-.contabilidad-table td {
-    padding: 0.6rem;
+    box-shadow: 0 3px 10px var(--color-sombra);
+  }
+  
+  .contabilidad-table thead {
+    background: var(--color-titulo); /* Rojo */
+  }
+  
+  .contabilidad-table th,
+  .contabilidad-table td {
+    padding: 0.9rem 1rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
     font-size: 0.9rem;
-}
-
-.contabilidad-table th {
-    background: #f4f4f4;
-    color: #333;
-    font-weight: bold;
-}
-
-.contabilidad-table tr:hover {
-    background: #f9f9f9;
-}
-
-.actions {
+  }
+  
+  .contabilidad-table th {
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .contabilidad-table tbody tr:hover {
+    background: #fefefe;
+  }
+  
+  /* Acciones de Editar/Eliminar */
+  .actions {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
-}
-
-.icon-button {
-    width: 1.8rem;
-    height: 1.8rem;
-    background: none;
+  }
+  
+  .icon-button {
+    width: 2rem;
+    height: 2rem;
+    /* background: none; */ /* Comenta o elimina esta línea */
     border: none;
     border-radius: 0.4rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-}
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  /* Botón de Editar */
+  .edit-button {
+    background-color: var(--color-animacion); /* Amarillo */
+  }
+  
+  .edit-button:hover {
+    background-color: var(--color-hover-amarillo);
+    transform: scale(1.05);
+  }
+  
+  .icon-button svg {
+    font-size: 1rem;
+  }
+  
+  /* Botón de Eliminar */
+  .delete-button {
+    background-color: var(--color-titulo); /* Rojo */
+  }
+  
+  .delete-button:hover {
+    background-color: var(--color-hover-rojo);
+    transform: scale(1.05);
+    color: #fff;
+  }
+  
+  .delete-button svg {
+    color: #fff;
+  }
+  
+  /* Botones para PDF y Excel */
+  .icon-button.pdf-button {
+    background-color: #d32f2f; /* Rojo PDF */
+    color: #fff;
+    padding: 0.4rem 0.6rem;
+    margin-right: 0.3rem;
+    font-size: 0.8rem;
+    border-radius: 0.3rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .icon-button.pdf-button:hover:not(.disabled) {
+    background-color: #b71c1c; /* Rojo más oscuro para hover */
+    transform: scale(1.05);
+  }
+  
+  .icon-button.excel-button {
+    background-color: #388e3c; /* Verde para Excel */
+    color: #fff;
+    padding: 0.4rem 0.6rem;
+    margin-right: 0.3rem;
+    font-size: 0.8rem;
+    border-radius: 0.3rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .icon-button.excel-button:hover:not(.disabled) {
+    background-color: #2e7d32;
+    transform: scale(1.05);
+  }
+  
+  /* Estado deshabilitado */
+  .disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Responsividad */
+  @media (max-width: 768px) {
+    .contabilidad-form {
+      max-width: 100%;
+      padding: 1.5rem;
+    }
+  
+    .contabilidad-table {
+      max-width: 100%;
+      overflow-x: auto;
+      display: block;
+    }
+  
+    .amount-fields {
+      flex-direction: column;
+    }
+  }
+  
+  
 
-.icon-button svg {
-    color: white;
-    font-size: 0.9rem;
-}
-
-.edit-button {
-    background-color: #4caf50;
-}
-
-.edit-button:hover {
-    background-color: #45a049;
-}
-
-.delete-button {
-    background-color: #f44336;
-}
-
-.delete-button:hover {
-    background-color: #d32f2f;
-}
-
-.toggle-form-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    margin-bottom: 1rem;
-}
-
-.toggle-form-button:hover {
-    background: #0056b3;
-}
-.pdf-button,
-.xml-button {
-  background-color: #2196F3; /* Azul para PDF, puedes ajustar */
-  color: white;
-  border: none;
-  border-radius: 0.3rem;
-  padding: 0.3rem 0.5rem;
-  margin-right: 0.3rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.xml-button {
-  background-color: #FF9800; /* Naranja para XML, puedes ajustar */
-}
-
-.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pdf-button:hover:not(.disabled) {
-  background-color: #1976D2;
-}
-
-.xml-button:hover:not(.disabled) {
-  background-color: #F57C00;
-}
+  

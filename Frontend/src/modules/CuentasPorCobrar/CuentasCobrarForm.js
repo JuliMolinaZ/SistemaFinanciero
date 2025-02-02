@@ -25,7 +25,7 @@ const CuentasCobrarForm = () => {
 
   const fetchCuentas = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/cuentas-cobrar');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/cuentas-cobrar');
       setCuentas(response.data);
     } catch (error) {
       console.error('Error al obtener cuentas por cobrar:', error);
@@ -34,7 +34,7 @@ const CuentasCobrarForm = () => {
 
   const fetchProyectos = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/projects');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/projects');
       setProyectos(response.data);
     } catch (error) {
       console.error('Error al obtener proyectos:', error);
@@ -70,9 +70,9 @@ const CuentasCobrarForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/cuentas-cobrar/${editingId}`, cuenta);
+        await axios.put(`/api/cuentas-cobrar/${editingId}`, cuenta);
       } else {
-        await axios.post('http://localhost:5000/api/cuentas-cobrar', cuenta);
+        await axios.post('/api/cuentas-cobrar', cuenta);
       }
       setCuenta({
         proyecto_id: '',
@@ -102,7 +102,7 @@ const CuentasCobrarForm = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/cuentas-cobrar/${id}`);
+      await axios.delete(`/api/cuentas-cobrar/${id}`);
       setCuentas(cuentas.filter((c) => c.id !== id));
     } catch (error) {
       console.error('Error al eliminar cuenta por cobrar:', error);

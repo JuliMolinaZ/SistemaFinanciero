@@ -5,7 +5,7 @@ const permisosController = {
   getPermisos: async (req, res) => {
     try {
       const [permisos] = await db.query('SELECT * FROM permisos');
-      res.json(permisos); // Asegúrate de que devuelve todos los permisos correctamente.
+      res.json(permisos);
     } catch (error) {
       console.error('Error al obtener permisos:', error);
       res.status(500).json({ error: 'Error al obtener los permisos.' });
@@ -16,6 +16,11 @@ const permisosController = {
     try {
       const { modulo } = req.params; // Nombre del módulo
       const { acceso_administrador } = req.body; // Nuevo estado del permiso
+
+      // Validaciones
+      if (typeof acceso_administrador !== 'boolean') {
+        return res.status(400).json({ error: 'El campo acceso_administrador debe ser booleano.' });
+      }
 
       const [result] = await db.query(
         'UPDATE permisos SET acceso_administrador = ? WHERE modulo = ?',

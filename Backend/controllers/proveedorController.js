@@ -1,4 +1,3 @@
-// controllers/proveedorController.js
 const db = require('../config/db');
 
 exports.getAllProveedores = async (req, res) => {
@@ -23,12 +22,20 @@ exports.getProveedorById = async (req, res) => {
 
 exports.createProveedor = async (req, res) => {
   try {
-    const { run_proveedor, nombre, direccion, rfc } = req.body;
+    const { run_proveedor, nombre, direccion, elemento, datos_bancarios, contacto } = req.body;
     const [result] = await db.query(
-      'INSERT INTO proveedores (run_proveedor, nombre, direccion, rfc) VALUES (?, ?, ?, ?)',
-      [run_proveedor, nombre, direccion, rfc]
+      'INSERT INTO proveedores (run_proveedor, nombre, direccion, elemento, datos_bancarios, contacto) VALUES (?, ?, ?, ?, ?, ?)',
+      [run_proveedor, nombre, direccion, elemento, datos_bancarios, contacto]
     );
-    res.status(201).json({ id: result.insertId, run_proveedor, nombre, direccion, rfc });
+    res.status(201).json({ 
+      id: result.insertId, 
+      run_proveedor, 
+      nombre, 
+      direccion, 
+      elemento, 
+      datos_bancarios, 
+      contacto 
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -37,13 +44,13 @@ exports.createProveedor = async (req, res) => {
 exports.updateProveedor = async (req, res) => {
   try {
     const { id } = req.params;
-    const { run_proveedor, nombre, direccion, rfc } = req.body;
+    const { run_proveedor, nombre, direccion, elemento, datos_bancarios, contacto } = req.body;
     const [result] = await db.query(
-      'UPDATE proveedores SET run_proveedor = ?, nombre = ?, direccion = ?, rfc = ? WHERE id = ?',
-      [run_proveedor, nombre, direccion, rfc, id]
+      'UPDATE proveedores SET run_proveedor = ?, nombre = ?, direccion = ?, elemento = ?, datos_bancarios = ?, contacto = ? WHERE id = ?',
+      [run_proveedor, nombre, direccion, elemento, datos_bancarios, contacto, id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Proveedor no encontrado' });
-    res.json({ id, run_proveedor, nombre, direccion, rfc });
+    res.json({ id, run_proveedor, nombre, direccion, elemento, datos_bancarios, contacto });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

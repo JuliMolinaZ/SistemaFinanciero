@@ -17,7 +17,7 @@ const CategoriasForm = () => {
 
   const fetchCategorias = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categorias');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
       setCategorias(response.data);
     } catch (error) {
       console.error('Error al obtener categorías:', error);
@@ -39,9 +39,9 @@ const CategoriasForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/categorias/${editingId}`, { nombre: categoria });
+        await axios.put(`/api/categorias/${editingId}`, { nombre: categoria });
       } else {
-        await axios.post('http://localhost:5000/api/categorias', { nombre: categoria });
+        await axios.post('/api/categorias', { nombre: categoria });
       }
       fetchCategorias();
       toggleForm();
@@ -61,7 +61,7 @@ const CategoriasForm = () => {
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta categoría?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/categorias/${id}`);
+      await axios.delete(`/api/categorias/${id}`);
       fetchCategorias();
     } catch (error) {
       console.error('Error al eliminar categoría:', error);

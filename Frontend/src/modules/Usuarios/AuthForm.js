@@ -27,7 +27,7 @@ const AuthForm = ({ setCurrentUser, setProfileData, setProfileComplete }) => {
 
       if (user.email && user.email.endsWith('@runsolutions-services.com')) {
         try {
-          const userResponse = await axios.get(`http://localhost:5000/api/usuarios/firebase/${user.uid}`);
+          const userResponse = await axios.get(`https://sigma.runsolutions-services.com/api/usuarios/firebase/${user.uid}`);
           setProfileData(userResponse.data);
           setProfileComplete(!!userResponse.data.role);
           setCurrentUser(user);
@@ -40,7 +40,7 @@ const AuthForm = ({ setCurrentUser, setProfileData, setProfileComplete }) => {
               role: '',
               avatar: user.photoURL || null,
             };
-            const createResponse = await axios.post('http://localhost:5000/api/usuarios', payload);
+            const createResponse = await axios.post('/api/usuarios', payload);
             setProfileData(createResponse.data);
             setProfileComplete(false);
             setCurrentUser(user);

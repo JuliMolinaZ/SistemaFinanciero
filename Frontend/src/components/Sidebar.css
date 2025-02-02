@@ -1,71 +1,117 @@
-/* Espaciado general en la barra lateral */
+/* ------------------------------- */
+/* SIDEBAR
+/* ------------------------------- */
 .sidebar {
   position: fixed;
-  top: 72px; /* Debajo del header */
+  top: 72px; /* Para que quede justo debajo del header */
   left: 0;
-  width: 220px;
+  width: 220px; /* Ancho por defecto */
   height: calc(100vh - 72px);
-  background: #fff;
-  border-right: 1px solid #f0f0f0;
-  padding: 1rem;
-  overflow-y: auto;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  transition: width 0.3s;
+  background: linear-gradient(90deg, #ff6b6b, #f94d9a);
+  color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  transition: width 0.3s ease;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Previene scrollbars horizontales al colapsar */
 }
 
-/* Cuando el sidebar está colapsado */
+/* Cuando está colapsado, reducimos el ancho */
 .sidebar.collapsed {
   width: 60px;
-  padding: 1rem 0.5rem;
 }
 
-/* Botón de colapso del sidebar */
+/* ------------------------------- */
+/* HEADER del SIDEBAR (flecha)     */
+/* ------------------------------- */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Colocamos la flecha a la derecha */
+  height: 60px;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
 .sidebar-toggle {
   background: none;
   border: none;
-  cursor: pointer;
-  margin-bottom: 1rem;
   font-size: 1.2rem;
-  color: #333;
+  cursor: pointer;
+  color: #fff; /* Siempre visible en blanco */
+  opacity: 1;  /* Aseguramos que sea siempre visible */
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
-/* Links del sidebar */
+.sidebar-toggle:hover {
+  color: #ffe0e0; /* Un ligero cambio al pasar el cursor */
+}
+
+/* ------------------------------- */
+/* Navegación / Links              */
+/* ------------------------------- */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 1rem;
+}
+
+/* Links */
 .sidebar-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  color: #333;
+  padding: 0.6rem 1rem;
+  margin: 0.3rem 0.5rem;
   text-decoration: none;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  transition: padding 0.3s;
+  color: #fff;
+  border-radius: 6px;
+  transition: background-color 0.3s;
 }
 
-.sidebar.collapsed .sidebar-link {
-  padding: 0.75rem 0.5rem;
+/* Hover sobre el link */
+.sidebar-link:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+/* Link activo (clase active de NavLink) */
+.sidebar-link.active {
+  background-color: rgba(255,255,255,0.4);
+}
+
+/* Ícono circular */
+.icon {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
+  margin-right: 0.75rem;
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 50%;
 }
 
-.sidebar.collapsed .sidebar-link span {
+/* Al colapsar el sidebar, ocultamos el texto y centramos los íconos */
+.sidebar.collapsed .sidebar-link {
+  justify-content: center;
+  padding: 0.6rem 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-link .icon {
   margin-right: 0;
 }
 
-/* Estilo cuando el link está activo o se encuentra en hover */
-.sidebar-link:hover,
-.sidebar-link.active {
-  background-color: #ff6b6b;
-  color: white;
+.sidebar.collapsed .sidebar-link span:not(.icon) {
+  display: none;
 }
 
-.sidebar-link span {
-  margin-right: 0.75rem;
-  transition: margin-right 0.3s;
+/* Scrollbar personalizado (opcional) */
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
 }
 
-/* Espaciado adicional en la parte inferior del sidebar */
-.sidebar::after {
-  content: '';
-  display: block;
-  height: 2rem; /* Espaciado adicional */
-}

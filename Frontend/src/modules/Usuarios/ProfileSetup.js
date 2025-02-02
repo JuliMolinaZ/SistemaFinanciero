@@ -1,10 +1,9 @@
 // src/modules/Usuarios/ProfileSetup.js
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';  // Importa useNavigate
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GlobalContext } from '../../context/GlobalState';
 
-// Importar avatares SVG
 import avatar1 from '../../assets/avatars/avatar1.svg';
 import avatar2 from '../../assets/avatars/avatar2.svg';
 import avatar3 from '../../assets/avatars/avatar3.svg';
@@ -16,19 +15,18 @@ const avatarOptions = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
 
 const ProfileSetup = () => {
   const { currentUser, setProfileData, setProfileComplete } = useContext(GlobalContext);
-  const navigate = useNavigate();  // Inicializa la función de navegación
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    name: currentUser.displayName || '',
+    name: currentUser?.displayName || '',
     role: '',
     avatar: ''
   });
 
   const [roles, setRoles] = useState([]);
 
-  // Obtener la lista de roles desde el backend al montar el componente
   useEffect(() => {
-    axios.get('http://localhost:5000/api/roles')
+    axios.get('/api/roles')
       .then(response => setRoles(response.data))
       .catch(error => console.error('Error al cargar roles:', error));
   }, []);
@@ -44,7 +42,6 @@ const ProfileSetup = () => {
   const handleImageUpload = e => {
     const file = e.target.files[0];
     if (file) {
-      // Lee el archivo y obtén una URL que pueda usarse como avatar
       const reader = new FileReader();
       reader.onloadend = () => {
         setForm({ ...form, avatar: reader.result });
@@ -55,25 +52,23 @@ const ProfileSetup = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+
     const profile = {
       name: form.name,
-      email: currentUser.email,
       role: form.role,
       avatar: form.avatar
     };
-    setProfileData(profile);
-    setProfileComplete(true);
 
     try {
-      // Actualiza el perfil en el backend usando firebase_uid
-      const response = await axios.put(
-        `http://localhost:5000/api/usuarios/firebase/${currentUser.uid}`,
-        profile
-      );
+      const response = await axios.put(`/api/usuarios/firebase/${currentUser.uid}`, profile);
       console.log('Perfil actualizado en la base de datos:', response.data);
-      navigate('/');  // Redirige a la página principal después de actualizar el perfil
+
+      setProfileData(response.data);
+      setProfileComplete(true);
+      navigate('/');
     } catch (error) {
       console.error('Error actualizando perfil:', error);
+      alert('Error actualizando perfil. Intenta nuevamente más tarde.');
     }
   };
 
@@ -124,3 +119,4 @@ const ProfileSetup = () => {
 };
 
 export default ProfileSetup;
+

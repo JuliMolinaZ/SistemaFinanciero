@@ -13,7 +13,9 @@ const ProveedorModule = () => {
     run_proveedor: '',
     nombre: '',
     direccion: '',
-    rfc: '',
+    elemento: '',
+    datos_bancarios: '',
+    contacto: '',
   });
 
   useEffect(() => {
@@ -22,7 +24,7 @@ const ProveedorModule = () => {
 
   const fetchProveedores = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/proveedores');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
       setProveedores(response.data);
     } catch (error) {
       console.error('Error al obtener proveedores:', error);
@@ -43,7 +45,9 @@ const ProveedorModule = () => {
       run_proveedor: '',
       nombre: '',
       direccion: '',
-      rfc: '',
+      elemento: '',
+      datos_bancarios: '',
+      contacto: '',
     });
   };
 
@@ -58,9 +62,9 @@ const ProveedorModule = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/proveedores/${editingProveedorId}`, formData);
+        await axios.put(`/api/proveedores/${editingProveedorId}`, formData);
       } else {
-        await axios.post('http://localhost:5000/api/proveedores', formData);
+        await axios.post('/api/proveedores', formData);
       }
       fetchProveedores();
       toggleForm();
@@ -76,7 +80,9 @@ const ProveedorModule = () => {
       run_proveedor: proveedor.run_proveedor,
       nombre: proveedor.nombre,
       direccion: proveedor.direccion,
-      rfc: proveedor.rfc,
+      elemento: proveedor.elemento,
+      datos_bancarios: proveedor.datos_bancarios || '',
+      contacto: proveedor.contacto || '',
     });
     setShowForm(true);
   };
@@ -86,7 +92,7 @@ const ProveedorModule = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/proveedores/${id}`);
+      await axios.delete(`/api/proveedores/${id}`);
       fetchProveedores();
     } catch (error) {
       console.error('Error al eliminar el proveedor:', error);
@@ -120,11 +126,29 @@ const ProveedorModule = () => {
             required
           />
 
-          <label>RFC:</label>
+          <label>ELEMENTO:</label>
           <input
             type="text"
-            name="rfc"
-            value={formData.rfc}
+            name="elemento"
+            value={formData.elemento}
+            onChange={handleChange}
+            required
+          />
+
+          <label>DATOS BANCARIOS:</label>
+          <input
+            type="text"
+            name="datos_bancarios"
+            value={formData.datos_bancarios}
+            onChange={handleChange}
+            required
+          />
+
+          <label>CONTACTO:</label>
+          <input
+            type="text"
+            name="contacto"
+            value={formData.contacto}
             onChange={handleChange}
             required
           />
@@ -149,7 +173,9 @@ const ProveedorModule = () => {
           <tr>
             <th>RUN Proveedor</th>
             <th>Nombre</th>
-            <th>RFC</th>
+            <th>Elemento</th>
+            <th>Datos Bancarios</th>
+            <th>Contacto</th>
             <th>Dirección</th>
             <th>Acciones</th>
           </tr>
@@ -159,7 +185,9 @@ const ProveedorModule = () => {
             <tr key={proveedor.id}>
               <td>{proveedor.run_proveedor}</td>
               <td>{proveedor.nombre}</td>
-              <td>{proveedor.rfc}</td>
+              <td>{proveedor.elemento}</td>
+              <td>{proveedor.datos_bancarios}</td>
+              <td>{proveedor.contacto}</td>
               <td>{proveedor.direccion}</td>
               <td className="actions">
                 <button

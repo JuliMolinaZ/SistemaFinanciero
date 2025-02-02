@@ -27,7 +27,7 @@ const ProjectModule = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/projects');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/projects');
       setProjects(response.data);
     } catch (error) {
       console.error('Error al obtener proyectos:', error);
@@ -36,7 +36,7 @@ const ProjectModule = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/clients');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/clients');
       setClients(response.data);
     } catch (error) {
       console.error('Error al obtener clientes:', error);
@@ -45,7 +45,7 @@ const ProjectModule = () => {
 
   const fetchCosts = async (projectId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/project-costs/${projectId}`);
+      const response = await axios.get(`https://sigma.runsolutions-services.com/api/project-costs/${projectId}`);
       setCosts(response.data);
     } catch (error) {
       console.error('Error al obtener los costos:', error);
@@ -55,7 +55,7 @@ const ProjectModule = () => {
   const handleAddCost = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:5000/api/project-costs/${selectedProject.id}`, newCost);
+      await axios.post(`/api/project-costs/${selectedProject.id}`, newCost);
       fetchCosts(selectedProject.id);
       setNewCost({ concepto: '', factura: '', monto: '' });
     } catch (error) {
@@ -74,7 +74,7 @@ const ProjectModule = () => {
     }
 
     try {
-      await axios.put(`http://localhost:5000/api/project-costs/${costId}`, {
+      await axios.put(`/api/project-costs/${costId}`, {
         concepto: updatedConcept,
         monto: parseFloat(updatedAmount),
         factura: updatedInvoice || null,
@@ -92,7 +92,7 @@ const ProjectModule = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/project-costs/${costId}`);
+      await axios.delete(`/api/project-costs/${costId}`);
       fetchCosts(selectedProject.id);
       alert('Costo eliminado correctamente.');
     } catch (error) {

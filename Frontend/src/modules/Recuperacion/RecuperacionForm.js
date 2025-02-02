@@ -23,6 +23,13 @@ const RecuperacionForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
+  // Definir el formateador de moneda MXN
+  const formatterMXN = new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2,
+  });
+
   useEffect(() => {
     fetchRecuperaciones();
     fetchClientes();
@@ -43,7 +50,7 @@ const RecuperacionForm = () => {
 
   const fetchRecuperaciones = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/recuperacion');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/recuperacion');
       setRecuperaciones(response.data);
     } catch (error) {
       console.error('Error al obtener recuperaciones:', error);
@@ -52,7 +59,7 @@ const RecuperacionForm = () => {
 
   const fetchClientes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/clients');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/clients');
       setClientes(response.data);
     } catch (error) {
       console.error('Error al obtener clientes:', error);
@@ -61,7 +68,7 @@ const RecuperacionForm = () => {
 
   const fetchProyectos = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/projects');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/projects');
       setProyectos(response.data);
     } catch (error) {
       console.error('Error al obtener proyectos:', error);
@@ -89,9 +96,9 @@ const RecuperacionForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/recuperacion/${editingId}`, recuperacion);
+        await axios.put(`/api/recuperacion/${editingId}`, recuperacion);
       } else {
-        await axios.post('http://localhost:5000/api/recuperacion', recuperacion);
+        await axios.post('/api/recuperacion', recuperacion);
       }
       fetchRecuperaciones();
       toggleForm();
@@ -116,7 +123,7 @@ const RecuperacionForm = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta recuperación?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/recuperacion/${id}`);
+      await axios.delete(`/api/recuperacion/${id}`);
       fetchRecuperaciones();
     } catch (error) {
       console.error('Error al eliminar recuperación:', error);
@@ -125,7 +132,7 @@ const RecuperacionForm = () => {
 
   const toggleRecuperado = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/recuperacion/${id}/toggle`);
+      await axios.put(`/api/recuperacion/${id}/toggle`);
       fetchRecuperaciones();
     } catch (error) {
       console.error('Error al alternar estado de recuperado:', error);
@@ -216,11 +223,11 @@ const RecuperacionForm = () => {
         <div className="totals">
           <h3>
             Total Recuperado:{' '}
-            {total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+            {formatterMXN.format(total)}
           </h3>
           <h3>
             Total Por Recuperar:{' '}
-            {totalPorRecuperar.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+            {formatterMXN.format(totalPorRecuperar)}
           </h3>
         </div>
         <div className="filter-month">
@@ -233,7 +240,7 @@ const RecuperacionForm = () => {
             <option value="">Todos los meses</option>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                {new Date(0, i).toLocaleString('es', { month: 'long' })}
               </option>
             ))}
           </select>
@@ -257,8 +264,8 @@ const RecuperacionForm = () => {
           {recuperacionesFiltradas.map((rec) => (
             <tr key={rec.id}>
               <td>{rec.concepto}</td>
-              <td>{parseFloat(rec.monto).toFixed(2)}</td>
-              <td>{rec.fecha ? new Date(rec.fecha).toLocaleDateString() : 'Sin fecha'}</td>
+              <td>{formatterMXN.format(parseFloat(rec.monto) || 0)}</td>
+              <td>{rec.fecha ? new Date(rec.fecha).toLocaleDateString('es-MX') : 'Sin fecha'}</td>
               <td>
                 <button 
                   onClick={() => toggleRecuperado(rec.id)}
@@ -285,4 +292,5 @@ const RecuperacionForm = () => {
 };
 
 export default RecuperacionForm;
+
 

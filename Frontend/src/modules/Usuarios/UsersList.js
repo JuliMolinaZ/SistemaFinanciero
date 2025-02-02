@@ -12,7 +12,7 @@ const UsersList = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/usuarios');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/usuarios');
       const data = response.data.map((user) => ({
         ...user,
         avatar: user.avatar || '/assets/avatars/default-avatar.png', // Asegúrate de tener un avatar por defecto
@@ -28,7 +28,7 @@ const UsersList = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/usuarios/${id}`);
+      await axios.delete(`/api/usuarios/${id}`);
       setUsers(users.filter((user) => user.id !== id));
     } catch (error) {
       console.error('Error al eliminar el usuario:', error);

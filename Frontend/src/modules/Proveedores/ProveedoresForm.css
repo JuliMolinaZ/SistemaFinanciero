@@ -1,119 +1,170 @@
+/* 1. Definición de Variables CSS */
+:root {
+    /* Colores Principales */
+    --color-primary: #007bff;
+    --color-primary-hover: #0056b3;
+    --color-secondary: #e63946;
+    --color-success: #4caf50;
+    --color-success-hover: #45a049;
+    --color-danger: #f44336;
+    --color-danger-hover: #d32f2f;
+
+    /* Colores Neutros */
+    --color-background: #ffffff;
+    --color-text: #333333;
+    --color-border: #ddd;
+    --color-input-bg: #f9f9f9;
+    --color-table-header: #f4f4f4;
+    --color-table-row-hover: #f1f1f1;
+
+    /* Tipografía */
+    --font-family: 'Roboto', sans-serif;
+    --font-size-base: 16px;
+    --font-size-large: 1.8rem;
+    --font-size-medium: 1rem;
+    --font-size-small: 0.9rem;
+
+    /* Espaciado */
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
+
+    /* Bordes y Sombreados */
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+}
+
+/* 2. Estilos Generales del Módulo */
 .proveedores-module {
-    padding: 2rem;
+    padding: var(--spacing-large);
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centrar contenido horizontalmente */
-    text-align: center; /* Centrar el texto */
+    align-items: center;
+    text-align: center;
+    font-family: var(--font-family);
+    background-color: #f7f7f7;
+    min-height: 100vh;
 }
 
 .proveedores-module h2 {
-    color: #e63946; /* Color rojo para el título */
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
+    color: var(--color-secondary);
+    font-size: var(--font-size-large);
+    margin-bottom: var(--spacing-medium);
     text-transform: capitalize;
 }
 
+/* 3. Botón de Alternar Formulario */
 .toggle-form-button {
-    background: #007bff;
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-background);
     border: none;
-    padding: 0.7rem 1.5rem;
+    padding: 0.8rem 2rem;
     border-radius: 5px;
-    font-size: 1rem;
+    font-size: var(--font-size-medium);
     cursor: pointer;
-    transition: background 0.3s ease;
-    margin-bottom: 1.5rem; /* Espacio debajo del botón */
-    text-align: center;
+    transition: background-color var(--transition-speed);
+    margin-bottom: var(--spacing-large);
+    box-shadow: var(--box-shadow);
 }
 
 .toggle-form-button:hover {
-    background: #0056b3;
+    background-color: var(--color-primary-hover);
 }
 
+/* 4. Formulario de Proveedores */
 .proveedores-form {
-    width: 90%;
-    max-width: 400px;
-    margin: 0 auto 2rem auto; /* Centrar formulario */
-    padding: 1.5rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: left; /* Alinear texto del formulario a la izquierda */
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto var(--spacing-large) auto;
+    padding: var(--spacing-medium);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background-color: var(--color-background);
+    box-shadow: var(--box-shadow);
+    text-align: left;
 }
 
 .proveedores-form label {
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #333;
-    margin-bottom: 0.3rem;
     display: block;
+    font-weight: bold;
+    font-size: var(--font-size-small);
+    color: var(--color-text);
+    margin-bottom: 0.3rem;
 }
 
 .proveedores-form input,
 .proveedores-form textarea {
     width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 0.8rem;
-    font-size: 0.9rem;
+    padding: 0.8rem;
+    margin-bottom: var(--spacing-small);
+    font-size: var(--font-size-small);
     border: 1px solid #ccc;
     border-radius: 5px;
-    background: #f9f9f9;
+    background-color: var(--color-input-bg);
     box-sizing: border-box;
+    transition: border-color var(--transition-speed), background-color var(--transition-speed);
 }
 
 .proveedores-form input:focus,
 .proveedores-form textarea:focus {
-    border-color: #007bff;
+    border-color: var(--color-primary);
     outline: none;
-    background: #fff;
+    background-color: #fff;
 }
 
 .proveedores-form button {
-    background: #007bff;
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-background);
     border: none;
-    padding: 0.6rem 1.2rem;
+    padding: 0.8rem 1.5rem;
     border-radius: 5px;
-    font-size: 0.9rem;
+    font-size: var(--font-size-medium);
     cursor: pointer;
-    transition: background 0.3s ease;
-    width: 100%; /* Ocupa todo el ancho */
+    transition: background-color var(--transition-speed);
+    width: 100%;
+    box-shadow: var(--box-shadow);
 }
 
 .proveedores-form button:hover {
-    background: #0056b3;
+    background-color: var(--color-primary-hover);
 }
 
+/* 5. Tabla de Proveedores */
 .proveedores-table {
-    width: 90%;
-    max-width: 800px;
-    margin: 1rem auto;
+    width: 100%;
+    max-width: 1000px;
+    margin: var(--spacing-medium) auto;
     border-collapse: collapse;
-    background: #fff;
-    border-radius: 8px;
+    background-color: var(--color-background);
+    border-radius: var(--border-radius);
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow);
 }
 
 .proveedores-table th,
 .proveedores-table td {
-    padding: 0.6rem;
+    padding: 0.8rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
-    font-size: 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-small);
 }
 
 .proveedores-table th {
-    background: #f4f4f4;
-    color: #333;
+    background-color: var(--color-table-header);
+    color: var(--color-text);
     font-weight: bold;
 }
 
-.proveedores-table tr:hover {
-    background: #f9f9f9;
+.proveedores-table tr:nth-child(even) {
+    background-color: #fafafa;
 }
 
+.proveedores-table tr:hover {
+    background-color: var(--color-table-row-hover);
+}
+
+/* 6. Acciones (Editar y Eliminar) */
 .actions {
     display: flex;
     justify-content: center;
@@ -121,35 +172,110 @@
 }
 
 .icon-button {
-    width: 1.8rem;
-    height: 1.8rem;
-    background: none;
+    width: 2rem;
+    height: 2rem;
+    background-color: transparent;
     border: none;
-    border-radius: 0.4rem;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color var(--transition-speed), transform var(--transition-speed);
 }
 
 .icon-button svg {
-    color: white;
-    font-size: 0.9rem;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.icon-button:hover {
+    transform: scale(1.1);
 }
 
 .edit-button {
-    background-color: #4caf50;
+    background-color: var(--color-success);
 }
 
 .edit-button:hover {
-    background-color: #45a049;
+    background-color: var(--color-success-hover);
 }
 
 .delete-button {
-    background-color: #f44336;
+    background-color: var(--color-danger);
 }
 
 .delete-button:hover {
-    background-color: #d32f2f;
+    background-color: var(--color-danger-hover);
+}
+
+/* 7. Responsividad */
+@media (max-width: 600px) {
+    .proveedores-module {
+        padding: var(--spacing-medium);
+    }
+
+    .proveedores-form {
+        padding: var(--spacing-small);
+    }
+
+    .toggle-form-button,
+    .proveedores-form button {
+        padding: 0.6rem 1rem;
+        font-size: var(--font-size-small);
+    }
+
+    .proveedores-table th,
+    .proveedores-table td {
+        padding: 0.6rem;
+        font-size: var(--font-size-small);
+    }
+
+    .icon-button {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+
+    .icon-button svg {
+        font-size: 0.8rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .proveedores-module {
+        padding: var(--spacing-large);
+    }
+
+    .proveedores-form {
+        max-width: 600px;
+    }
+
+    .proveedores-table {
+        max-width: 1200px;
+    }
+
+    .toggle-form-button,
+    .proveedores-form button {
+        padding: 0.8rem 2rem;
+        font-size: var(--font-size-medium);
+    }
+}
+
+/* 8. Accesibilidad */
+.toggle-form-button:focus,
+.proveedores-form button:focus,
+.icon-button:focus {
+    outline: 2px dashed var(--color-primary);
+    outline-offset: 4px;
+}
+
+.proveedores-module,
+.proveedores-form,
+.proveedores-table th,
+.proveedores-table td {
+    color: var(--color-text);
+}
+
+.icon-button svg {
+    color: #fff;
 }

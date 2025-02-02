@@ -13,3 +13,12 @@ logs/
 
 # Ignorar la carpeta de build de React
 Frontend/build/
+
+
+salidas.sh
+salida_completa.txt
+
+uploads
+Backend/uploads
+
+.env.local

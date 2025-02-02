@@ -9,3 +9,6 @@ router.put('/:modulo', permisosController.updatePermiso); // Actualizar permisos
 
 module.exports = router;
 
+
+
+

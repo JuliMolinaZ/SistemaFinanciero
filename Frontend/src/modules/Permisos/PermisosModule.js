@@ -1,24 +1,32 @@
 // src/modules/Permisos/PermisosModule.js
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import './PermisosModule.css';
+import { GlobalContext } from '../../context/GlobalState';
 
 const PermisosModule = () => {
-  const [permisos, setPermisos] = useState([]);
+  const { permisos, setPermisos } = useContext(GlobalContext);
+  const [loading, setLoading] = useState(true);
+
+  // Lee la variable de entorno (si no existe, usar "http://localhost:5000")
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     // Obtener la lista de permisos desde el backend
     const fetchPermisos = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/permisos');
+        const response = await axios.get(`${API_URL}/api/permisos`);
         setPermisos(response.data);
       } catch (error) {
         console.error('Error al obtener los permisos:', error.response?.data || error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPermisos();
-  }, []);
+  }, [API_URL, setPermisos]);
 
   const togglePermiso = async (modulo) => {
     try {
@@ -27,7 +35,7 @@ const PermisosModule = () => {
       const nuevoEstado = !permiso.acceso_administrador;
 
       // Actualiza el permiso en el backend
-      await axios.put(`http://localhost:5000/api/permisos/${modulo}`, {
+      await axios.put(`${API_URL}/api/permisos/${modulo}`, {
         acceso_administrador: nuevoEstado,
       });
 
@@ -41,6 +49,10 @@ const PermisosModule = () => {
       console.error('Error al actualizar el permiso:', error.response?.data || error.message);
     }
   };
+
+  if (loading) {
+    return <div>Cargando permisos...</div>;
+  }
 
   return (
     <div className="permisos-module">
@@ -75,5 +87,7 @@ const PermisosModule = () => {
 };
 
 export default PermisosModule;
+
+
 
 

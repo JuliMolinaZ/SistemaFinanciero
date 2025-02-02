@@ -23,7 +23,7 @@ const ClientModule = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/clients');
+      const response = await axios.get('https://sigma.runsolutions-services.com/api/clients');
       setClients(response.data);
     } catch (error) {
       console.error('Error al obtener clientes:', error);
@@ -50,9 +50,9 @@ const ClientModule = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/clients/${editingClientId}`, formData);
+        await axios.put(`/api/clients/${editingClientId}`, formData);
       } else {
-        await axios.post('http://localhost:5000/api/clients', formData);
+        await axios.post('/api/clients', formData);
       }
       setFormData({ run_cliente: '', nombre: '', rfc: '', direccion: '' });
       setShowForm(false);
@@ -69,7 +69,7 @@ const ClientModule = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/clients/${id}`);
+      await axios.delete(`/api/clients/${id}`);
       setClients(clients.filter((client) => client.id !== id));
     } catch (error) {
       console.error('Error al eliminar el cliente:', error);

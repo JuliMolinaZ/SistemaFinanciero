@@ -1,59 +1,55 @@
 // src/components/PrivateRoute.js
-import React, { useEffect, useState } from 'react';
+
+import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
-import axios from 'axios';
+import { GlobalContext } from '../context/GlobalState';
 
-const PrivateRoute = ({ children, role, allowedRoles, condition }) => {
-  const [isPermissionEnabled, setIsPermissionEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
+const PrivateRoute = ({ children, allowedRoles, condition }) => {
+  const { currentUser, profileData, permisos } = useContext(GlobalContext);
+  // Usamos un array vacío si permisos es undefined
+  const safePermisos = permisos || [];
 
-  useEffect(() => {
-    // Verificar si el módulo está habilitado para el ADMINISTRADOR
-    const checkPermission = async () => {
-      if (role === 'Administrador' && condition) {
-        try {
-          const response = await axios.get('http://localhost:5000/api/permisos');
-          const permisos = response.data;
+  console.log("PrivateRoute -> currentUser:", currentUser);
+  console.log("PrivateRoute -> profileData:", profileData);
+  console.log("PrivateRoute -> safePermisos:", safePermisos);
+  console.log("PrivateRoute -> allowedRoles:", allowedRoles);
+  console.log("PrivateRoute -> condition:", condition);
 
-          const permiso = permisos.find((p) => p.modulo === condition);
-          if (permiso && !permiso.acceso_administrador) {
-            setIsPermissionEnabled(false); // Deshabilitar el acceso si el permiso está deshabilitado
-          }
-        } catch (error) {
-          console.error("Error al verificar el permiso:", error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false); // Finaliza la carga si no es necesario comprobar el permiso
-      }
-    };
-
-    checkPermission();
-  }, [role, condition]);
-
-  // Si estamos cargando los permisos, no renderizamos nada
-  if (loading) {
-    return <div>Loading...</div>;
+  if (!currentUser || !profileData) {
+    console.warn("No hay usuario o perfil, redirigiendo a /login");
+    return <Navigate to="/login" replace />;
   }
 
-  // Si el permiso está deshabilitado, mostramos un mensaje de error
-  if (role === 'Administrador' && !isPermissionEnabled) {
-    return (
-      <div>
-        <h2>Acceso no permitido</h2>
-        <p>Este módulo no está habilitado para el Administrador en este momento.</p>
-      </div>
+  // Usar el rol del perfil obtenido del backend
+  const userRole = profileData.role;
+
+  if (!allowedRoles.includes(userRole)) {
+    console.warn(`El rol ${userRole} no está permitido. Roles permitidos: ${allowedRoles}`);
+    return <Navigate to="/" replace />;
+  }
+
+  if (condition) {
+    // Convertimos ambas cadenas a minúsculas para evitar problemas de mayúsculas/minúsculas
+    const permiso = safePermisos.find(
+      (p) => p.modulo.toLowerCase() === condition.toLowerCase()
     );
+    console.log("Permiso encontrado para condición:", permiso);
+
+    // Si el usuario es Administrador, se requiere que el permiso indique acceso administrativo
+    if (userRole === 'Administrador') {
+      if (!permiso || !permiso.acceso_administrador) {
+        console.warn("Acceso no permitido para Administrador en módulo", condition);
+        return (
+          <div>
+            <h2>Acceso no permitido</h2>
+            <p>Este módulo no está habilitado para el Administrador en este momento.</p>
+          </div>
+        );
+      }
+    }
   }
 
-  // Si el rol está en allowedRoles, y el permiso está habilitado, se renderiza el contenido
-  if (allowedRoles.includes(role) && isPermissionEnabled) {
-    return children;
-  }
-
-  // Si no cumple las condiciones, redirigimos
-  return <Navigate to="/" replace />;
+  return children;
 };
 
 export default PrivateRoute;
