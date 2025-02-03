@@ -1,4 +1,3 @@
-/* File: RecuperacionForm.js */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RecuperacionForm.css';
@@ -23,7 +22,7 @@ const RecuperacionForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Definir el formateador de moneda MXN
+  // Formateador de moneda MXN
   const formatterMXN = new Intl.NumberFormat('es-MX', {
     style: 'currency',
     currency: 'MXN',
@@ -149,6 +148,7 @@ const RecuperacionForm = () => {
       <button className="toggle-form-button" onClick={toggleForm}>
         {showForm ? 'Cerrar formulario' : 'Registrar Recuperación'}
       </button>
+
       {showForm && (
         <form onSubmit={handleSubmit} className="recuperacion-form">
           <label htmlFor="concepto">Concepto:</label>
@@ -223,11 +223,11 @@ const RecuperacionForm = () => {
         <div className="totals">
           <h3>
             Total Recuperado:{' '}
-            {formatterMXN.format(total)}
+            <span className="total-value recovered">{formatterMXN.format(total)}</span>
           </h3>
           <h3>
             Total Por Recuperar:{' '}
-            {formatterMXN.format(totalPorRecuperar)}
+            <span className="total-value not-recovered">{formatterMXN.format(totalPorRecuperar)}</span>
           </h3>
         </div>
         <div className="filter-month">
@@ -269,7 +269,8 @@ const RecuperacionForm = () => {
               <td>
                 <button 
                   onClick={() => toggleRecuperado(rec.id)}
-                  className={`toggle-button ${rec.recuperado ? 'toggle-yes' : 'toggle-no'}`}>
+                  className={`toggle-button ${rec.recuperado ? 'toggle-yes' : 'toggle-no'}`}
+                >
                   {rec.recuperado ? 'Sí' : 'No'}
                 </button>
               </td>
@@ -292,5 +293,6 @@ const RecuperacionForm = () => {
 };
 
 export default RecuperacionForm;
+
 
 

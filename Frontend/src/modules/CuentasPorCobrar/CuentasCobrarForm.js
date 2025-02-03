@@ -61,7 +61,7 @@ const CuentasCobrarForm = () => {
       ...prev,
       [name]: value,
       ...(name === 'monto_sin_iva' && {
-        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2) // Cálculo automático del IVA
+        monto_con_iva: (parseFloat(value) * 1.16 || 0).toFixed(2) // Cálculo automático del IVA
       })
     }));
   };
@@ -188,13 +188,19 @@ const CuentasCobrarForm = () => {
         </form>
       )}
 
-      {/* Totales */}
+      {/* Totales en cuadritos */}
       <div className="totales-container">
-        <h4>Total sin IVA: {formatCurrency(totalSinIVA)}</h4>
-        <h4>Total con IVA: {formatCurrency(totalConIVA)}</h4>
+        <div className="total-card">
+          <h4>Total sin IVA</h4>
+          <p>{formatCurrency(totalSinIVA)}</p>
+        </div>
+        <div className="total-card">
+          <h4>Total con IVA</h4>
+          <p>{formatCurrency(totalConIVA)}</p>
+        </div>
       </div>
 
-      <div>
+      <div className="filter-container">
         <label htmlFor="filterByMonth">Filtrar por Mes:</label>
         <select
           id="filterByMonth"
@@ -251,5 +257,4 @@ const CuentasCobrarForm = () => {
 };
 
 export default CuentasCobrarForm;
-
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ClientModule.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const ClientModule = () => {
   const [clients, setClients] = useState([]);
@@ -31,6 +31,7 @@ const ClientModule = () => {
   };
 
   const toggleForm = () => {
+    // Si se cierra el formulario, reinicia los estados
     if (showForm) {
       setIsEditing(false);
       setEditingClientId(null);
@@ -95,49 +96,57 @@ const ClientModule = () => {
         {showForm ? 'Cerrar formulario' : 'Crear clientes'}
       </button>
 
+      {/* Si showForm es verdadero, mostramos el overlay con el formulario */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="client-form">
-          <label>ID RUN CLIENTE:</label>
-          <input
-            type="text"
-            name="run_cliente"
-            value={formData.run_cliente}
-            onChange={handleChange}
-            required
-          />
-
-          <label>NOMBRE CLIENTE:</label>
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
-
-          <label>RFC:</label>
-          <input
-            type="text"
-            name="rfc"
-            value={formData.rfc}
-            onChange={handleChange}
-            required
-          />
-
-          <label>DIRECCIÓN:</label>
-          <textarea
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
-            required
-          />
-
-          <div className="button-container">
-            <button type="submit">
-              {isEditing ? 'Actualizar Cliente' : 'Registrar Cliente'}
+        <div className="form-overlay">
+          <div className="dropdown-form">
+            <button className="close-card-button" onClick={toggleForm}>
+              <FontAwesomeIcon icon={faTimes} />
             </button>
+            <form onSubmit={handleSubmit} className="client-form">
+              <label>ID RUN CLIENTE:</label>
+              <input
+                type="text"
+                name="run_cliente"
+                value={formData.run_cliente}
+                onChange={handleChange}
+                required
+              />
+
+              <label>NOMBRE CLIENTE:</label>
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+              />
+
+              <label>RFC:</label>
+              <input
+                type="text"
+                name="rfc"
+                value={formData.rfc}
+                onChange={handleChange}
+                required
+              />
+
+              <label>DIRECCIÓN:</label>
+              <textarea
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleChange}
+                required
+              />
+
+              <div className="button-container">
+                <button type="submit">
+                  {isEditing ? 'Actualizar Cliente' : 'Registrar Cliente'}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       )}
 
       <h3>Clientes Registrados</h3>
@@ -159,14 +168,10 @@ const ClientModule = () => {
               <td>{client.rfc}</td>
               <td>{client.direccion}</td>
               <td className="actions">
-                <button
-                  className="icon-button edit-button"
-                  onClick={() => handleEdit(client)}>
+                <button className="icon-button edit-button" onClick={() => handleEdit(client)}>
                   <FontAwesomeIcon icon={faEdit} />
                 </button>
-                <button
-                  className="icon-button delete-button"
-                  onClick={() => handleDelete(client.id)}>
+                <button className="icon-button delete-button" onClick={() => handleDelete(client.id)}>
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
               </td>
@@ -179,3 +184,4 @@ const ClientModule = () => {
 };
 
 export default ClientModule;
+

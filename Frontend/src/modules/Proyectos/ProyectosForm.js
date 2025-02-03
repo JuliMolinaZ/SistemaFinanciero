@@ -1,8 +1,9 @@
+// src/modules/Proyectos/ProjectModule.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProjectModule.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const ProjectModule = () => {
   const [projects, setProjects] = useState([]);
@@ -90,7 +91,6 @@ const ProjectModule = () => {
   const handleDeleteCost = async (costId) => {
     const confirmDelete = window.confirm('¿Está seguro de que desea eliminar este costo?');
     if (!confirmDelete) return;
-
     try {
       await axios.delete(`/api/project-costs/${costId}`);
       fetchCosts(selectedProject.id);
@@ -111,11 +111,13 @@ const ProjectModule = () => {
     setCosts([]);
   };
 
-  const toggleForm = () => {
+  const toggleFormOverlay = () => {
     setShowForm(!showForm);
-    setIsEditing(false);
-    setEditingProjectId(null);
-    setFormData({ nombre: '', cliente_id: '', monto_sin_iva: '', monto_con_iva: '' });
+    if (!showForm) {
+      setIsEditing(false);
+      setEditingProjectId(null);
+      setFormData({ nombre: '', cliente_id: '', monto_sin_iva: '', monto_con_iva: '' });
+    }
   };
 
   const handleChange = (e) => {
@@ -140,64 +142,88 @@ const ProjectModule = () => {
     return projects.reduce((total, project) => total + parseFloat(project.monto_sin_iva || 0), 0);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isEditing) {
+        await axios.put(`/api/projects/${editingProjectId}`, formData);
+      } else {
+        await axios.post('/api/projects', formData);
+      }
+      fetchProjects();
+      toggleFormOverlay(); // Cierra el overlay al enviar el formulario
+    } catch (error) {
+      console.error('Error al registrar proyecto:', error);
+    }
+  };
+
   return (
     <section className="project-module">
-      <h2>Proyectos</h2>
-      <button onClick={toggleForm} className="toggle-form-button">
+      <h2>PROYECTOS</h2>
+      <button onClick={toggleFormOverlay} className="toggle-form-button">
         {showForm ? 'Cerrar formulario' : 'Crear proyecto'}
       </button>
 
+      {/* Overlay con tarjeta para el formulario */}
       {showForm && (
-        <form className="project-form">
-          <label>Nombre del Proyecto:</label>
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
+        <div className="form-overlay">
+          <div className="dropdown-form">
+            <button className="close-card-button" onClick={toggleFormOverlay}>
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+            <form className="project-form" onSubmit={handleSubmit}>
+              <label>Nombre del Proyecto:</label>
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+              />
 
-          <label>Cliente:</label>
-          <select
-            name="cliente_id"
-            value={formData.cliente_id}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Seleccione un cliente</option>
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.nombre}
-              </option>
-            ))}
-          </select>
+              <label>Cliente:</label>
+              <select
+                name="cliente_id"
+                value={formData.cliente_id}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Seleccione un cliente</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.nombre}
+                  </option>
+                ))}
+              </select>
 
-          <label>Monto sin IVA:</label>
-          <input
-            type="number"
-            name="monto_sin_iva"
-            value={formData.monto_sin_iva}
-            onChange={handleChange}
-            required
-          />
+              <label>Monto sin IVA:</label>
+              <input
+                type="number"
+                name="monto_sin_iva"
+                value={formData.monto_sin_iva}
+                onChange={handleChange}
+                required
+              />
 
-          <label>Monto con IVA:</label>
-          <input
-            type="number"
-            name="monto_con_iva"
-            value={formData.monto_con_iva}
-            readOnly
-          />
+              <label>Monto con IVA:</label>
+              <input
+                type="number"
+                name="monto_con_iva"
+                value={formData.monto_con_iva}
+                readOnly
+              />
 
-          <button type="submit" className="submit-button">
-            {isEditing ? 'Actualizar Proyecto' : 'Registrar Proyecto'}
-          </button>
-        </form>
+              <button type="submit" className="submit-button">
+                {isEditing ? 'Actualizar Proyecto' : 'Registrar Proyecto'}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       <div className="total-projects">
-        <h4>Total de Proyectos: {formatCurrency(calculateTotalProjects())}</h4>
+        <h4>Total de Proyectos</h4>
+        <p>{formatCurrency(calculateTotalProjects())}</p>
       </div>
 
       <h3>Proyectos Registrados</h3>
@@ -327,6 +353,8 @@ const ProjectModule = () => {
 };
 
 export default ProjectModule;
+
+
 
 
 

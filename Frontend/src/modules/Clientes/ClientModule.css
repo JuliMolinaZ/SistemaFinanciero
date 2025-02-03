@@ -1,31 +1,130 @@
-.client-module {
+/* src/modules/Clientes/ClientModule.css */
+
+/* Variables y estilos globales */
+:root {
+    --color-fondo: #f5f5f5;
+    --color-titulo: #e63946;
+    --color-boton-principal: #007bff;
+    --color-boton-principal-hover: #0056b3;
+    --color-boton-editar: #ffc107;
+    --color-boton-editar-hover: #e0a800;
+    --color-boton-eliminar: #f44336;
+    --color-boton-eliminar-hover: #d32f2f;
+    --color-texto: #333;
+    --color-fondo-formulario: #ffffff;
+    --color-borde: #ddd;
+    --color-sombra: rgba(0, 0, 0, 0.1);
+    --espaciado-grande: 2rem;
+  }
+  
+  /* Contenedor principal */
+  .client-module {
     padding: 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.client-form {
+    position: relative;
+  }
+  
+  /* Título: mayúsculas, centrado, mayor tamaño e impactante */
+  .client-module h2 {
+    text-align: center;
+    color: var(--color-titulo);
+    margin-bottom: var(--espaciado-grande);
+    text-transform: uppercase;
+    font-size: 2rem;
+  }
+  
+  /* Botón principal "Crear clientes" (se mantiene el color azul de la app) */
+  .toggle-form-button {
+    background: var(--color-boton-principal);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 1rem;
+  }
+  
+  .toggle-form-button:hover {
+    background: var(--color-boton-principal-hover);
+  }
+  
+  /* Overlay oscuro para el formulario */
+  .form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  /* Tarjeta desplegable (dropdown-form) centrada en el overlay */
+  .dropdown-form {
+    background: var(--color-fondo-formulario);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px var(--color-sombra);
+    position: relative;
     width: 90%;
     max-width: 400px;
-    margin: 1rem auto;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.client-form label {
+    /* Animación de entrada (opcional) */
+    opacity: 0;
+    animation: fadeInDown 0.5s forwards;
+  }
+  
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Botón de cierre (X) para la tarjeta */
+  .close-card-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-texto);
+    transition: color 0.3s ease;
+  }
+  
+  .close-card-button:hover {
+    color: var(--color-titulo);
+  }
+  
+  /* Estilos del formulario */
+  .client-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .client-form label {
     font-weight: bold;
     font-size: 0.9rem;
-    color: #333;
+    color: var(--color-texto);
     margin-bottom: 0.3rem;
     display: block;
-}
-
-.client-form input,
-.client-form textarea {
+  }
+  
+  .client-form input,
+  .client-form textarea {
     width: 100%;
     padding: 0.6rem;
     margin-bottom: 0.8rem;
@@ -34,23 +133,23 @@
     border-radius: 5px;
     background: #f9f9f9;
     box-sizing: border-box;
-}
-
-.client-form input:focus,
-.client-form textarea:focus {
-    border-color: #007bff;
+  }
+  
+  .client-form input:focus,
+  .client-form textarea:focus {
+    border-color: var(--color-boton-principal-hover);
     outline: none;
     background: #fff;
-}
-
-.client-form .button-container {
+  }
+  
+  .client-form .button-container {
     display: flex;
     justify-content: center;
     margin-top: 1rem;
-}
-
-.client-form button {
-    background: #007bff;
+  }
+  
+  .client-form button {
+    background: var(--color-boton-principal);
     color: white;
     border: none;
     padding: 0.6rem 1.2rem;
@@ -59,13 +158,14 @@
     cursor: pointer;
     transition: background 0.3s ease;
     width: 100%;
-}
-
-.client-form button:hover {
-    background: #0056b3;
-}
-
-.clients-table {
+  }
+  
+  .client-form button:hover {
+    background: var(--color-boton-principal-hover);
+  }
+  
+  /* Tabla de clientes */
+  .clients-table {
     width: 90%;
     max-width: 800px;
     border-collapse: collapse;
@@ -73,34 +173,35 @@
     background: #fff;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.clients-table th,
-.clients-table td {
-    padding: 0.6rem;
+    box-shadow: 0 4px 8px var(--color-sombra);
+  }
+  
+  .clients-table th,
+  .clients-table td {
+    padding: 0.75rem;
     text-align: left;
     border-bottom: 1px solid #ddd;
     font-size: 0.9rem;
-}
-
-.clients-table th {
+  }
+  
+  .clients-table th {
     background: #f4f4f4;
-    color: #333;
+    color: var(--color-texto);
     font-weight: bold;
-}
-
-.clients-table tr:hover {
+  }
+  
+  .clients-table tr:hover {
     background: #f9f9f9;
-}
-
-.actions {
+  }
+  
+  /* Acciones */
+  .actions {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
-}
-
-.icon-button {
+  }
+  
+  .icon-button {
     width: 1.8rem;
     height: 1.8rem;
     background: none;
@@ -111,41 +212,26 @@
     justify-content: center;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.icon-button svg {
+  }
+  
+  .icon-button svg {
     color: white;
     font-size: 0.9rem;
-}
-
-.edit-button {
+  }
+  
+  .edit-button {
     background-color: #4caf50;
-}
-
-.edit-button:hover {
+  }
+  
+  .edit-button:hover {
     background-color: #45a049;
-}
-
-.delete-button {
+  }
+  
+  .delete-button {
     background-color: #f44336;
-}
-
-.delete-button:hover {
+  }
+  
+  .delete-button:hover {
     background-color: #d32f2f;
-}
-
-.toggle-form-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    margin-bottom: 1rem;
-}
-
-.toggle-form-button:hover {
-    background: #0056b3;
-}
+  }
+  

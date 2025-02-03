@@ -1,127 +1,174 @@
+/* Contenedor principal */
 .cuentas-cobrar-module {
     padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centrar contenido horizontalmente */
-    text-align: center; /* Centrar texto */
-}
-
-.cuentas-cobrar-module h2 {
-    color: #e63946; /* Color rojo para el título */
-    font-size: 1.8rem;
+    align-items: center;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    color: #333;
+  }
+  
+  .cuentas-cobrar-module h2 {
+    color: #e63946;
+    font-size: 2rem;
     margin-bottom: 1.5rem;
-    text-transform: capitalize;
-}
-
-.toggle-form-button {
+  }
+  
+  /* Botón para abrir/cerrar formulario */
+  .toggle-form-button {
     background: #007bff;
-    color: white;
+    color: #fff;
     border: none;
-    padding: 0.7rem 1.5rem;
+    padding: 0.8rem 2rem;
     border-radius: 5px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
     margin-bottom: 1.5rem;
-}
-
-.toggle-form-button:hover {
+  }
+  
+  .toggle-form-button:hover {
     background: #0056b3;
-}
-
-.cuentas-form {
-    width: 90%;
-    max-width: 400px; /* Limitar el ancho del formulario */
-    margin: 0 auto 2rem auto; /* Centrar formulario */
-    padding: 1.5rem;
+  }
+  
+  /* Formulario de registro/edición */
+  .cuentas-form {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: left; /* Alinear texto del formulario a la izquierda */
-}
-
-.cuentas-form label {
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #333;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    margin-bottom: 2rem;
+  }
+  
+  .cuentas-form label {
+    font-weight: 600;
+    font-size: 0.95rem;
     margin-bottom: 0.3rem;
     display: block;
-}
-
-.cuentas-form input,
-.cuentas-form select {
+  }
+  
+  .cuentas-form input,
+  .cuentas-form select {
     width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 0.8rem;
-    font-size: 0.9rem;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background: #f9f9f9;
-    box-sizing: border-box; /* Asegurar que el padding no afecta el ancho */
-}
-
-.cuentas-form input:focus,
-.cuentas-form select:focus {
+    background: #fdfdfd;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .cuentas-form input:focus,
+  .cuentas-form select:focus {
     border-color: #007bff;
-    outline: none;
     background: #fff;
-}
-
-.cuentas-form button {
+    outline: none;
+  }
+  
+  .cuentas-form button {
     background: #007bff;
-    color: white;
+    color: #fff;
     border: none;
-    padding: 0.6rem 1.2rem;
+    padding: 0.8rem;
     border-radius: 5px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
     width: 100%;
-}
-
-.cuentas-form button:hover {
+  }
+  
+  .cuentas-form button:hover {
     background: #0056b3;
-}
-
-.cuentas-table {
-    width: 90%;
-    max-width: 800px;
-    margin: 1rem auto;
-    border-collapse: collapse;
+  }
+  
+  /* Totales en cuadritos */
+  .totales-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .total-card {
     background: #fff;
     border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 220px;
+    text-align: center;
+  }
+  
+  .total-card h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .total-card p {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  /* Contenedor del filtro */
+  .filter-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .filter-container label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+  
+  /* Tabla de registros */
+  .cuentas-table {
+    width: 100%;
+    max-width: 1000px;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    background: #fff;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.cuentas-table th,
-.cuentas-table td {
-    padding: 0.6rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cuentas-table th,
+  .cuentas-table td {
+    padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #ddd;
-    font-size: 0.9rem;
-}
-
-.cuentas-table th {
+    font-size: 0.95rem;
+  }
+  
+  .cuentas-table th {
     background: #f4f4f4;
-    color: #333;
-    font-weight: bold;
-}
-
-.cuentas-table tr:hover {
+    font-weight: 600;
+  }
+  
+  .cuentas-table tr:hover {
     background: #f9f9f9;
-}
-
-.actions {
+  }
+  
+  /* Acciones (botones de editar y eliminar) */
+  .actions {
     display: flex;
     justify-content: center;
-    gap: 0.5rem; /* Espacio entre los botones */
-}
-
-.icon-button {
-    width: 1.8rem; /* Tamaño compacto */
-    height: 1.8rem;
+    gap: 0.5rem;
+  }
+  
+  .icon-button {
+    width: 2rem;
+    height: 2rem;
     background: none;
     border: none;
     border-radius: 0.4rem;
@@ -130,25 +177,39 @@
     justify-content: center;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.icon-button svg {
-    color: white;
-    font-size: 0.9rem; /* Íconos más pequeños */
-}
-
-.edit-button {
+  }
+  
+  .icon-button svg {
+    color: #fff;
+    font-size: 1rem;
+  }
+  
+  .edit-button {
     background-color: #4caf50;
-}
-
-.edit-button:hover {
+  }
+  
+  .edit-button:hover {
     background-color: #45a049;
-}
-
-.delete-button {
+  }
+  
+  .delete-button {
     background-color: #f44336;
-}
-
-.delete-button:hover {
+  }
+  
+  .delete-button:hover {
     background-color: #d32f2f;
-}
+  }
+  
+  /* Diseño responsivo */
+  @media (max-width: 768px) {
+    .totales-container {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .cuentas-table th,
+    .cuentas-table td {
+      padding: 0.8rem;
+      font-size: 0.9rem;
+    }
+  }
+  

@@ -1,0 +1,317 @@
+/* Contenedor principal */
+.flowrecoveryv2-module {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .flowrecoveryv2-module h2 {
+    color: #e63946;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-transform: capitalize;
+  }
+  
+  /* Botón para mostrar/ocultar el formulario */
+  .toggle-form-button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 1.5rem;
+  }
+  
+  .toggle-form-button:hover {
+    background: #0056b3;
+  }
+  
+  /* Tarjeta overlay que contiene el formulario */
+  .record-card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+  }
+  
+  /* Botón para cerrar la tarjeta */
+  .close-card-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s ease;
+  }
+  
+  .close-card-button:hover {
+    color: #e63946;
+  }
+  
+  /* Estilos para el formulario dentro de la tarjeta */
+  .flowrecoveryv2-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+  }
+  
+  .flowrecoveryv2-form label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .flowrecoveryv2-form input,
+  .flowrecoveryv2-form select,
+  .flowrecoveryv2-form textarea {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+    box-sizing: border-box;
+  }
+  
+  .flowrecoveryv2-form input:focus,
+  .flowrecoveryv2-form select:focus,
+  .flowrecoveryv2-form textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    background: #fff;
+  }
+  
+  .flowrecoveryv2-form .submit-button {
+    width: 100%;
+    padding: 0.8rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .flowrecoveryv2-form .submit-button:hover {
+    background: #0056b3;
+  }
+  
+  /* Totales y filtro */
+  .totals-filter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem 0;
+  }
+  
+  .totals {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  
+  .total-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 220px;
+    text-align: center;
+  }
+  
+  .total-card h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  /* Nuevas clases para diferenciar colores de valores */
+  .total-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+  
+  .total-value.recovered {
+    color: green;
+  }
+  
+  .total-value.not-recovered {
+    color: red;
+  }
+  
+  .filter-month {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .filter-month label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .filter-month select {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Tabla de registros */
+  .flowrecoveryv2-table {
+    width: 90%;
+    max-width: 800px;
+    margin: 1rem auto;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .flowrecoveryv2-table th,
+  .flowrecoveryv2-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+  }
+  
+  .flowrecoveryv2-table th {
+    background: #f4f4f4;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* Alineación personalizada */
+  .text-right {
+    text-align: right;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .flowrecoveryv2-table tr:hover {
+    background: #f9f9f9;
+  }
+  
+  /* Acciones (botones de editar y eliminar) */
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .icon-button {
+    width: 2rem;
+    height: 2rem;
+    background: none;
+    border: none;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .icon-button svg {
+    color: #fff;
+    font-size: 1rem;
+  }
+  
+  .edit-button {
+    background-color: #4caf50;
+  }
+  
+  .edit-button:hover {
+    background-color: #45a049;
+  }
+  
+  .delete-button {
+    background-color: #f44336;
+  }
+  
+  .delete-button:hover {
+    background-color: #d32f2f;
+  }
+  
+  /* Botón toggle para estado Recuperado */
+  .toggle-button {
+    padding: 0.3rem 0.6rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .toggle-yes {
+    background-color: #4caf50;
+    color: #fff;
+  }
+  
+  .toggle-no {
+    background-color: #f44336;
+    color: #fff;
+  }
+  
+  /* Responsividad */
+  @media (max-width: 768px) {
+    .flowrecoveryv2-module {
+      padding: 1rem;
+    }
+    .flowrecoveryv2-module h2 {
+      font-size: 1.5rem;
+    }
+    .toggle-form-button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+    }
+    .record-card {
+      padding: 1rem;
+      width: 90%;
+      max-width: 400px;
+    }
+    .flowrecoveryv2-form input,
+    .flowrecoveryv2-form select,
+    .flowrecoveryv2-form textarea {
+      font-size: 0.9rem;
+    }
+    .flowrecoveryv2-table th,
+    .flowrecoveryv2-table td {
+      padding: 0.6rem 0.8rem;
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .record-card {
+      width: 90%;
+      padding: 1rem;
+    }
+  }
+  
+  
+  
+  

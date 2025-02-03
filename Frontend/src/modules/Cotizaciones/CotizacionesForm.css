@@ -1,0 +1,338 @@
+/* ==========================================================================
+   VARIABLES Y ESTILOS GLOBALES
+   ========================================================================== */
+   :root {
+    --color-fondo: #f5f5f5;
+    --color-titulo: #e63946;
+    --color-boton-principal: #007bff;
+    --color-boton-principal-hover: #0056b3;
+    --color-boton-editar: #ffc107;
+    --color-boton-editar-hover: #e0a800;
+    --color-boton-eliminar: #f44336;
+    --color-boton-eliminar-hover: #d32f2f;
+    --color-texto: #333;
+    --color-texto-secundario: #555;
+    --color-fondo-formulario: #ffffff;
+    --color-borde: #ddd;
+    --color-sombra: rgba(0, 0, 0, 0.1);
+    --espaciado-base: 1rem;
+    --espaciado-grande: 2rem;
+    --radio-borde: 5px;
+    --radio-borde-form: 10px;
+  }
+  
+  /* ==========================================================================
+     CONTENEDOR PRINCIPAL DEL MÓDULO
+     ========================================================================== */
+  .cotizaciones-module {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .cotizaciones-module h2 {
+    text-align: center;
+    color: var(--color-titulo);
+    margin-bottom: var(--espaciado-grande);
+  }
+  
+  /* ==========================================================================
+     BOTÓN PARA ABRIR EL FORMULARIO (CENTRADO)
+     ========================================================================== */
+  .toggle-form-button {
+    display: block;
+    background: var(--color-boton-principal);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    margin: 0 auto var(--espaciado-grande) auto;
+    box-shadow: 0 4px 6px var(--color-sombra);
+  }
+  .toggle-form-button:hover {
+    background: var(--color-boton-principal-hover);
+    transform: scale(1.05);
+  }
+  
+  /* ==========================================================================
+     MODALES: OVERLAY Y CONTENEDOR DEL FORMULARIO
+     ========================================================================== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    overflow-y: auto;
+  }
+  
+  .modal-form-container {
+    position: relative;
+    width: 550px;   /* Ancho incrementado */
+    height: 650px;  /* Alto incrementado */
+    max-width: 90vw;
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    overflow: auto;
+  }
+  
+  /* Botón de cerrar el modal */
+  .close-modal-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-texto);
+    transition: color 0.3s ease, transform 0.2s ease;
+  }
+  .close-modal-button:hover {
+    color: var(--color-titulo);
+    transform: scale(1.1);
+  }
+  
+  /* ==========================================================================
+     FORMULARIO DE COTIZACIONES (DIVIDIDO EN 2 COLUMNAS)
+     ========================================================================== */
+  .cotizaciones-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+  }
+  
+  /* Dividir los campos en 2 columnas */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Puedes ajustar a, por ejemplo, 1.2fr 1fr si deseas columnas de distinto ancho */
+    gap: 1rem;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--color-texto);
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.5rem;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .progress {
+    font-size: 0.9rem;
+    color: #555;
+    text-align: center;
+  }
+  
+  /* Contenedor de botones en el formulario */
+  .form-buttons {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  .submit-button {
+    background: var(--color-boton-principal);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+  .submit-button:hover {
+    background: var(--color-boton-principal-hover);
+    transform: scale(1.05);
+  }
+  
+  .cancel-button {
+    background: #ccc;
+    color: var(--color-texto);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .cancel-button:hover {
+    background: #bbb;
+  }
+  
+  /* ==========================================================================
+     TABLA DE COTIZACIONES
+     ========================================================================== */
+  .cotizaciones-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--espaciado-grande);
+    font-size: 1rem;
+  }
+  
+  .cotizaciones-table th,
+  .cotizaciones-table td {
+    padding: 0.8rem;
+    border: 1px solid var(--color-borde);
+    text-align: center;
+  }
+  
+  .cotizaciones-table th {
+    background: #f4f4f4;
+    color: var(--color-texto);
+    font-weight: bold;
+  }
+  
+  /* ==========================================================================
+     BOTONES DE ACCIÓN EN LA TABLA
+     ========================================================================== */
+  .icon-button {
+    padding: 0.4rem 0.8rem;
+    margin: 0 0.2rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+  
+  .edit-button {
+    background: var(--color-boton-editar);
+    color: #fff;
+  }
+  .edit-button:hover {
+    background: var(--color-boton-editar-hover);
+    transform: scale(1.05);
+  }
+  
+  .delete-button {
+    background: var(--color-boton-eliminar);
+    color: #fff;
+  }
+  .delete-button:hover {
+    background: var(--color-boton-eliminar-hover);
+    transform: scale(1.05);
+  }
+  
+  /* Botón para ver el PDF */
+  .view-pdf-button {
+    background: var(--color-boton-principal);
+    color: #fff;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+  .view-pdf-button:hover {
+    background: var(--color-boton-principal-hover);
+    transform: scale(1.05);
+  }
+  .view-pdf-button.disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  
+  /* ==========================================================================
+     ESTILO PARA LOS BOTONES DE ACCIÓN (EDITAR Y ELIMINAR) EN LA TABLA
+     ========================================================================== */
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* ==========================================================================
+     NOTIFICACIONES TEMPORALES
+     ========================================================================== */
+     .notification {
+        position: fixed;
+        top: 40px;
+        right: 10px; /* Cambiado de left a right */
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      }
+  
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeout {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-20px); }
+  }
+  
+  /* ==========================================================================
+     MEDIA QUERIES Y RESPONSIVIDAD
+     ========================================================================== */
+  @media (max-width: 768px) {
+    .cotizaciones-module {
+      padding: 1rem;
+    }
+    .cotizaciones-module h2 {
+      font-size: 1.5rem;
+    }
+    .toggle-form-button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+    }
+    .modal-form-container {
+      padding: 1rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      font-size: 0.9rem;
+    }
+    .cotizaciones-table th,
+    .cotizaciones-table td {
+      padding: 0.6rem;
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .modal-form-container {
+      width: 90vw;
+      padding: 1rem;
+    }
+  }
+  

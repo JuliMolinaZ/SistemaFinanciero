@@ -52,6 +52,10 @@ const costosFijosRoutes = require('./routes/costosFijos');
 const graphRoutes = require('./routes/realtimeGraph');
 const projectCostsRoutes = require('./routes/projectCosts');
 const emitidasRoutes = require('./routes/emitidas');
+const flowRecoveryV2Routes = require('./routes/flowRecoveryV2');
+
+// Nueva ruta para Cotizaciones
+const cotizacionesRoutes = require('./routes/cotizaciones');
 
 // Middleware para loggear cada solicitud (opcional)
 app.use((req, res, next) => {
@@ -78,6 +82,10 @@ app.use('/api/costos-fijos', costosFijosRoutes);
 app.use('/api/graph', graphRoutes);
 app.use('/api/project-costs', projectCostsRoutes);
 app.use('/api/emitidas', emitidasRoutes);
+app.use('/api/flowRecoveryV2', flowRecoveryV2Routes);
+
+// Nueva ruta de cotizaciones
+app.use('/api/cotizaciones', cotizacionesRoutes);
 
 // Ruta 404 para solicitudes no encontradas
 app.use((req, res) => {

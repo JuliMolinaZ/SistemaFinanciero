@@ -271,6 +271,34 @@
     transform: scale(1.05);
   }
   
+  /* ==========================================================================
+     CONTENEDORES PARA BOTONES
+     ========================================================================== */
+  
+  /* Contenedor de botones en el encabezado */
+  /* Aumentamos el margen inferior para separar "Registrar Cuenta" de la tarjeta de filtros */
+  .header-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;       /* Alinea verticalmente ambos botones */
+    justify-content: space-between; /* Separa el primer botón a la izquierda y el segundo a la derecha */
+    flex-wrap: nowrap;         /* Evita que se muevan a otra línea */
+    width: 100%;
+    margin-bottom: 2rem;       /* <-- Incrementa la separación */
+  }
+  
+  /* Quitar margen inferior para los botones dentro del contenedor */
+  .header-actions .toggle-form-button,
+  .header-actions .export-button {
+    margin-bottom: 0;
+  }
+  
+  /* (Opcional) Contenedor para el botón Exportar CSV cuando se desee ubicarlo en otra sección */
+  .export-container {
+    text-align: right;
+    margin: 1rem 0;
+  }
+  
   /* Botón de exportar CSV (verde) */
   .export-button {
     background: #28a745;
@@ -282,7 +310,6 @@
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
-    margin-left: 1rem;
     box-shadow: 0 4px 6px var(--color-sombra);
   }
   .export-button:hover {
@@ -315,9 +342,12 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
   }
+  /* Se incrementa el tamaño del formulario (modal) */
   .modal-content.form-modal {
-    width: 500px;
-    height: 500px;
+    width: 600px;          /* Ancho incrementado */
+    /* Si se desea que la altura se ajuste automáticamente, se puede quitar la altura fija */
+    /* height: 500px; */
+    min-height: 600px;      /* Altura mínima para que sea más grande */
     max-width: 90vw;
     max-height: 90vh;
     display: flex;
@@ -467,7 +497,7 @@
   .calendar-container {
     max-width: 550px;
     margin: 2rem auto;
-    background: linear-gradient(90deg, #ff6b6b, #f94d9a); /* Fondo del sidebar */
+    background: linear-gradient(90deg, #ff6b6b, #f94d9a);
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     padding: 1.5rem;
@@ -641,6 +671,8 @@
     background: var(--color-boton-principal-hover);
     transform: scale(1.05);
   }
+  
+  
   
 
 

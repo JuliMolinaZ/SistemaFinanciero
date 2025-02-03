@@ -1,4 +1,3 @@
-// src/modules/CuentasPorPagar/CuentasPagarForm.js
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileCsv } from '@fortawesome/free-solid-svg-icons';
@@ -12,10 +11,10 @@ import CalendarPagos from './components/CalendarPagos';
 import './CuentasPagarForm.css';
 
 const CuentasPagarForm = () => {
-  // Usamos el hook personalizado para obtener las cuentas
+  /*** Estados y Custom Hook ***/
   const { cuentas, fetchCuentas, updateCuenta, createCuenta, deleteCuenta } = useCuentasPagar();
 
-  // Estados para la cuenta actual (registro/actualización)
+  // Estado para la cuenta actual (registro/actualización)
   const [cuenta, setCuenta] = useState({
     concepto: '',
     monto_neto: '',
@@ -27,9 +26,9 @@ const CuentasPagarForm = () => {
     pagado: false,
     pagos_parciales: 0,
   });
-  const [showFormModal, setShowFormModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [showFormModal, setShowFormModal] = useState(false);
 
   // Estados para totales
   const [totalPagadas, setTotalPagadas] = useState(0);
@@ -42,7 +41,7 @@ const CuentasPagarForm = () => {
   const [estadoFiltro, setEstadoFiltro] = useState('');
   const [cuentasFiltradas, setCuentasFiltradas] = useState([]);
 
-  // Estados para el modal de pagos parciales
+  // Estados para modal de pagos parciales
   const [showPagoModal, setShowPagoModal] = useState(false);
   const [selectedCuenta, setSelectedCuenta] = useState(null);
   const [pagoMonto, setPagoMonto] = useState('');
@@ -55,7 +54,11 @@ const CuentasPagarForm = () => {
   const [proveedores, setProveedores] = useState([]);
   const [categorias, setCategorias] = useState([]);
 
-  // Fetch de proveedores y categorías
+  /*** Efectos Iniciales ***/
+  useEffect(() => {
+    fetchCuentas();
+  }, [fetchCuentas]);
+
   useEffect(() => {
     const fetchProveedores = async () => {
       try {
@@ -77,7 +80,7 @@ const CuentasPagarForm = () => {
     fetchCategorias();
   }, []);
 
-  // Función para formatear moneda
+  /*** Función para formatear moneda ***/
   const formatoMoneda = useCallback((valor) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -85,7 +88,7 @@ const CuentasPagarForm = () => {
     }).format(valor);
   }, []);
 
-  // Función para filtrar cuentas según filtros
+  /*** Filtrado y Cálculo de Totales ***/
   const filtrarCuentas = useCallback(() => {
     let filtradas = cuentas;
     if (filtroMes) {
@@ -116,7 +119,6 @@ const CuentasPagarForm = () => {
     filtrarCuentas();
   }, [filtrarCuentas]);
 
-  // Calcular totales a partir de cuentas filtradas
   useEffect(() => {
     const totalPagadasCalc = cuentasFiltradas.reduce((acc, curr) => {
       const pago = curr.pagado
@@ -136,7 +138,6 @@ const CuentasPagarForm = () => {
     setTotalPorPagar(totalPorPagarCalc);
   }, [cuentasFiltradas]);
 
-  // Función para limpiar filtros
   const handleClearFilters = () => {
     setFiltroMes('');
     setFechaInicio('');
@@ -144,7 +145,7 @@ const CuentasPagarForm = () => {
     setEstadoFiltro('');
   };
 
-  // Funciones para el formulario de registro/actualización
+  /*** Manejo del Formulario (Registro/Actualización) ***/
   const toggleFormModal = useCallback(() => {
     setShowFormModal((prev) => {
       if (prev) {
@@ -171,7 +172,7 @@ const CuentasPagarForm = () => {
     });
   };
 
-  const handleChange = (e) => {
+  const handleChangeForm = (e) => {
     const { name, value } = e.target;
     setCuenta((prev) => ({
       ...prev,
@@ -187,11 +188,13 @@ const CuentasPagarForm = () => {
     setCuenta((prev) => ({
       ...prev,
       requiere_iva: checked,
-      monto_con_iva: checked ? (parseFloat(prev.monto_neto || 0) * 1.16).toFixed(2) : prev.monto_neto,
+      monto_con_iva: checked
+        ? (parseFloat(prev.monto_neto || 0) * 1.16).toFixed(2)
+        : prev.monto_neto,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmitForm = async (e) => {
     e.preventDefault();
     if (isEditing) {
       await updateCuenta(editingId, cuenta);
@@ -224,7 +227,7 @@ const CuentasPagarForm = () => {
     }
   };
 
-  // Funciones para el modal de pagos parciales
+  /*** Modal de Pagos Parciales ***/
   const handleAbrirPagoModal = (cuenta) => {
     setSelectedCuenta(cuenta);
     setPagoMonto('');
@@ -262,19 +265,18 @@ const CuentasPagarForm = () => {
     }
   };
 
-  // Función para filtrar por fecha al seleccionar una casilla en el calendario
+  /*** Calendario de Pagos ***/
   const handleDateSelect = (dateString) => {
-    // Asigna la fecha seleccionada tanto a fechaInicio como a fechaFin para filtrar ese día
     setFechaInicio(dateString);
     setFechaFin(dateString);
   };
 
-  // Ordenar cuentas filtradas (más recientes primero)
+  /*** Ordenamiento de Cuentas Filtradas ***/
   const cuentasOrdenadas = useMemo(() => {
     return [...cuentasFiltradas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
   }, [cuentasFiltradas]);
 
-  // Función para exportar CSV
+  /*** Exportar a CSV ***/
   const handleExportCSV = async () => {
     try {
       const params = {};
@@ -302,12 +304,11 @@ const CuentasPagarForm = () => {
   return (
     <section className="cuentas-pagar-module">
       <h2>Cuentas por Pagar</h2>
+
+      {/* Encabezado con el botón Registrar Cuenta */}
       <div className="header-actions">
         <button onClick={toggleFormModal} className="toggle-form-button">
           {showFormModal ? 'Cerrar Formulario' : 'Registrar Cuenta'}
-        </button>
-        <button onClick={handleExportCSV} className="export-button">
-          <FontAwesomeIcon icon={faFileCsv} /> Exportar CSV
         </button>
       </div>
 
@@ -336,16 +337,23 @@ const CuentasPagarForm = () => {
         </div>
       </div>
 
-      {/* Botón para visualizar/ocultar el Calendario de Pagos */}
+      {/* Botón para mostrar/ocultar el Calendario de Pagos */}
       <div className="calendar-toggle">
         <button
-          onClick={() => setShowCalendar(prev => !prev)}
+          onClick={() => setShowCalendar((prev) => !prev)}
           className="toggle-calendar-button"
         >
           {showCalendar ? 'Ocultar Calendario de Pagos' : 'Visualizar Calendario de Pagos'}
         </button>
       </div>
       {showCalendar && <CalendarPagos cuentas={cuentas} onDateSelect={handleDateSelect} />}
+
+      {/* Botón Exportar CSV ubicado entre el calendario y la tabla */}
+      <div className="export-container">
+        <button onClick={handleExportCSV} className="export-button">
+          <FontAwesomeIcon icon={faFileCsv} /> Exportar CSV
+        </button>
+      </div>
 
       <h3>Cuentas por Pagar Registradas</h3>
       <TablaCuentas
@@ -363,9 +371,9 @@ const CuentasPagarForm = () => {
         <ModalRegistro
           isEditing={isEditing}
           cuenta={cuenta}
-          handleChange={handleChange}
+          handleChange={handleChangeForm}
           handleCheckboxChange={handleCheckboxChange}
-          handleSubmit={handleSubmit}
+          handleSubmit={handleSubmitForm}
           toggleFormModal={toggleFormModal}
           proveedores={proveedores}
           categorias={categorias}
@@ -389,8 +397,6 @@ const CuentasPagarForm = () => {
 };
 
 export default CuentasPagarForm;
-
-
 
 
 

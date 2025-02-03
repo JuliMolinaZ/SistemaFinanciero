@@ -1,293 +1,380 @@
+/* src/modules/Proyectos/ProjectModule.css */
+
 /* Contenedor general del módulo */
 .project-module {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Título impactante en mayúsculas */
+.project-module h2 {
+  text-align: center;
+  color: #e63946;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  font-size: 2rem;
+}
+
+/* Botón para alternar el formulario (se mantiene el color azul de la app) */
+.toggle-form-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.toggle-form-button:hover {
+  background: #0056b3;
+}
+
+/* Overlay oscuro para el formulario */
+.form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Tarjeta centrada en el overlay (dropdown-form) */
+.dropdown-form {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  /* Animación de entrada */
+  opacity: 0;
+  animation: fadeInDown 0.5s forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  
-  /* Formulario de creación/edición de proyectos */
-  .project-form {
-    width: 90%;
-    max-width: 400px;
-    margin: 1rem auto;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .project-form label {
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #333;
-    margin-bottom: 0.3rem;
-    display: block;
+}
+
+/* Botón de cierre (X) para la tarjeta */
+.close-card-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.close-card-button:hover {
+  color: #e63946;
+}
+
+/* Formulario de proyectos (dentro de la tarjeta) */
+.project-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-form label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.project-form input,
+.project-form select {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.project-form input:focus,
+.project-form select:focus {
+  border-color: #007bff;
+  outline: none;
+  background: #fff;
+}
+
+.project-form button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 100%;
+}
+
+.project-form button:hover {
+  background: #0056b3;
+}
+
+/* Contenedor para el total de proyectos */
+.total-projects {
+  width: 90%;
+  max-width: 800px;
+  margin: 1rem auto;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fefefe;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.total-projects h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.total-projects p {
+  margin: 0.5rem 0 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+/* Tabla de proyectos */
+.projects-table {
+  width: 90%;
+  max-width: 800px;
+  border-collapse: collapse;
+  margin: 1rem auto;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.projects-table th,
+.projects-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.9rem;
+}
+
+.projects-table th {
+  background: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+}
+
+.projects-table tr:hover {
+  background: #f9f9f9;
+}
+
+/* Botones de acción en la tabla */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.icon-button {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #45a049;
+}
+
+.delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+}
+
+/* Tarjeta de detalles del proyecto */
+.project-details-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 400px;
+  z-index: 1001;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.project-details-card h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.project-details-card p {
+  font-size: 1rem;
+  color: #555;
+  margin: 0.5rem 0;
+}
+
+.project-details-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.project-details-card ul li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.project-details-card ul li span {
+  flex: 1;
+}
+
+/* Botones dentro de costos asociados en la tarjeta */
+.project-details-card .icon-button {
+  margin-left: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.project-details-card .edit-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.project-details-card .edit-button:hover {
+  background-color: #45a049;
+}
+
+.project-details-card .delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.project-details-card .delete-button:hover {
+  background-color: #d32f2f;
+}
+
+.project-details-card form {
+  margin-top: 1rem;
+}
+
+.project-details-card form input {
+  width: 100%;
+  margin-bottom: 0.8rem;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.project-details-card form button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 100%;
+}
+
+.project-details-card form button:hover {
+  background: #d32f2f;
+}
+
+.project-details-card .close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.3s ease-in-out;
+}
+
+.project-details-card .close-button:hover {
+  color: #333;
+}
+
+/* Overlay detrás de la tarjeta de detalles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
   }
-  
-  .project-form input,
-  .project-form select {
-    width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 0.8rem;
-    font-size: 0.9rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: #f9f9f9;
-    box-sizing: border-box;
-  }
-  
-  .project-form input:focus,
-  .project-form select:focus {
-    border-color: #007bff;
-    outline: none;
-    background: #fff;
-  }
-  
-  .project-form button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    width: 100%;
-  }
-  
-  .project-form button:hover {
-    background: #0056b3;
-  }
-  
-  /* Tabla de proyectos */
-  .projects-table {
-    width: 90%;
-    max-width: 800px;
-    border-collapse: collapse;
-    margin: 1rem auto;
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .projects-table th,
-  .projects-table td {
-    padding: 0.6rem;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    font-size: 0.9rem;
-  }
-  
-  .projects-table th {
-    background: #f4f4f4;
-    color: #333;
-    font-weight: bold;
-  }
-  
-  .projects-table tr:hover {
-    background: #f9f9f9;
-  }
-  
-  /* Botones de acción (editar/eliminar) */
-  .actions {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  
-  .icon-button {
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .edit-button {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .edit-button:hover {
-    background-color: #45a049;
-  }
-  
-  .delete-button {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .delete-button:hover {
-    background-color: #d32f2f;
-  }
-  
-  /* Botón de alternar formulario */
-  .toggle-form-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    margin-bottom: 1rem;
-  }
-  
-  .toggle-form-button:hover {
-    background: #0056b3;
-  }
-  
-  /* Tarjeta de detalles del proyecto */
-  .project-details-card {
-    position: fixed;
-    top: 50%;
-    left: 50%;
+  to {
+    opacity: 1;
     transform: translate(-50%, -50%);
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 400px;
-    z-index: 1001;
-    animation: fadeIn 0.3s ease-in-out;
   }
-  
-  .project-details-card h3 {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 1rem;
-    text-align: center;
-  }
-  
-  .project-details-card p {
-    font-size: 1rem;
-    color: #555;
-    margin: 0.5rem 0;
-  }
-  
-  /* Lista de costos asociados */
-  .project-details-card ul {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0;
-  }
-  
-  .project-details-card ul li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
-  }
-  
-  .project-details-card ul li span {
-    flex: 1;
-  }
-  
-  /* Botones dentro de costos asociados */
-  .project-details-card .icon-button {
-    margin-left: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  /* Botones específicos de edición y eliminación en costos */
-  .project-details-card .edit-button {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .project-details-card .edit-button:hover {
-    background-color: #45a049;
-  }
-  
-  .project-details-card .delete-button {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .project-details-card .delete-button:hover {
-    background-color: #d32f2f;
-  }
-  
-  /* Formulario para agregar costos */
-  .project-details-card form {
-    margin-top: 1rem;
-  }
-  
-  .project-details-card form input {
-    width: 100%;
-    margin-bottom: 0.8rem;
-    padding: 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-  }
-  
-  .project-details-card form button {
-    background: #f44336;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    width: 100%;
-  }
-  
-  .project-details-card form button:hover {
-    background: #d32f2f;
-  }
-  
-  .project-details-card .close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.3s ease-in-out;
-  }
-  
-  .project-details-card .close-button:hover {
-    color: #333;
-  }
-  
-  /* Superposición detrás de la tarjeta */
-  .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-  }
-  
-  /* Animación para la tarjeta */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -40%);
-    }
-    to {
-      opacity: 1;
-      transform: translate(-50%, -50%);
-    }
-  }
-  
-  
+}
+

@@ -1,5 +1,4 @@
 // src/components/Sidebar.js
-
 import React, { useContext, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
@@ -10,10 +9,8 @@ const Sidebar = () => {
   const { sidebarCollapsed, setSidebarCollapsed, profileData } = useContext(GlobalContext);
   const [permisos, setPermisos] = useState([]);
 
-  // Lee la variable de entorno (si no existe, usar "http://localhost:5000")
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-  // Carga de permisos
   const fetchPermisos = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/permisos`);
@@ -27,7 +24,6 @@ const Sidebar = () => {
     fetchPermisos();
   }, [API_URL]);
 
-  // Verifica si el permiso para el módulo está habilitado
   const hasPermission = (modulo) => {
     const permiso = permisos.find((p) => p.modulo === modulo);
     return permiso?.acceso_administrador || false;
@@ -43,7 +39,6 @@ const Sidebar = () => {
 
   return (
     <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-      {/* HEADER minimalista del sidebar: solo la flecha de toggle */}
       <div className="sidebar-header">
         <button className="sidebar-toggle" onClick={toggleSidebar}>
           {sidebarCollapsed ? '→' : '←'}
@@ -51,13 +46,11 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav">
-        {/* Inicio */}
         <NavLink to="/" className="sidebar-link">
           <span className="icon" role="img" aria-label="inicio">🏠</span>
           {!sidebarCollapsed && <span>Inicio</span>}
         </NavLink>
 
-        {/* Usuarios */}
         {(isAdmin || isJuanCarlos) && (
           <NavLink to="/usuarios" className="sidebar-link">
             <span className="icon" role="img" aria-label="usuarios">👤</span>
@@ -65,7 +58,6 @@ const Sidebar = () => {
           </NavLink>
         )}
 
-        {/* Costos Fijos */}
         {(isJuanCarlos || (isAdmin && hasPermission('costos_fijos'))) && (
           <NavLink to="/costos-fijos" className="sidebar-link">
             <span className="icon" role="img" aria-label="costos fijos">💼</span>
@@ -73,13 +65,11 @@ const Sidebar = () => {
           </NavLink>
         )}
 
-        {/* Clientes */}
         <NavLink to="/clientes" className="sidebar-link">
           <span className="icon" role="img" aria-label="clientes">👥</span>
           {!sidebarCollapsed && <span>Clientes</span>}
         </NavLink>
 
-        {/* Proyectos */}
         {(isJuanCarlos || (isAdmin && hasPermission('proyectos'))) && (
           <NavLink to="/proyectos" className="sidebar-link">
             <span className="icon" role="img" aria-label="proyectos">📁</span>
@@ -87,7 +77,6 @@ const Sidebar = () => {
           </NavLink>
         )}
 
-        {/* Cuentas por Cobrar */}
         {(isJuanCarlos || (isAdmin && hasPermission('cuentas_cobrar'))) && (
           <NavLink to="/cuentas-cobrar" className="sidebar-link">
             <span className="icon" role="img" aria-label="cuentas por cobrar">💰</span>
@@ -95,7 +84,6 @@ const Sidebar = () => {
           </NavLink>
         )}
 
-        {/* Exclusivo para Admin o JuanCarlos */}
         {(isAdmin || isJuanCarlos) && (
           <>
             <NavLink to="/proveedores" className="sidebar-link">
@@ -125,7 +113,15 @@ const Sidebar = () => {
           </>
         )}
 
-        {/* Exclusivo para Juan Carlos */}
+        {(isAdmin || isJuanCarlos) && (
+          <>
+            <NavLink to="/cotizaciones" className="sidebar-link">
+              <span className="icon" role="img" aria-label="cotizaciones">📄</span>
+              {!sidebarCollapsed && <span>Cotizaciones</span>}
+            </NavLink>
+          </>
+        )}
+
         {isJuanCarlos && (
           <>
             <NavLink to="/realtime-graph" className="sidebar-link">
@@ -136,6 +132,12 @@ const Sidebar = () => {
             <NavLink to="/recuperacion" className="sidebar-link">
               <span className="icon" role="img" aria-label="MoneyFlow Recovery">🔄</span>
               {!sidebarCollapsed && <span>MoneyFlow Recovery</span>}
+            </NavLink>
+
+            {/* Nuevo enlace para Flow Recovery V2 */}
+            <NavLink to="/flow-recovery-v2" className="sidebar-link">
+              <span className="icon" role="img" aria-label="Flow Recovery V2">💵</span>
+              {!sidebarCollapsed && <span>Flow Recovery V2</span>}
             </NavLink>
 
             <NavLink to="/permisos" className="sidebar-link">
@@ -150,6 +152,7 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
 
 
 
