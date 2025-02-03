@@ -1,14 +1,21 @@
-// src/modules/CuentasPagar/CuentasPagarForm.js
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './CuentasPagarForm.css';
+// src/modules/CuentasPorPagar/CuentasPagarForm.js
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faDollarSign } from '@fortawesome/free-solid-svg-icons';
+import { faFileCsv } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
+import { useCuentasPagar } from '../../hooks/useCuentasPagar';
+import Filtros from './components/Filtros';
+import TablaCuentas from './components/TablaCuentas';
+import ModalRegistro from './components/ModalRegistro';
+import ModalPagoParcial from './components/ModalPagoParcial';
+import CalendarPagos from './components/CalendarPagos';
+import './CuentasPagarForm.css';
 
 const CuentasPagarForm = () => {
-  const [cuentas, setCuentas] = useState([]);
-  const [proveedores, setProveedores] = useState([]);
-  const [categorias, setCategorias] = useState([]); // Nuevo estado para categorías
+  // Usamos el hook personalizado para obtener las cuentas
+  const { cuentas, fetchCuentas, updateCuenta, createCuenta, deleteCuenta } = useCuentasPagar();
+
+  // Estados para la cuenta actual (registro/actualización)
   const [cuenta, setCuenta] = useState({
     concepto: '',
     monto_neto: '',
@@ -18,63 +25,135 @@ const CuentasPagarForm = () => {
     proveedor_id: '',
     fecha: '',
     pagado: false,
+    pagos_parciales: 0,
   });
-  const [showForm, setShowForm] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  // Estados para totales
   const [totalPagadas, setTotalPagadas] = useState(0);
   const [totalPorPagar, setTotalPorPagar] = useState(0);
 
+  // Estados para filtros
   const [filtroMes, setFiltroMes] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
+  const [estadoFiltro, setEstadoFiltro] = useState('');
   const [cuentasFiltradas, setCuentasFiltradas] = useState([]);
 
+  // Estados para el modal de pagos parciales
+  const [showPagoModal, setShowPagoModal] = useState(false);
+  const [selectedCuenta, setSelectedCuenta] = useState(null);
+  const [pagoMonto, setPagoMonto] = useState('');
+  const [errorPago, setErrorPago] = useState('');
+
+  // Estado para mostrar/ocultar el calendario de pagos
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  // Estados para proveedores y categorías
+  const [proveedores, setProveedores] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+
+  // Fetch de proveedores y categorías
   useEffect(() => {
-    fetchCuentas();
+    const fetchProveedores = async () => {
+      try {
+        const response = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
+        setProveedores(response.data);
+      } catch (err) {
+        console.error('Error al obtener proveedores:', err);
+      }
+    };
+    const fetchCategorias = async () => {
+      try {
+        const response = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
+        setCategorias(response.data);
+      } catch (err) {
+        console.error('Error al obtener categorías:', err);
+      }
+    };
     fetchProveedores();
-    fetchCategorias(); // Llamada para obtener categorías
+    fetchCategorias();
   }, []);
+
+  // Función para formatear moneda
+  const formatoMoneda = useCallback((valor) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(valor);
+  }, []);
+
+  // Función para filtrar cuentas según filtros
+  const filtrarCuentas = useCallback(() => {
+    let filtradas = cuentas;
+    if (filtroMes) {
+      filtradas = filtradas.filter(
+        (c) => new Date(c.fecha).getMonth() + 1 === parseInt(filtroMes, 10)
+      );
+    }
+    if (fechaInicio && fechaFin) {
+      const inicio = new Date(fechaInicio);
+      const fin = new Date(fechaFin);
+      fin.setDate(fin.getDate() + 1);
+      filtradas = filtradas.filter((c) => {
+        const fechaCuenta = new Date(c.fecha);
+        return fechaCuenta >= inicio && fechaCuenta < fin;
+      });
+    }
+    if (estadoFiltro) {
+      if (estadoFiltro === 'pagadas') {
+        filtradas = filtradas.filter((c) => c.pagado);
+      } else if (estadoFiltro === 'pendientes') {
+        filtradas = filtradas.filter((c) => !c.pagado);
+      }
+    }
+    setCuentasFiltradas(filtradas);
+  }, [cuentas, filtroMes, fechaInicio, fechaFin, estadoFiltro]);
 
   useEffect(() => {
     filtrarCuentas();
-  }, [filtroMes, fechaInicio, fechaFin, cuentas]);
+  }, [filtrarCuentas]);
 
+  // Calcular totales a partir de cuentas filtradas
   useEffect(() => {
-    calcularTotales(cuentasFiltradas);
+    const totalPagadasCalc = cuentasFiltradas.reduce((acc, curr) => {
+      const pago = curr.pagado
+        ? parseFloat(curr.monto_con_iva || 0)
+        : parseFloat(curr.pagos_parciales || 0);
+      return acc + pago;
+    }, 0);
+    const totalPorPagarCalc = cuentasFiltradas.reduce((acc, curr) => {
+      const montoConIVA = parseFloat(curr.monto_con_iva || 0);
+      const pagos = curr.pagado
+        ? montoConIVA
+        : parseFloat(curr.pagos_parciales || 0);
+      const restante = montoConIVA - pagos;
+      return acc + (restante > 0 ? restante : 0);
+    }, 0);
+    setTotalPagadas(totalPagadasCalc);
+    setTotalPorPagar(totalPorPagarCalc);
   }, [cuentasFiltradas]);
 
-  const fetchCuentas = async () => {
-    try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/cuentas-pagar');
-      setCuentas(response.data);
-    } catch (error) {
-      console.error('Error al obtener cuentas por pagar:', error);
-    }
+  // Función para limpiar filtros
+  const handleClearFilters = () => {
+    setFiltroMes('');
+    setFechaInicio('');
+    setFechaFin('');
+    setEstadoFiltro('');
   };
 
-  const fetchProveedores = async () => {
-    try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
-      setProveedores(response.data);
-    } catch (error) {
-      console.error('Error al obtener proveedores:', error);
-    }
-  };
-
-  const fetchCategorias = async () => { // Nueva función para obtener categorías
-    try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
-      setCategorias(response.data);
-    } catch (error) {
-      console.error('Error al obtener categorías:', error);
-    }
-  };
-
-  const toggleForm = () => {
-    setShowForm(!showForm);
-    if (showForm) resetForm();
-  };
+  // Funciones para el formulario de registro/actualización
+  const toggleFormModal = useCallback(() => {
+    setShowFormModal((prev) => {
+      if (prev) {
+        resetForm();
+        return false;
+      }
+      return true;
+    });
+  }, []);
 
   const resetForm = () => {
     setIsEditing(false);
@@ -88,6 +167,7 @@ const CuentasPagarForm = () => {
       proveedor_id: '',
       fecha: '',
       pagado: false,
+      pagos_parciales: 0,
     });
   };
 
@@ -113,22 +193,12 @@ const CuentasPagarForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const cuentaAEnviar = { ...cuenta };
-    
-    // Si la categoría seleccionada no es 'proveedor', desasignar 'proveedor_id'
-    if (cuentaAEnviar.categoria !== 'proveedor') cuentaAEnviar.proveedor_id = null;
-
-    try {
-      if (isEditing) {
-        await axios.put(`/api/cuentas-pagar/${editingId}`, cuentaAEnviar);
-      } else {
-        await axios.post('/api/cuentas-pagar', cuentaAEnviar);
-      }
-      fetchCuentas();
-      toggleForm();
-    } catch (error) {
-      console.error('Error al registrar cuenta por pagar:', error);
+    if (isEditing) {
+      await updateCuenta(editingId, cuenta);
+    } else {
+      await createCuenta(cuenta);
     }
+    toggleFormModal();
   };
 
   const handleEdit = (id) => {
@@ -136,17 +206,12 @@ const CuentasPagarForm = () => {
     setCuenta(cuentaToEdit);
     setIsEditing(true);
     setEditingId(id);
-    setShowForm(true);
+    setShowFormModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por pagar?')) return;
-
-    try {
-      await axios.delete(`/api/cuentas-pagar/${id}`);
-      fetchCuentas();
-    } catch (error) {
-      console.error('Error al eliminar cuenta por pagar:', error);
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por pagar?')) {
+      await deleteCuenta(id);
     }
   };
 
@@ -154,248 +219,181 @@ const CuentasPagarForm = () => {
     try {
       await axios.put(`/api/cuentas-pagar/${id}/pagado`);
       fetchCuentas();
-    } catch (error) {
-      console.error('Error al alternar el estado de pagado:', error);
+    } catch (err) {
+      console.error('Error al alternar el estado de pagado:', err);
     }
   };
 
-  const calcularTotales = (cuentas) => {
-    const totalPagadas = cuentas
-      .filter((c) => c.pagado)
-      .reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0);
-    const totalPorPagar = cuentas
-      .filter((c) => !c.pagado)
-      .reduce((acc, curr) => acc + parseFloat(curr.monto_con_iva || 0), 0);
-
-    setTotalPagadas(totalPagadas);
-    setTotalPorPagar(totalPorPagar);
+  // Funciones para el modal de pagos parciales
+  const handleAbrirPagoModal = (cuenta) => {
+    setSelectedCuenta(cuenta);
+    setPagoMonto('');
+    setErrorPago('');
+    setShowPagoModal(true);
   };
 
-  const filtrarCuentas = () => {
-    let filtradas = cuentas;
+  const handleCerrarPagoModal = () => {
+    setShowPagoModal(false);
+    setSelectedCuenta(null);
+    setPagoMonto('');
+    setErrorPago('');
+  };
 
-    if (filtroMes) {
-      filtradas = filtradas.filter(
-        (c) => new Date(c.fecha).getMonth() + 1 === parseInt(filtroMes, 10)
-      );
+  const handleGuardarPagoParcial = async () => {
+    if (!pagoMonto || isNaN(pagoMonto) || parseFloat(pagoMonto) <= 0) {
+      setErrorPago('Ingrese un monto válido mayor a 0.');
+      return;
     }
-
-    if (fechaInicio && fechaFin) {
-      const inicio = new Date(fechaInicio);
-      const fin = new Date(fechaFin);
-      filtradas = filtradas.filter((c) => {
-        const fechaCuenta = new Date(c.fecha);
-        return fechaCuenta >= inicio && fechaCuenta <= fin;
+    const montoPago = parseFloat(pagoMonto);
+    const pagosActuales = parseFloat(selectedCuenta.pagos_parciales || 0);
+    const nuevoTotalPagos = pagosActuales + montoPago;
+    const totalConIVA = parseFloat(selectedCuenta.monto_con_iva || 0);
+    const pagado = nuevoTotalPagos >= totalConIVA ? 1 : 0;
+    try {
+      await axios.put(`/api/cuentas-pagar/${selectedCuenta.id}`, {
+        ...selectedCuenta,
+        pagos_parciales: nuevoTotalPagos,
+        pagado,
       });
+      fetchCuentas();
+      handleCerrarPagoModal();
+    } catch (err) {
+      console.error('Error al guardar pago parcial:', err);
     }
-
-    setCuentasFiltradas(filtradas);
   };
 
-  const formatoMoneda = (valor) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-    }).format(valor);
+  // Función para filtrar por fecha al seleccionar una casilla en el calendario
+  const handleDateSelect = (dateString) => {
+    // Asigna la fecha seleccionada tanto a fechaInicio como a fechaFin para filtrar ese día
+    setFechaInicio(dateString);
+    setFechaFin(dateString);
+  };
+
+  // Ordenar cuentas filtradas (más recientes primero)
+  const cuentasOrdenadas = useMemo(() => {
+    return [...cuentasFiltradas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  }, [cuentasFiltradas]);
+
+  // Función para exportar CSV
+  const handleExportCSV = async () => {
+    try {
+      const params = {};
+      if (filtroMes) params.filtroMes = filtroMes;
+      if (fechaInicio && fechaFin) {
+        params.fechaInicio = fechaInicio;
+        params.fechaFin = fechaFin;
+      }
+      const response = await axios.get(
+        'https://sigma.runsolutions-services.com/api/cuentas-pagar/export',
+        { params, responseType: 'blob' }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'cuentas-pagar.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error al exportar CSV:', err);
+    }
   };
 
   return (
     <section className="cuentas-pagar-module">
       <h2>Cuentas por Pagar</h2>
-      <button onClick={toggleForm} className="toggle-form-button">
-        {showForm ? 'Cerrar formulario' : 'Registrar Cuenta'}
-      </button>
+      <div className="header-actions">
+        <button onClick={toggleFormModal} className="toggle-form-button">
+          {showFormModal ? 'Cerrar Formulario' : 'Registrar Cuenta'}
+        </button>
+        <button onClick={handleExportCSV} className="export-button">
+          <FontAwesomeIcon icon={faFileCsv} /> Exportar CSV
+        </button>
+      </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="cuentas-form">
-          <div className="field-group">
-            <label htmlFor="concepto">Concepto:</label>
-            <input
-              type="text"
-              id="concepto"
-              name="concepto"
-              value={cuenta.concepto}
-              onChange={handleChange}
-              required
-            />
+      {/* Filtros y Totales */}
+      <div className="card-filtros-totales">
+        <Filtros
+          filtroMes={filtroMes}
+          setFiltroMes={setFiltroMes}
+          fechaInicio={fechaInicio}
+          setFechaInicio={setFechaInicio}
+          fechaFin={fechaFin}
+          setFechaFin={setFechaFin}
+          estadoFiltro={estadoFiltro}
+          setEstadoFiltro={setEstadoFiltro}
+          handleClearFilters={handleClearFilters}
+        />
+        <div className="totales">
+          <div className="total">
+            <span>Cuentas Pagadas</span>
+            <span className="valor-total">{formatoMoneda(totalPagadas)}</span>
           </div>
-
-          <div className="field-group inline">
-            <div className="field-group">
-              <label htmlFor="monto_neto">Monto Neto:</label>
-              <input
-                type="number"
-                id="monto_neto"
-                name="monto_neto"
-                value={cuenta.monto_neto}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="checkbox-group">
-              <input
-                type="checkbox"
-                checked={cuenta.requiere_iva}
-                onChange={handleCheckboxChange}
-              />
-              <label>¿Requiere IVA?</label>
-            </div>
+          <div className="total">
+            <span>Cuentas por Pagar</span>
+            <span className="valor-total">{formatoMoneda(totalPorPagar)}</span>
           </div>
-
-          <div className="field-group">
-            <label htmlFor="monto_con_iva">Monto con IVA:</label>
-            <input
-              type="number"
-              id="monto_con_iva"
-              name="monto_con_iva"
-              value={cuenta.monto_con_iva}
-              readOnly
-            />
-          </div>
-
-          <div className="field-group">
-            <label htmlFor="categoria">Categoría:</label>
-            <select
-              id="categoria"
-              name="categoria"
-              value={cuenta.categoria}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccione...</option>
-              <option value="proveedor">Pago a Proveedor</option>
-              <option value="otro">Otro</option>
-              {categorias.map((categoria) => (
-                <option key={categoria.id} value={categoria.nombre}>
-                  {categoria.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {cuenta.categoria === 'proveedor' && (
-            <div className="field-group">
-              <label htmlFor="proveedor_id">Seleccionar Proveedor:</label>
-              <select
-                id="proveedor_id"
-                name="proveedor_id"
-                value={cuenta.proveedor_id}
-                onChange={handleChange}
-              >
-                <option value="">Seleccione un proveedor</option>
-                {proveedores.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="field-group">
-            <label htmlFor="fecha">Fecha:</label>
-            <input
-              type="date"
-              id="fecha"
-              name="fecha"
-              value={cuenta.fecha}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <button type="submit" className="submit-button">
-            {isEditing ? 'Actualizar Cuenta' : 'Registrar Cuenta'}
-          </button>
-        </form>
-      )}
-
-      {/* Filtros */}
-      <div className="totales-y-filtros">
-        <div className="filtro-mes">
-          <label htmlFor="filtroMes">Filtrar por Mes:</label>
-          <select
-            id="filtroMes"
-            value={filtroMes}
-            onChange={(e) => setFiltroMes(e.target.value)}
-          >
-            <option value="">Todos los meses</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString('default', { month: 'long' })}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="filtro-rango">
-          <label>Desde:</label>
-          <input
-            type="date"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
-          <label>Hasta:</label>
-          <input
-            type="date"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
-        </div>
-        <div className="total-semana">
-          <span>Cuentas Pagadas:</span>
-          <span>{formatoMoneda(totalPagadas)}</span>
-        </div>
-        <div className="total-semana">
-          <span>Cuentas por Pagar:</span>
-          <span>{formatoMoneda(totalPorPagar)}</span>
         </div>
       </div>
 
+      {/* Botón para visualizar/ocultar el Calendario de Pagos */}
+      <div className="calendar-toggle">
+        <button
+          onClick={() => setShowCalendar(prev => !prev)}
+          className="toggle-calendar-button"
+        >
+          {showCalendar ? 'Ocultar Calendario de Pagos' : 'Visualizar Calendario de Pagos'}
+        </button>
+      </div>
+      {showCalendar && <CalendarPagos cuentas={cuentas} onDateSelect={handleDateSelect} />}
+
       <h3>Cuentas por Pagar Registradas</h3>
-      <table className="cuentas-table">
-        <thead>
-          <tr>
-            <th>Concepto</th>
-            <th>Monto Neto</th>
-            <th>Monto con IVA</th>
-            <th>Categoría</th>
-            <th>Proveedor</th>
-            <th>Fecha</th>
-            <th>Pagado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cuentasFiltradas.map((c) => (
-            <tr key={c.id} className={c.pagado ? 'pagada' : 'pendiente'}>
-              <td>{c.concepto}</td>
-              <td>{formatoMoneda(c.monto_neto)}</td>
-              <td>{formatoMoneda(c.monto_con_iva)}</td>
-              <td>{c.categoria}</td>
-              <td>{proveedores.find((p) => p.id === c.proveedor_id)?.nombre || 'N/A'}</td>
-              <td>{new Date(c.fecha).toLocaleDateString()}</td>
-              <td>{c.pagado ? 'Sí' : 'No'}</td>
-              <td className="actions">
-                <button onClick={() => handleEdit(c.id)} className="icon-button edit-button">
-                  <FontAwesomeIcon icon={faEdit} />
-                </button>
-                <button onClick={() => handleDelete(c.id)} className="icon-button delete-button">
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-                <button onClick={() => handleTogglePagado(c.id)} className="icon-button pay-button">
-                  <FontAwesomeIcon icon={faDollarSign} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TablaCuentas
+        cuentas={cuentasOrdenadas}
+        proveedores={proveedores}
+        formatoMoneda={formatoMoneda}
+        handleAbrirPagoModal={handleAbrirPagoModal}
+        handleTogglePagado={handleTogglePagado}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+      />
+
+      {/* Modal Registro/Actualización */}
+      {showFormModal && (
+        <ModalRegistro
+          isEditing={isEditing}
+          cuenta={cuenta}
+          handleChange={handleChange}
+          handleCheckboxChange={handleCheckboxChange}
+          handleSubmit={handleSubmit}
+          toggleFormModal={toggleFormModal}
+          proveedores={proveedores}
+          categorias={categorias}
+        />
+      )}
+
+      {/* Modal Pagos Parciales */}
+      {showPagoModal && selectedCuenta && (
+        <ModalPagoParcial
+          selectedCuenta={selectedCuenta}
+          pagoMonto={pagoMonto}
+          setPagoMonto={setPagoMonto}
+          errorPago={errorPago}
+          handleGuardarPagoParcial={handleGuardarPagoParcial}
+          handleCerrarPagoModal={handleCerrarPagoModal}
+          formatoMoneda={formatoMoneda}
+        />
+      )}
     </section>
   );
 };
 
 export default CuentasPagarForm;
+
+
+
+
+
 
 
 
