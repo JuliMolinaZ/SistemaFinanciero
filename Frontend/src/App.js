@@ -7,6 +7,7 @@ import {
   Navigate
 } from 'react-router-dom';
 import axios from 'axios';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { GlobalContext } from './context/GlobalState';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -33,6 +34,7 @@ import PhasesModule from './modules/Fases/PhasesModule';
 import CostosFijos from './modules/CostosFijos/CostosFijos';
 import PermisosModule from './modules/Permisos/PermisosModule';
 import EmitidasForms from './modules/Emitidas/EmitidasForms';
+
 
 // Módulo de Cotizaciones
 import CotizacionesForm from './modules/Cotizaciones/CotizacionesForm';

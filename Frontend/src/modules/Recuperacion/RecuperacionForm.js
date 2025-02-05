@@ -3,6 +3,14 @@ import axios from 'axios';
 import './RecuperacionForm.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { calcularTotalesRecuperacion } from '../../utils/cuentas';
+
+// Formateador de moneda MXN
+const formatterMXN = new Intl.NumberFormat('es-MX', {
+  style: 'currency',
+  currency: 'MXN',
+  minimumFractionDigits: 2,
+});
 
 const RecuperacionForm = () => {
   const [recuperaciones, setRecuperaciones] = useState([]);
@@ -15,36 +23,25 @@ const RecuperacionForm = () => {
     cliente_id: '',
     proyecto_id: '',
   });
-  const [total, setTotal] = useState(0);
-  const [totalPorRecuperar, setTotalPorRecuperar] = useState(0);
+  // Se almacenan los totales globales (sin aplicar filtro)
+  const [totales, setTotales] = useState({ totalRecuperado: 0, totalPorRecuperar: 0 });
+  // Opcional: estado para aplicar filtros por mes en la vista de la tabla
   const [filterByMonth, setFilterByMonth] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Formateador de moneda MXN
-  const formatterMXN = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
-    minimumFractionDigits: 2,
-  });
-
+  // Al montar el componente se traen las recuperaciones, clientes y proyectos
   useEffect(() => {
     fetchRecuperaciones();
     fetchClientes();
     fetchProyectos();
   }, []);
 
+  // Cada vez que cambie el arreglo de recuperaciones, se recalculan los totales globales
   useEffect(() => {
-    const totalRecuperado = recuperaciones
-      .filter(r => r.recuperado)
-      .reduce((acc, curr) => acc + parseFloat(curr.monto || 0), 0);
-    setTotal(totalRecuperado);
-
-    const totalNoRecuperado = recuperaciones
-      .filter(r => !r.recuperado)
-      .reduce((sum, r) => sum + parseFloat(r.monto || 0), 0);
-    setTotalPorRecuperar(totalNoRecuperado);
+    const { totalRecuperado, totalPorRecuperar } = calcularTotalesRecuperacion(recuperaciones);
+    setTotales({ totalRecuperado, totalPorRecuperar });
   }, [recuperaciones]);
 
   const fetchRecuperaciones = async () => {
@@ -95,9 +92,9 @@ const RecuperacionForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`/api/recuperacion/${editingId}`, recuperacion);
+        await axios.put(`https://sigma.runsolutions-services.com/api/recuperacion/${editingId}`, recuperacion);
       } else {
-        await axios.post('/api/recuperacion', recuperacion);
+        await axios.post('https://sigma.runsolutions-services.com/api/recuperacion', recuperacion);
       }
       fetchRecuperaciones();
       toggleForm();
@@ -122,7 +119,7 @@ const RecuperacionForm = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta recuperación?')) return;
     try {
-      await axios.delete(`/api/recuperacion/${id}`);
+      await axios.delete(`https://sigma.runsolutions-services.com/api/recuperacion/${id}`);
       fetchRecuperaciones();
     } catch (error) {
       console.error('Error al eliminar recuperación:', error);
@@ -131,13 +128,14 @@ const RecuperacionForm = () => {
 
   const toggleRecuperado = async (id) => {
     try {
-      await axios.put(`/api/recuperacion/${id}/toggle`);
+      await axios.put(`https://sigma.runsolutions-services.com/api/recuperacion/${id}/toggle`);
       fetchRecuperaciones();
     } catch (error) {
       console.error('Error al alternar estado de recuperado:', error);
     }
   };
 
+  // Aplicar filtro por mes, si se ha seleccionado uno
   const recuperacionesFiltradas = filterByMonth
     ? recuperaciones.filter(r => new Date(r.fecha).getMonth() + 1 === parseInt(filterByMonth))
     : recuperaciones;
@@ -223,11 +221,15 @@ const RecuperacionForm = () => {
         <div className="totals">
           <h3>
             Total Recuperado:{' '}
-            <span className="total-value recovered">{formatterMXN.format(total)}</span>
+            <span className="total-value recovered">
+              {formatterMXN.format(totales.totalRecuperado)}
+            </span>
           </h3>
           <h3>
             Total Por Recuperar:{' '}
-            <span className="total-value not-recovered">{formatterMXN.format(totalPorRecuperar)}</span>
+            <span className="total-value not-recovered">
+              {formatterMXN.format(totales.totalPorRecuperar)}
+            </span>
           </h3>
         </div>
         <div className="filter-month">
@@ -293,6 +295,5 @@ const RecuperacionForm = () => {
 };
 
 export default RecuperacionForm;
-
 
 
