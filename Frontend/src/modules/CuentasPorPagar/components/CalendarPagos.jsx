@@ -2,7 +2,8 @@
 import React from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import './CalendarPagos.css';
+import './CalendarPagos.css'; // Conserva los estilos para react-calendar y pending-payment
+import { Box, Typography } from '@mui/material';
 
 const CalendarPagos = ({ cuentas, onDateSelect }) => {
   // Filtrar cuentas pendientes (aquellas que no están pagadas)
@@ -24,7 +25,7 @@ const CalendarPagos = ({ cuentas, onDateSelect }) => {
     return null;
   };
 
-  // Cuando se hace clic en un día, si ese día tiene pagos pendientes, se invoca el callback
+  // Al hacer clic en un día, si ese día tiene pagos pendientes, se invoca el callback
   const handleClickDay = (date) => {
     const dateString = date.toISOString().split('T')[0];
     if (pendingDates.has(dateString)) {
@@ -33,12 +34,25 @@ const CalendarPagos = ({ cuentas, onDateSelect }) => {
   };
 
   return (
-    <div className="calendar-container">
-      <Calendar 
-        tileClassName={tileClassName} 
-        onClickDay={handleClickDay} 
-      />
-    </div>
+    <Box
+      sx={{
+        maxWidth: 550,
+        mx: 'auto',
+        p: 3,
+        background: 'linear-gradient(90deg, #ff6b6b, #f94d9a)', // Degradado rojo similar al que usas
+        borderRadius: 2,
+        boxShadow: 3,
+        mb: 4,
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ textAlign: 'center', color: '#fff', mb: 2, fontWeight: 'bold' }}
+      >
+        Calendario de Pagos Pendientes
+      </Typography>
+      <Calendar tileClassName={tileClassName} onClickDay={handleClickDay} />
+    </Box>
   );
 };
 

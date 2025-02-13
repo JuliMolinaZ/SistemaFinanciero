@@ -34,24 +34,12 @@ import PhasesModule from './modules/Fases/PhasesModule';
 import CostosFijos from './modules/CostosFijos/CostosFijos';
 import PermisosModule from './modules/Permisos/PermisosModule';
 import EmitidasForms from './modules/Emitidas/EmitidasForms';
-
-
-// Módulo de Cotizaciones
 import CotizacionesForm from './modules/Cotizaciones/CotizacionesForm';
-
-// *** Nuevo Módulo Flow Recovery V2 ***
 import FlowRecoveryV2Form from './modules/FlowRecoveryV2/FlowRecoveryV2Form';
-
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
-  const {
-    currentUser,
-    profileComplete,
-    sidebarCollapsed,
-    profileData,
-    authLoading
-  } = useContext(GlobalContext);
+  const { currentUser, profileComplete, sidebarCollapsed, profileData, authLoading } = useContext(GlobalContext);
   const [localPermisos, setLocalPermisos] = useState([]);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -63,10 +51,7 @@ function App() {
         console.log('Permisos obtenidos:', response.data);
         setLocalPermisos(response.data);
       } catch (error) {
-        console.error(
-          'Error al obtener los permisos:',
-          error.response?.data || error.message
-        );
+        console.error('Error al obtener los permisos:', error.response?.data || error.message);
       }
     };
     fetchPermisos();
@@ -205,8 +190,6 @@ function App() {
                     </PrivateRoute>
                   }
                 />
-
-                {/* Nueva ruta para Flow Recovery V2 */}
                 <Route
                   path="/flow-recovery-v2"
                   element={
@@ -215,9 +198,7 @@ function App() {
                     </PrivateRoute>
                   }
                 />
-
                 <Route path="/test" element={<div>Ruta de Prueba Exitosa</div>} />
-
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
@@ -233,14 +214,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-

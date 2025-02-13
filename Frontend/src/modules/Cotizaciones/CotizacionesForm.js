@@ -1,19 +1,364 @@
 // src/modules/Cotizaciones/CotizacionesForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Grid,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  IconButton,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+  Tooltip,
+  CircularProgress,
+  Snackbar,
+  Alert,
+} from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt, faTrashAlt, faFilePdf } from '@fortawesome/free-solid-svg-icons';
-import './CotizacionesForm.css';
+import { faPencilAlt, faTrashAlt, faFilePdf, faClose } from '@fortawesome/free-solid-svg-icons';
 
+// URL base (usa la variable de entorno o localhost)
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+// ------------------------------------------------------------------
+// COMPONENTE: TitleHeader
+// ------------------------------------------------------------------
+const TitleHeader = () => (
+  <Typography
+    variant="h3"
+    component="h1"
+    sx={{
+      textAlign: 'center',
+      mb: 4,
+      color: 'var(--color-titulo, #e63946)',
+      fontWeight: 'bold',
+      textTransform: 'capitalize',
+    }}
+  >
+    Cotizaciones
+  </Typography>
+);
+
+// ------------------------------------------------------------------
+// COMPONENTE: CotizacionFormDialog
+// (Formulario para crear/editar cotización en un Dialog)
+// ------------------------------------------------------------------
+const CotizacionFormDialog = ({
+  open,
+  onClose,
+  formData,
+  onInputChange,
+  onFileChange,
+  onSubmit,
+  isEditing,
+  projects,
+  clients,
+  uploadProgress,
+}) => (
+  <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" keepMounted>
+    <DialogTitle
+      sx={{
+        p: 2,
+        background: 'linear-gradient(90deg, #ff6b6b, #f94d9a)',
+        color: '#fff',
+        fontWeight: 'bold',
+        position: 'relative',
+      }}
+    >
+      {isEditing ? 'Actualizar Cotización' : 'Registrar Cotización'}
+      <IconButton
+        onClick={onClose}
+        sx={{
+          position: 'absolute',
+          right: 8,
+          top: 8,
+          color: '#fff',
+          '&:hover': { color: '#ffeb3b' },
+        }}
+      >
+        <FontAwesomeIcon icon={faClose} />
+      </IconButton>
+    </DialogTitle>
+    <DialogContent sx={{ backgroundColor: '#fff' }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth required>
+            <InputLabel id="cliente-label">Cliente</InputLabel>
+            <Select
+              labelId="cliente-label"
+              name="cliente"
+              value={formData.cliente}
+              label="Cliente"
+              onChange={onInputChange}
+            >
+              <MenuItem value="">
+                <em>Seleccione un cliente...</em>
+              </MenuItem>
+              {clients.map((client) => (
+                <MenuItem key={client.id} value={client.id}>
+                  {client.nombre || client.razonSocial || client.nombreCompleto}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth required>
+            <InputLabel id="proyecto-label">Proyecto</InputLabel>
+            <Select
+              labelId="proyecto-label"
+              name="proyecto"
+              value={formData.proyecto}
+              label="Proyecto"
+              onChange={onInputChange}
+            >
+              <MenuItem value="">
+                <em>Seleccione un proyecto...</em>
+              </MenuItem>
+              {projects.map((project) => (
+                <MenuItem key={project.id} value={project.id}>
+                  {project.nombre || project.titulo || project.proyecto}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Monto sin IVA"
+            name="montoSinIVA"
+            type="number"
+            value={formData.montoSinIVA}
+            onChange={onInputChange}
+            fullWidth
+            required
+            inputProps={{ min: 0, step: "0.01" }}
+            variant="outlined"
+            sx={{ backgroundColor: '#f9f9f9', borderRadius: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Monto con IVA"
+            name="montoConIVA"
+            type="number"
+            value={formData.montoConIVA}
+            InputProps={{ readOnly: true }}
+            fullWidth
+            variant="outlined"
+            sx={{ backgroundColor: '#f9f9f9', borderRadius: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            label="Descripción"
+            name="descripcion"
+            value={formData.descripcion}
+            onChange={onInputChange}
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            sx={{ backgroundColor: '#f9f9f9', borderRadius: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <InputLabel id="estado-label">Estado</InputLabel>
+            <Select
+              labelId="estado-label"
+              name="estado"
+              value={formData.estado}
+              label="Estado"
+              onChange={onInputChange}
+            >
+              <MenuItem value="No creada">No creada</MenuItem>
+              <MenuItem value="En proceso de aceptación">En proceso de aceptación</MenuItem>
+              <MenuItem value="Aceptada por cliente">Aceptada por cliente</MenuItem>
+              <MenuItem value="No aceptada">No aceptada</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Button variant="outlined" component="label" fullWidth>
+            Adjuntar Cotización (PDF)
+            <input
+              type="file"
+              name="documento"
+              accept="application/pdf"
+              hidden
+              onChange={onFileChange}
+            />
+          </Button>
+        </Grid>
+      </Grid>
+      {uploadProgress > 0 && (
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="body2">Subiendo: {uploadProgress}%</Typography>
+        </Box>
+      )}
+    </DialogContent>
+    <DialogActions sx={{ p: 2, justifyContent: 'center', backgroundColor: '#fff' }}>
+      <Button
+        type="submit"
+        onClick={onSubmit}
+        variant="contained"
+        sx={{
+          backgroundColor: 'var(--color-titulo, #e63946)',
+          px: 4,
+          py: 1.2,
+          fontWeight: 'bold',
+          borderRadius: 2,
+          transition: 'all 0.3s ease',
+          '&:hover': { backgroundColor: '#c12c33', transform: 'scale(1.05)' },
+        }}
+      >
+        {isEditing ? 'Actualizar Cotización' : 'Crear Cotización'}
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
+
+// ------------------------------------------------------------------
+// COMPONENTE: CotizacionTable
+// (Tabla para mostrar las cotizaciones registradas)
+// ------------------------------------------------------------------
+const CotizacionTable = ({ cotizaciones, clients, projects, onEdit, onDelete }) => {
+  // Función auxiliar para formatear la fecha
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const yyyy = date.getFullYear();
+    let mm = date.getMonth() + 1;
+    let dd = date.getDate();
+    if (mm < 10) mm = `0${mm}`;
+    if (dd < 10) dd = `0${dd}`;
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // Función auxiliar para formatear números a moneda
+  const formatCurrency = (value) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(num);
+  };
+
+  return (
+    <TableContainer
+      component={Paper}
+      sx={{
+        width: '100%',
+        maxWidth: 1100,
+        mt: 4,
+        mb: 6,
+        borderRadius: 2,
+        boxShadow: 2,
+        mx: 'auto',
+      }}
+    >
+      <Table>
+        <TableHead sx={{ backgroundColor: '#343a40' }}>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Cliente</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Proyecto</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Monto sin IVA</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Monto con IVA</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Descripción</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Estado</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff' }}>Documento</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: '#fff', textAlign: 'center' }}>Acciones</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {cotizaciones.length > 0 ? (
+            cotizaciones.map((cot) => {
+              const clientObj = clients.find((c) => String(c.id) === String(cot.cliente));
+              const clientName = clientObj
+                ? clientObj.nombre || clientObj.razonSocial || clientObj.nombreCompleto
+                : cot.cliente;
+              const proj = projects.find((p) => String(p.id) === String(cot.proyecto));
+              const projectName = proj ? (proj.nombre || proj.titulo || proj.proyecto) : cot.proyecto;
+              return (
+                <TableRow key={cot.id} sx={{ '&:hover': { backgroundColor: '#fefefe' } }}>
+                  <TableCell>{clientName}</TableCell>
+                  <TableCell>{projectName}</TableCell>
+                  <TableCell>{formatCurrency(cot.montoSinIVA)}</TableCell>
+                  <TableCell>{formatCurrency(cot.montoConIVA)}</TableCell>
+                  <TableCell>{cot.descripcion}</TableCell>
+                  <TableCell>{cot.estado}</TableCell>
+                  <TableCell>
+                    {cot.documento ? (
+                      <a href={`${API_URL}/uploads/${cot.documento}`} target="_blank" rel="noopener noreferrer">
+                        <Tooltip title="Ver PDF">
+                          <IconButton sx={{ backgroundColor: '#d32f2f', color: '#fff', '&:hover': { backgroundColor: '#b71c1c' } }}>
+                            <FontAwesomeIcon icon={faFilePdf} />
+                          </IconButton>
+                        </Tooltip>
+                      </a>
+                    ) : (
+                      <IconButton disabled sx={{ opacity: 0.5 }}>
+                        <FontAwesomeIcon icon={faFilePdf} />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                      <Tooltip title="Editar">
+                        <IconButton
+                          onClick={() => onEdit(cot.id)}
+                          sx={{ backgroundColor: '#ffc107', color: '#fff', '&:hover': { backgroundColor: '#e0a800' } }}
+                        >
+                          <FontAwesomeIcon icon={faPencilAlt} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <IconButton
+                          onClick={() => onDelete(cot.id)}
+                          sx={{ backgroundColor: '#f44336', color: '#fff', '&:hover': { backgroundColor: '#d32f2f' } }}
+                        >
+                          <FontAwesomeIcon icon={faTrashAlt} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          ) : (
+            <TableRow>
+              <TableCell colSpan={8} sx={{ textAlign: 'center' }}>
+                No hay cotizaciones registradas.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
+
+// ------------------------------------------------------------------
+// COMPONENTE PRINCIPAL: CotizacionesForm
+// ------------------------------------------------------------------
 const CotizacionesForm = () => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-  // Estados para cotizaciones, proyectos y clientes
   const [cotizaciones, setCotizaciones] = useState([]);
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
-
-  // Estados para modal, formulario y notificaciones
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -22,98 +367,56 @@ const CotizacionesForm = () => {
     montoSinIVA: '',
     montoConIVA: '',
     descripcion: '',
-    estado: 'No creada'
+    estado: 'No creada',
   });
   const [documento, setDocumento] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  // Estado para notificaciones (Snackbar)
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Efecto para borrar el mensaje después de 5 segundos (ajusta el tiempo a tu preferencia)
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        setMessage('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
-
-  // Función para formatear números a pesos mexicanos
-  const formatCurrency = (value) => {
-    const number = parseFloat(value);
-    if (isNaN(number)) return value;
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(number);
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
   };
 
-  // Función para obtener cotizaciones
-  const fetchCotizaciones = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/cotizaciones`);
-      console.log('Cotizaciones recibidas:', response.data);
-      setCotizaciones(response.data);
-    } catch (error) {
-      console.error('Error al obtener cotizaciones:', error);
-    }
-  };
-
-  // Función para obtener proyectos
-  const fetchProjects = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/projects`);
-      console.log('Proyectos recibidos:', response.data);
-      setProjects(response.data);
-    } catch (error) {
-      console.error('Error al obtener proyectos:', error);
-    }
-  };
-
-  // Función para obtener clientes
-  const fetchClients = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/clients`);
-      console.log('Clientes recibidos:', response.data);
-      setClients(response.data);
-    } catch (error) {
-      console.error('Error al obtener clientes:', error);
-    }
-  };
-
+  // Obtener datos iniciales
   useEffect(() => {
     fetchCotizaciones();
     fetchProjects();
     fetchClients();
   }, []);
 
-  // Función para asignar color de fila según el estado
-  const getRowColor = (estado) => {
-    switch (estado) {
-      case 'No creada':
-        return '#fff3cd';
-      case 'En proceso de aceptación':
-        return '#d1ecf1';
-      case 'Aceptada por cliente':
-        return '#d4edda';
-      case 'No aceptada':
-        return '#f8d7da';
-      default:
-        return 'transparent';
-    }
-  };
-
-  // Función auxiliar para obtener el nombre del cliente por su ID
-  // Se espera que el endpoint /api/clients/:clientId retorne un objeto con la propiedad "nombre"
-  const getClientNameById = async (clientId) => {
+  const fetchCotizaciones = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/clients/${clientId}`);
-      const data = response.data;
-      return data && data.nombre ? data.nombre : clientId;
+      const response = await axios.get(`${API_URL}/api/cotizaciones`);
+      setCotizaciones(response.data);
     } catch (error) {
-      console.error('Error al obtener nombre del cliente:', error);
-      return clientId;
+      console.error('Error al obtener cotizaciones:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Manejo de cambios en los campos del formulario
+  const fetchProjects = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/projects`);
+      setProjects(response.data);
+    } catch (error) {
+      console.error('Error al obtener proyectos:', error);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/clients`);
+      setClients(response.data);
+    } catch (error) {
+      console.error('Error al obtener clientes:', error);
+    }
+  };
+
+  // Actualizar campos del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'montoSinIVA') {
@@ -121,21 +424,19 @@ const CotizacionesForm = () => {
       setFormData((prev) => ({
         ...prev,
         montoSinIVA: value,
-        montoConIVA: !isNaN(monto) ? (monto * 1.16).toFixed(2) : ''
+        montoConIVA: !isNaN(monto) ? (monto * 1.16).toFixed(2) : '',
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Manejo del cambio para el archivo PDF
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setDocumento(e.target.files[0]);
     }
   };
 
-  // Envío del formulario (crear o actualizar)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData();
@@ -149,28 +450,25 @@ const CotizacionesForm = () => {
       data.append('documento', documento);
     }
     try {
-      let response;
       if (editingId) {
-        response = await axios.put(`${API_URL}/api/cotizaciones/${editingId}`, data, {
+        await axios.put(`${API_URL}/api/cotizaciones/${editingId}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(percentCompleted);
           },
         });
-        setMessage('Cotización actualizada con éxito.');
+        setSnackbar({ open: true, message: 'Cotización actualizada con éxito.', severity: 'success' });
       } else {
-        response = await axios.post(`${API_URL}/api/cotizaciones`, data, {
+        await axios.post(`${API_URL}/api/cotizaciones`, data, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(percentCompleted);
           },
         });
-        setMessage('Cotización creada con éxito.');
+        setSnackbar({ open: true, message: 'Cotización creada con éxito.', severity: 'success' });
       }
-
-      // Reiniciar formulario y actualizar la lista
       setShowModal(false);
       setEditingId(null);
       setFormData({
@@ -179,26 +477,25 @@ const CotizacionesForm = () => {
         montoSinIVA: '',
         montoConIVA: '',
         descripcion: '',
-        estado: 'No creada'
+        estado: 'No creada',
       });
       setDocumento(null);
       setUploadProgress(0);
       fetchCotizaciones();
     } catch (error) {
       console.error('Error al crear cotización:', error);
-      setMessage('Error al crear cotización.');
+      setSnackbar({ open: true, message: 'Error al crear cotización.', severity: 'error' });
     }
   };
 
-  // Manejo para editar: llena el formulario con los datos de la cotización seleccionada
   const handleEdit = (id) => {
     const cot = cotizaciones.find((c) => c.id === id);
     if (cot) {
       setFormData({
         cliente: cot.cliente,
         proyecto: cot.proyecto,
-        montoSinIVA: cot.monto_neto,
-        montoConIVA: cot.monto_con_iva,
+        montoSinIVA: cot.montoSinIVA,
+        montoConIVA: cot.montoConIVA,
         descripcion: cot.descripcion,
         estado: cot.estado,
       });
@@ -207,19 +504,19 @@ const CotizacionesForm = () => {
     }
   };
 
-  // Manejo para eliminar cotización
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro de que desea eliminar esta cotización?')) {
       try {
         await axios.delete(`${API_URL}/api/cotizaciones/${id}`);
         fetchCotizaciones();
+        setSnackbar({ open: true, message: 'Cotización eliminada con éxito.', severity: 'success' });
       } catch (error) {
         console.error('Error al eliminar cotización:', error);
+        setSnackbar({ open: true, message: 'Error al eliminar cotización.', severity: 'error' });
       }
     }
   };
 
-  // Función para abrir el modal para crear nueva cotización
   const handleOpenForm = () => {
     setShowModal(true);
     setEditingId(null);
@@ -229,223 +526,103 @@ const CotizacionesForm = () => {
       montoSinIVA: '',
       montoConIVA: '',
       descripcion: '',
-      estado: 'No creada'
+      estado: 'No creada',
     });
     setDocumento(null);
   };
 
+  // Funciones auxiliares para formatear fecha y moneda
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const yyyy = date.getFullYear();
+    let mm = date.getMonth() + 1;
+    let dd = date.getDate();
+    if (mm < 10) mm = `0${mm}`;
+    if (dd < 10) dd = `0${dd}`;
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const formatCurrency = (value) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(num);
+  };
+
   return (
-    <div className="cotizaciones-module">
-      <h2>Cotizaciones</h2>
-      {/* Notificación temporal */}
-      {message && <div className="notification">{message}</div>}
-      
-      <button className="toggle-form-button" onClick={handleOpenForm}>
+    <Container
+      sx={{
+        py: 4,
+        backgroundColor: 'var(--color-fondo, #f5f5f5)',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <TitleHeader />
+      <Button
+        onClick={handleOpenForm}
+        variant="contained"
+        sx={{
+          backgroundColor: 'var(--color-boton-principal, #007bff)',
+          color: '#fff',
+          px: 3,
+          py: 1,
+          fontSize: '1rem',
+          fontWeight: 'bold',
+          borderRadius: 2,
+          transition: 'background 0.3s',
+          '&:hover': { backgroundColor: 'var(--color-boton-principal-hover, #0056b3)' },
+          mb: 2,
+          display: 'block',
+          mx: 'auto',
+        }}
+      >
         Crear Cotización
-      </button>
-
+      </Button>
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-form-container">
-            <button
-              type="button"
-              className="close-modal-button"
-              onClick={() => setShowModal(false)}
-            >
-              &times;
-            </button>
-            <form onSubmit={handleSubmit} className="cotizaciones-form">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label htmlFor="cliente">Cliente:</label>
-                  <select
-                    id="cliente"
-                    name="cliente"
-                    value={formData.cliente}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccione un cliente...</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.nombre || client.razonSocial || client.nombreCompleto}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="proyecto">Proyecto:</label>
-                  <select
-                    id="proyecto"
-                    name="proyecto"
-                    value={formData.proyecto}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccione un proyecto...</option>
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.nombre || project.titulo || project.proyecto}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="montoSinIVA">Monto sin IVA:</label>
-                  <input
-                    type="number"
-                    id="montoSinIVA"
-                    name="montoSinIVA"
-                    value={formData.montoSinIVA}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="montoConIVA">Monto con IVA:</label>
-                  <input
-                    type="number"
-                    id="montoConIVA"
-                    name="montoConIVA"
-                    value={formData.montoConIVA}
-                    readOnly
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="descripcion">Descripción:</label>
-                  <textarea
-                    id="descripcion"
-                    name="descripcion"
-                    value={formData.descripcion}
-                    onChange={handleInputChange}
-                    rows="4"
-                  ></textarea>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="documento">Adjuntar Cotización (PDF):</label>
-                  <input
-                    type="file"
-                    id="documento"
-                    name="documento"
-                    accept="application/pdf"
-                    onChange={handleFileChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="estado">Estado:</label>
-                  <select
-                    id="estado"
-                    name="estado"
-                    value={formData.estado}
-                    onChange={handleInputChange}
-                  >
-                    <option value="No creada">No creada</option>
-                    <option value="En proceso de aceptación">En proceso de aceptación</option>
-                    <option value="Aceptada por cliente">Aceptada por cliente</option>
-                    <option value="No aceptada">No aceptada</option>
-                  </select>
-                </div>
-              </div>
-              {uploadProgress > 0 && (
-                <div className="progress">Subiendo: {uploadProgress}%</div>
-              )}
-              <div className="form-buttons">
-                <button type="submit" className="submit-button">
-                  {editingId ? 'Actualizar Cotización' : 'Crear Cotización'}
-                </button>
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CotizacionFormDialog
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          formData={formData}
+          onInputChange={handleInputChange}
+          onFileChange={handleFileChange}
+          onSubmit={handleSubmit}
+          isEditing={!!editingId}
+          projects={projects}
+          clients={clients}
+          uploadProgress={uploadProgress}
+        />
       )}
-
-      <table className="cotizaciones-table">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Proyecto</th>
-            <th>Monto sin IVA</th>
-            <th>Monto con IVA</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th>Documento</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cotizaciones.length > 0 ? (
-            cotizaciones.map((cot) => {
-              const clientObj = clients.find((c) => String(c.id) === String(cot.cliente));
-              const clientName = clientObj
-                ? clientObj.nombre || clientObj.razonSocial || clientObj.nombreCompleto
-                : cot.cliente;
-              const proj = projects.find((p) => String(p.id) === String(cot.proyecto));
-              const projectName = proj ? (proj.nombre || proj.titulo || proj.proyecto) : cot.proyecto;
-              return (
-                <tr key={cot.id} style={{ backgroundColor: getRowColor(cot.estado) }}>
-                  <td>{clientName}</td>
-                  <td>{projectName}</td>
-                  <td>{formatCurrency(cot.monto_neto)}</td>
-                  <td>{formatCurrency(cot.monto_con_iva)}</td>
-                  <td>{cot.descripcion}</td>
-                  <td>{cot.estado}</td>
-                  <td>
-                    {cot.documento ? (
-                      <a
-                        href={`${API_URL}/uploads/${cot.documento}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="view-pdf-button"
-                      >
-                        <FontAwesomeIcon icon={faFilePdf} />
-                      </a>
-                    ) : (
-                      <button className="view-pdf-button disabled" disabled>
-                        <FontAwesomeIcon icon={faFilePdf} />
-                      </button>
-                    )}
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="icon-button edit-button"
-                        onClick={() => handleEdit(cot.id)}
-                      >
-                        <FontAwesomeIcon icon={faPencilAlt} />
-                      </button>
-                      <button
-                        className="icon-button delete-button"
-                        onClick={() => handleDelete(cot.id)}
-                      >
-                        <FontAwesomeIcon icon={faTrashAlt} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan="8" style={{ textAlign: 'center' }}>
-                No hay cotizaciones registradas.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <CotizacionTable
+          cotizaciones={cotizaciones}
+          clients={clients}
+          projects={projects}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 };
 
 export default CotizacionesForm;
-
 
 
 

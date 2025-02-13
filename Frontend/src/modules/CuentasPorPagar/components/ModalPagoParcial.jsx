@@ -1,5 +1,18 @@
 // src/modules/CuentasPorPagar/components/ModalPagoParcial.jsx
 import React from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  IconButton,
+} from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const ModalPagoParcial = ({
   selectedCuenta,
@@ -8,63 +21,78 @@ const ModalPagoParcial = ({
   errorPago,
   handleGuardarPagoParcial,
   handleCerrarPagoModal,
-  formatoMoneda
+  formatoMoneda,
 }) => {
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h3>Ingresar Pago Parcial</h3>
-        <div className="modal-details">
-          <p>
-            <span className="detail-label">Concepto:</span>
-            <span className="detail-value">{selectedCuenta.concepto}</span>
-          </p>
-          <p>
-            <span className="detail-label">Total con IVA:</span>
-            <span className="detail-value">{formatoMoneda(selectedCuenta.monto_con_iva)}</span>
-          </p>
-          <p>
-            <span className="detail-label">Pagos Parciales:</span>
-            <span className="detail-value">{formatoMoneda(selectedCuenta.pagos_parciales || 0)}</span>
-          </p>
-          <p>
-            <span className="detail-label">Restante:</span>
-            <span className="detail-value">
-              {formatoMoneda(
-                parseFloat(selectedCuenta.monto_con_iva || 0) -
+    <Dialog open onClose={handleCerrarPagoModal} fullWidth maxWidth="sm">
+      <DialogTitle
+        sx={{
+          background: 'linear-gradient(90deg, #64b5f6, #42a5f5)',
+          color: 'white',
+          fontWeight: 'bold',
+          position: 'relative',
+        }}
+      >
+        Ingresar Pago Parcial
+        <IconButton
+          onClick={handleCerrarPagoModal}
+          sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}
+        >
+          <FontAwesomeIcon icon={faTimes} />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body1">
+            <strong>Concepto:</strong> {selectedCuenta.concepto}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Total con IVA:</strong> {formatoMoneda(selectedCuenta.monto_con_iva)}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Pagos Parciales:</strong> {formatoMoneda(selectedCuenta.pagos_parciales || 0)}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Restante:</strong>{' '}
+            {formatoMoneda(
+              parseFloat(selectedCuenta.monto_con_iva || 0) -
                 parseFloat(selectedCuenta.pagos_parciales || 0)
-              )}
-            </span>
-          </p>
-        </div>
-        <div className="modal-field">
-          <label htmlFor="pagoMonto">Monto del Pago:</label>
-          <input
-            type="number"
-            id="pagoMonto"
-            value={pagoMonto}
-            onChange={(e) => {
-              const value = e.target.value;
-              setPagoMonto(value);
-            }}
-          />
-          {errorPago && <p className="error-message">{errorPago}</p>}
-        </div>
-        <div className="modal-actions">
-          <button
-            onClick={handleGuardarPagoParcial}
-            className="submit-button"
-            disabled={!pagoMonto || isNaN(pagoMonto) || parseFloat(pagoMonto) <= 0}
-          >
-            Guardar Pago
-          </button>
-          <button onClick={handleCerrarPagoModal} className="cancel-button">
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
+            )}
+          </Typography>
+        </Box>
+        <TextField
+          label="Monto del Pago"
+          type="number"
+          fullWidth
+          value={pagoMonto}
+          onChange={(e) => setPagoMonto(e.target.value)}
+          error={Boolean(errorPago)}
+          helperText={errorPago}
+          InputLabelProps={{ shrink: true }}
+        />
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleGuardarPagoParcial}
+          disabled={!pagoMonto || isNaN(pagoMonto) || parseFloat(pagoMonto) <= 0}
+          sx={{ px: 4, py: 1 }}
+        >
+          Guardar Pago
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={handleCerrarPagoModal}
+          sx={{ px: 4, py: 1 }}
+        >
+          Cancelar
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
 export default React.memo(ModalPagoParcial);
+

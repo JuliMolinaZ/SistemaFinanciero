@@ -21,10 +21,19 @@ import {
   IconButton,
   Grid,
   MenuItem,
+  Snackbar,
+  Alert,
+  Slide,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
+
+const API_BASE = 'https://sigma.runsolutions-services.com/api';
 
 const ProjectModule = () => {
   // Estados para proyectos, clientes, costos y formularios
@@ -43,6 +52,13 @@ const ProjectModule = () => {
     monto_con_iva: '',
   });
 
+  // Estado para notificaciones (Snackbar)
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   useEffect(() => {
     fetchProjects();
     fetchClients();
@@ -50,28 +66,31 @@ const ProjectModule = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/projects');
+      const response = await axios.get(`${API_BASE}/projects`);
       setProjects(response.data);
     } catch (error) {
-      console.error('Error al obtener proyectos:', error);
+      console.error('Error al obtener proyectos:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al obtener proyectos.', severity: 'error' });
     }
   };
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/clients');
+      const response = await axios.get(`${API_BASE}/clients`);
       setClients(response.data);
     } catch (error) {
-      console.error('Error al obtener clientes:', error);
+      console.error('Error al obtener clientes:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al obtener clientes.', severity: 'error' });
     }
   };
 
   const fetchCosts = async (projectId) => {
     try {
-      const response = await axios.get(`https://sigma.runsolutions-services.com/api/project-costs/${projectId}`);
+      const response = await axios.get(`${API_BASE}/project-costs/${projectId}`);
       setCosts(response.data);
     } catch (error) {
-      console.error('Error al obtener los costos:', error);
+      console.error('Error al obtener los costos:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al obtener costos del proyecto.', severity: 'error' });
     }
   };
 
@@ -79,16 +98,17 @@ const ProjectModule = () => {
   const handleAddCost = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`/api/project-costs/${selectedProject.id}`, newCost);
+      await axios.post(`${API_BASE}/project-costs/${selectedProject.id}`, newCost);
+      setSnackbar({ open: true, message: 'Costo agregado exitosamente.', severity: 'success' });
       fetchCosts(selectedProject.id);
       setNewCost({ concepto: '', factura: '', monto: '' });
     } catch (error) {
-      console.error('Error al agregar costo:', error);
+      console.error('Error al agregar costo:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al agregar costo.', severity: 'error' });
     }
   };
 
   const handleEditCost = async (costId) => {
-    // Utilizando prompts para simplificar; se podría implementar otro Dialog
     const updatedConcept = prompt('Ingrese el nuevo concepto:');
     const updatedAmount = prompt('Ingrese el nuevo monto (MXN):');
     const updatedInvoice = prompt('Ingrese la nueva factura (opcional):');
@@ -97,28 +117,28 @@ const ProjectModule = () => {
       return;
     }
     try {
-      await axios.put(`/api/project-costs/${costId}`, {
+      await axios.put(`${API_BASE}/project-costs/${costId}`, {
         concepto: updatedConcept,
         monto: parseFloat(updatedAmount),
         factura: updatedInvoice || null,
       });
+      setSnackbar({ open: true, message: 'Costo actualizado correctamente.', severity: 'success' });
       fetchCosts(selectedProject.id);
-      alert('Costo actualizado correctamente.');
     } catch (error) {
-      console.error('Error al actualizar el costo:', error);
-      alert('No se pudo actualizar el costo.');
+      console.error('Error al actualizar el costo:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'No se pudo actualizar el costo.', severity: 'error' });
     }
   };
 
   const handleDeleteCost = async (costId) => {
     if (!window.confirm('¿Está seguro de que desea eliminar este costo?')) return;
     try {
-      await axios.delete(`/api/project-costs/${costId}`);
+      await axios.delete(`${API_BASE}/project-costs/${costId}`);
+      setSnackbar({ open: true, message: 'Costo eliminado correctamente.', severity: 'success' });
       fetchCosts(selectedProject.id);
-      alert('Costo eliminado correctamente.');
     } catch (error) {
-      console.error('Error al eliminar el costo:', error);
-      alert('No se pudo eliminar el costo.');
+      console.error('Error al eliminar el costo:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'No se pudo eliminar el costo.', severity: 'error' });
     }
   };
 
@@ -149,7 +169,7 @@ const ProjectModule = () => {
       ...prevData,
       [name]: value,
       ...(name === 'monto_sin_iva' && {
-        monto_con_iva: (parseFloat(value) * 1.16).toFixed(2),
+        monto_con_iva: (parseFloat(value) * 1.16 || 0).toFixed(2),
       }),
     }));
   };
@@ -169,14 +189,17 @@ const ProjectModule = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`/api/projects/${editingProjectId}`, formData);
+        await axios.put(`${API_BASE}/projects/${editingProjectId}`, formData);
+        setSnackbar({ open: true, message: 'Proyecto actualizado exitosamente.', severity: 'success' });
       } else {
-        await axios.post('/api/projects', formData);
+        await axios.post(`${API_BASE}/projects`, formData);
+        setSnackbar({ open: true, message: 'Proyecto registrado exitosamente.', severity: 'success' });
       }
       fetchProjects();
       toggleProjectDialog();
     } catch (error) {
-      console.error('Error al registrar proyecto:', error);
+      console.error('Error al registrar proyecto:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al registrar proyecto.', severity: 'error' });
     }
   };
 
@@ -434,10 +457,34 @@ const ProjectModule = () => {
                           monto_sin_iva: project.monto_sin_iva,
                           monto_con_iva: project.monto_con_iva,
                         });
+                        setIsEditing(true);
                         setOpenProjectDialog(true);
                       }}
                     >
                       <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      sx={{
+                        backgroundColor: '#f44336',
+                        '&:hover': { backgroundColor: '#d32f2f' },
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm('¿Está seguro de que desea eliminar este proyecto?')) {
+                          axios
+                            .delete(`${API_BASE}/projects/${project.id}`)
+                            .then(() => {
+                              setSnackbar({ open: true, message: 'Proyecto eliminado exitosamente.', severity: 'success' });
+                              fetchProjects();
+                            })
+                            .catch((error) => {
+                              console.error('Error al eliminar proyecto:', error.response?.data || error.message);
+                              setSnackbar({ open: true, message: 'Error al eliminar proyecto.', severity: 'error' });
+                            });
+                        }
+                      }}
+                    >
+                      <DeleteIcon />
                     </IconButton>
                   </Box>
                 </TableCell>
@@ -606,15 +653,21 @@ const ProjectModule = () => {
           </Box>
         </>
       )}
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        TransitionComponent={SlideTransition}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
 
 export default ProjectModule;
-
-
-
-
-
-
-

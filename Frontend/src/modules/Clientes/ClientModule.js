@@ -22,11 +22,18 @@ import {
   Tooltip,
   Grid,
   InputAdornment,
+  Snackbar,
+  Alert,
+  Slide,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
 
 const ClientModule = () => {
   const [clients, setClients] = useState([]);
@@ -41,16 +48,27 @@ const ClientModule = () => {
   });
   const [searchText, setSearchText] = useState('');
 
+  // Estado para las notificaciones
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Definimos la URL base del API
+  const API_URL = 'https://sigma.runsolutions-services.com/api/clients';
+
   useEffect(() => {
     fetchClients();
   }, []);
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/clients');
+      const response = await axios.get(API_URL);
       setClients(response.data);
     } catch (error) {
       console.error('Error al obtener clientes:', error);
+      setSnackbar({ open: true, message: 'Error al obtener clientes.', severity: 'error' });
     }
   };
 
@@ -78,14 +96,17 @@ const ClientModule = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`/api/clients/${editingClientId}`, formData);
+        await axios.put(`${API_URL}/${editingClientId}`, formData);
+        setSnackbar({ open: true, message: 'Cliente actualizado exitosamente.', severity: 'success' });
       } else {
-        await axios.post('/api/clients', formData);
+        await axios.post(API_URL, formData);
+        setSnackbar({ open: true, message: 'Cliente registrado exitosamente.', severity: 'success' });
       }
       handleCloseDialog();
       fetchClients();
     } catch (error) {
-      console.error('Error al enviar el formulario:', error);
+      console.error('Error al enviar el formulario:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al enviar el formulario.', severity: 'error' });
     }
   };
 
@@ -93,10 +114,12 @@ const ClientModule = () => {
     const confirmDelete = window.confirm("¿Estás seguro de que quieres eliminar este cliente?");
     if (!confirmDelete) return;
     try {
-      await axios.delete(`/api/clients/${id}`);
+      await axios.delete(`${API_URL}/${id}`);
       setClients(clients.filter((client) => client.id !== id));
+      setSnackbar({ open: true, message: 'Cliente eliminado exitosamente.', severity: 'success' });
     } catch (error) {
-      console.error('Error al eliminar el cliente:', error);
+      console.error('Error al eliminar el cliente:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al eliminar el cliente.', severity: 'error' });
     }
   };
 
@@ -173,9 +196,7 @@ const ClientModule = () => {
           size="small"
           sx={{
             width: { xs: '90%', sm: '50%' },
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '8px',
-            },
+            '& .MuiOutlinedInput-root': { borderRadius: '8px' },
           }}
           InputProps={{
             startAdornment: (
@@ -187,7 +208,7 @@ const ClientModule = () => {
         />
       </Box>
 
-      {/* Dialogo Impactante para el Formulario */}
+      {/* Diálogo para el Formulario */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
         <DialogTitle
           sx={{
@@ -227,7 +248,6 @@ const ClientModule = () => {
               sx={{
                 backgroundColor: '#fff',
                 borderRadius: 1,
-                // Resaltar el ID con color vibrante
                 '& input': { color: '#ff5722', fontWeight: 'bold' },
               }}
             />
@@ -312,7 +332,7 @@ const ClientModule = () => {
         Clientes Registrados
       </Typography>
 
-      {/* Tabla de Clientes con funciones extras */}
+      {/* Tabla de Clientes */}
       <TableContainer
         component={Paper}
         sx={{
@@ -329,9 +349,7 @@ const ClientModule = () => {
               <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Nombre</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>RFC</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Dirección</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
-                Acciones
-              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', color: '#333' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -390,6 +408,19 @@ const ClientModule = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        TransitionComponent={SlideTransition}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

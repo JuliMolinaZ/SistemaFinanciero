@@ -1,22 +1,27 @@
 // src/modules/Usuarios/AuthForm.js
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion'; // Biblioteca para animaciones
+import { motion } from 'framer-motion';
 import { auth, googleProvider } from '../../firebase';
 import { signInWithPopup } from 'firebase/auth';
 import axios from 'axios';
-import './AuthForm.css';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+} from '@mui/material';
 
 const AuthForm = ({ setCurrentUser, setProfileData, setProfileComplete }) => {
-  const [logo, setLogo] = useState('/SigmaRed.jpeg'); // Logo inicial
+  const [logo, setLogo] = useState('/SigmaRed.jpeg');
 
-  // Cambia el logo cada 2 horas
+  // Actualiza el logo cada 2 horas
   useEffect(() => {
     const updateLogo = () => {
       const currentTime = new Date().getHours();
       setLogo(currentTime % 4 < 2 ? '/SigmaRed.jpeg' : '/SigmaBlack.jpeg');
     };
-    updateLogo(); // Llama una vez al cargar
-    const interval = setInterval(updateLogo, 2 * 60 * 60 * 1000); // Cambia cada 2 horas
+    updateLogo();
+    const interval = setInterval(updateLogo, 2 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -24,7 +29,7 @@ const AuthForm = ({ setCurrentUser, setProfileData, setProfileComplete }) => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-
+      // Verifica que el dominio sea correcto
       if (user.email && user.email.endsWith('@runsolutions-services.com')) {
         try {
           const userResponse = await axios.get(`https://sigma.runsolutions-services.com/api/usuarios/firebase/${user.uid}`);
@@ -40,7 +45,7 @@ const AuthForm = ({ setCurrentUser, setProfileData, setProfileComplete }) => {
               role: '',
               avatar: user.photoURL || null,
             };
-            const createResponse = await axios.post('/api/usuarios', payload);
+            const createResponse = await axios.post('https://sigma.runsolutions-services.com/api/usuarios', payload);
             setProfileData(createResponse.data);
             setProfileComplete(false);
             setCurrentUser(user);
@@ -59,36 +64,71 @@ const AuthForm = ({ setCurrentUser, setProfileData, setProfileComplete }) => {
   };
 
   return (
-    <div className="auth-container">
+    <Container
+      maxWidth={false}
+      disableGutters
+      sx={{
+        height: '100vh',
+        width: '100vw',
+        background: 'linear-gradient(135deg, #ff6b6b, #f94d9a)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        p: 2,
+      }}
+    >
       <motion.div
-        className="auth-card"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
+        style={{
+          background: 'white',
+          color: '#333',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          textAlign: 'center',
+          width: '100%',
+          maxWidth: '400px',
+        }}
       >
-        <div className="auth-logo">
+        <Box sx={{ mb: 2 }}>
           <motion.img
             src={logo}
             alt="Logo de Sigma"
             initial={{ rotate: 0 }}
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
+            style={{ width: '100px', marginBottom: '1rem' }}
           />
-        </div>
-        <h2>¡Bienvenido a SIGMA!</h2>
-        <p>Inicia sesión con tu cuenta para continuar.</p>
-        <motion.button
-          className="auth-button"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleGoogleSignIn}
-        >
-          Ingresar con Gmail
-        </motion.button>
+        </Box>
+        <Typography variant="h4" sx={{ color: '#f94d9a', mb: 1, fontWeight: 'bold' }}>
+          ¡Bienvenido a SIGMA!
+        </Typography>
+        <Typography variant="body1" sx={{ color: '#666', mb: 3 }}>
+          Inicia sesión con tu cuenta para continuar.
+        </Typography>
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(90deg, #ff6b6b, #f94d9a)',
+              color: 'white',
+              padding: '0.75rem 1.5rem',
+              borderRadius: 2,
+              textTransform: 'none',
+              boxShadow: 3,
+            }}
+            onClick={handleGoogleSignIn}
+          >
+            Ingresar con Gmail
+          </Button>
+        </motion.div>
       </motion.div>
-    </div>
+    </Container>
   );
 };
 
 export default AuthForm;
+
 

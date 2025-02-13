@@ -1,5 +1,21 @@
 // src/modules/CuentasPorPagar/components/ModalRegistro.jsx
 import React from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+} from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -11,114 +27,157 @@ const ModalRegistro = ({
   handleSubmit,
   toggleFormModal,
   proveedores,
-  categorias
+  categorias,
 }) => {
   return (
-    <div className="modal-overlay">
-      <div className="modal-content form-modal">
-        <button onClick={toggleFormModal} className="close-modal-button">
+    <Dialog open onClose={toggleFormModal} fullWidth maxWidth="sm">
+      <DialogTitle
+        sx={{
+          background: 'linear-gradient(90deg, #ff6b6b, #f94d9a)',
+          color: '#fff',
+          fontWeight: 'bold',
+          position: 'relative',
+        }}
+      >
+        {isEditing ? 'Actualizar Cuenta' : 'Registrar Cuenta'}
+        <IconButton
+          onClick={toggleFormModal}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: '#fff',
+          }}
+        >
           <FontAwesomeIcon icon={faTimes} />
-        </button>
-        <h3 className="modal-title">{isEditing ? 'Actualizar Cuenta' : 'Registrar Cuenta'}</h3>
-        <form onSubmit={handleSubmit} className="cuentas-form">
-          <div className="form-grid">
-            <div className="field-group">
-              <label htmlFor="concepto">Concepto:</label>
-              <input
-                type="text"
-                id="concepto"
+        </IconButton>
+      </DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            {/* Concepto */}
+            <Grid item xs={12}>
+              <TextField
+                label="Concepto"
                 name="concepto"
                 value={cuenta.concepto}
                 onChange={handleChange}
+                fullWidth
                 required
               />
-            </div>
-            <div className="field-group">
-              <label htmlFor="monto_neto">Monto Neto:</label>
-              <input
-                type="number"
-                id="monto_neto"
+            </Grid>
+
+            {/* Monto Neto */}
+            <Grid item xs={6}>
+              <TextField
+                label="Monto Neto"
                 name="monto_neto"
+                type="number"
                 value={cuenta.monto_neto}
                 onChange={handleChange}
+                fullWidth
                 required
               />
-            </div>
-            <div className="field-group inline">
-              <label>¿Requiere IVA?</label>
-              <input
-                type="checkbox"
-                checked={cuenta.requiere_iva}
-                onChange={handleCheckboxChange}
+            </Grid>
+
+            {/* Checkbox: Requiere IVA */}
+            <Grid item xs={6} container alignItems="center">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={cuenta.requiere_iva}
+                    onChange={handleCheckboxChange}
+                    name="requiere_iva"
+                  />
+                }
+                label="¿Requiere IVA?"
               />
-            </div>
-            <div className="field-group">
-              <label htmlFor="monto_con_iva">Monto con IVA:</label>
-              <input
-                type="number"
-                id="monto_con_iva"
+            </Grid>
+
+            {/* Monto con IVA */}
+            <Grid item xs={6}>
+              <TextField
+                label="Monto con IVA"
                 name="monto_con_iva"
+                type="number"
                 value={cuenta.monto_con_iva}
-                readOnly
+                fullWidth
+                InputProps={{ readOnly: true }}
               />
-            </div>
-            <div className="field-group">
-              <label htmlFor="categoria">Categoría:</label>
-              <select
-                id="categoria"
-                name="categoria"
-                value={cuenta.categoria}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Seleccione...</option>
-                <option value="proveedor">Pago a Proveedor</option>
-                <option value="otro">Otro</option>
-                {categorias.map((categoria) => (
-                  <option key={categoria.id} value={categoria.nombre}>
-                    {categoria.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {cuenta.categoria === 'proveedor' && (
-              <div className="field-group">
-                <label htmlFor="proveedor_id">Proveedor:</label>
-                <select
-                  id="proveedor_id"
-                  name="proveedor_id"
-                  value={cuenta.proveedor_id}
+            </Grid>
+
+            {/* Categoría */}
+            <Grid item xs={6}>
+              <FormControl fullWidth required>
+                <InputLabel id="categoria-label">Categoría</InputLabel>
+                <Select
+                  labelId="categoria-label"
+                  name="categoria"
+                  value={cuenta.categoria}
                   onChange={handleChange}
+                  label="Categoría"
                 >
-                  <option value="">Seleccione un proveedor</option>
-                  {proveedores.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nombre}
-                    </option>
+                  <MenuItem value="">
+                    <em>Seleccione...</em>
+                  </MenuItem>
+                  <MenuItem value="proveedor">Pago a Proveedor</MenuItem>
+                  <MenuItem value="otro">Otro</MenuItem>
+                  {categorias.map((categoria) => (
+                    <MenuItem key={categoria.id} value={categoria.nombre}>
+                      {categoria.nombre}
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Proveedor (solo si la categoría es 'proveedor') */}
+            {cuenta.categoria === 'proveedor' && (
+              <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel id="proveedor-label">Proveedor</InputLabel>
+                  <Select
+                    labelId="proveedor-label"
+                    name="proveedor_id"
+                    value={cuenta.proveedor_id}
+                    onChange={handleChange}
+                    label="Proveedor"
+                  >
+                    <MenuItem value="">
+                      <em>Seleccione un proveedor</em>
+                    </MenuItem>
+                    {proveedores.map((p) => (
+                      <MenuItem key={p.id} value={p.id}>
+                        {p.nombre}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             )}
-            <div className="field-group">
-              <label htmlFor="fecha">Fecha:</label>
-              <input
-                type="date"
-                id="fecha"
+
+            {/* Fecha */}
+            <Grid item xs={12}>
+              <TextField
+                label="Fecha"
                 name="fecha"
+                type="date"
                 value={cuenta.fecha}
                 onChange={handleChange}
+                fullWidth
                 required
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
-          </div>
-          <div className="form-actions">
-            <button type="submit" className="submit-button">
-              {isEditing ? 'Actualizar Cuenta' : 'Registrar Cuenta'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
+          <Button type="submit" variant="contained" color="primary" sx={{ px: 4, py: 1 }}>
+            {isEditing ? 'Actualizar Cuenta' : 'Registrar Cuenta'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 };
 

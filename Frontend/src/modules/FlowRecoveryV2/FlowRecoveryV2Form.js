@@ -1,9 +1,300 @@
+// src/modules/FlowRecoveryV2/FlowRecoveryV2Form.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './FlowRecoveryV2Form.css';
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  TablePagination,
+  InputAdornment,
+} from '@mui/material';
+import { Autocomplete } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faClose, faSearch } from '@fortawesome/free-solid-svg-icons';
 
+// Formateador de moneda MXN
+const formatterMXN = new Intl.NumberFormat('es-MX', {
+  style: 'currency',
+  currency: 'MXN',
+  minimumFractionDigits: 2,
+});
+
+// Opciones para filtro de mes
+const monthOptions = Array.from({ length: 12 }, (_, i) => ({
+  label: new Date(0, i).toLocaleString('es', { month: 'long' }),
+  value: i + 1,
+}));
+
+// URL base para la API
+const API_URL = 'https://sigma.runsolutions-services.com/api/flowRecoveryV2';
+
+// ─────────────────────────────────────────────
+// FlowRecoveryFormDialog
+// ─────────────────────────────────────────────
+const FlowRecoveryFormDialog = ({
+  open,
+  onClose,
+  isEditing,
+  formData,
+  onChange,
+  onSubmit,
+  clientes,
+  proyectos,
+}) => {
+  return (
+    <Dialog
+      disableScrollLock
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      TransitionProps={{ timeout: 300 }}
+    >
+      <DialogTitle
+        sx={{
+          background: 'linear-gradient(90deg, #ff6b6b, #f94d9a)',
+          color: '#fff',
+          fontWeight: 'bold',
+          position: 'relative',
+          py: 2,
+        }}
+      >
+        {isEditing ? 'Actualizar Registro' : 'Registrar Registro'}
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: '#fff',
+            '&:hover': { color: '#ffeb3b' },
+          }}
+        >
+          <FontAwesomeIcon icon={faClose} />
+        </IconButton>
+      </DialogTitle>
+      <form onSubmit={onSubmit}>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Concepto"
+                name="concepto"
+                value={formData.concepto}
+                onChange={onChange}
+                fullWidth
+                required
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Monto"
+                name="monto"
+                type="number"
+                value={formData.monto}
+                onChange={onChange}
+                fullWidth
+                required
+                inputProps={{ step: '0.01', min: '0' }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Fecha"
+                name="fecha"
+                type="date"
+                value={formData.fecha}
+                onChange={onChange}
+                fullWidth
+                required
+                InputLabelProps={{ shrink: true }}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth required variant="outlined">
+                <InputLabel id="cliente-label">Cliente</InputLabel>
+                <Select
+                  labelId="cliente-label"
+                  name="cliente_id"
+                  value={formData.cliente_id}
+                  onChange={onChange}
+                  label="Cliente"
+                >
+                  <MenuItem value="">
+                    <em>Seleccione un cliente</em>
+                  </MenuItem>
+                  {clientes.map((cliente) => (
+                    <MenuItem key={cliente.id} value={cliente.id}>
+                      {cliente.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth required variant="outlined">
+                <InputLabel id="proyecto-label">Proyecto</InputLabel>
+                <Select
+                  labelId="proyecto-label"
+                  name="proyecto_id"
+                  value={formData.proyecto_id}
+                  onChange={onChange}
+                  label="Proyecto"
+                >
+                  <MenuItem value="">
+                    <em>Seleccione un proyecto</em>
+                  </MenuItem>
+                  {proyectos.map((proyecto) => (
+                    <MenuItem key={proyecto.id} value={proyecto.id}>
+                      {proyecto.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{
+              px: 4,
+              py: 1.2,
+              fontWeight: 'bold',
+              borderRadius: 2,
+              boxShadow: 2,
+              transition: 'all 0.3s ease',
+              '&:hover': { transform: 'scale(1.05)' },
+            }}
+          >
+            {isEditing ? 'Actualizar Registro' : 'Registrar Registro'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  );
+};
+
+// ─────────────────────────────────────────────
+// FlowRecoveryTable
+// ─────────────────────────────────────────────
+const FlowRecoveryTable = ({ records, onEdit, onDelete, onToggleRecuperado }) => {
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 20;
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  return (
+    <>
+      <TableContainer component={Paper} sx={{ mt: 2, borderRadius: 2, boxShadow: 2 }}>
+        <Table>
+          <TableHead sx={{ backgroundColor: 'grey.800' }}>
+            <TableRow>
+              <TableCell sx={{ color: '#fff' }}>Concepto</TableCell>
+              <TableCell sx={{ color: '#fff' }} align="right">
+                Monto
+              </TableCell>
+              <TableCell sx={{ color: '#fff' }}>Fecha</TableCell>
+              <TableCell sx={{ color: '#fff' }} align="center">
+                Recuperado
+              </TableCell>
+              <TableCell sx={{ color: '#fff' }}>Cliente</TableCell>
+              <TableCell sx={{ color: '#fff' }}>Proyecto</TableCell>
+              <TableCell sx={{ color: '#fff' }} align="center">
+                Acciones
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {records
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((rec) => (
+                <TableRow key={rec.id} hover>
+                  <TableCell>{rec.concepto}</TableCell>
+                  <TableCell align="right">
+                    {formatterMXN.format(parseFloat(rec.monto) || 0)}
+                  </TableCell>
+                  <TableCell>
+                    {rec.fecha
+                      ? new Date(rec.fecha).toLocaleDateString('es-MX')
+                      : 'Sin fecha'}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color={rec.recuperado ? 'success' : 'error'}
+                      onClick={() => onToggleRecuperado(rec.id)}
+                    >
+                      {rec.recuperado ? 'Sí' : 'No'}
+                    </Button>
+                  </TableCell>
+                  <TableCell>{rec.cliente_nombre || 'Sin asignar'}</TableCell>
+                  <TableCell>{rec.proyecto_nombre || 'Sin asignar'}</TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                      <Tooltip title="Editar">
+                        <IconButton color="info" onClick={() => onEdit(rec)}>
+                          <FontAwesomeIcon icon={faEdit} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <IconButton color="error" onClick={() => onDelete(rec.id)}>
+                          <FontAwesomeIcon icon={faTrash} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={records.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[]}
+      />
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Componente Principal: FlowRecoveryV2Form
+// ─────────────────────────────────────────────
 const FlowRecoveryV2Form = () => {
   const [records, setRecords] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -17,20 +308,21 @@ const FlowRecoveryV2Form = () => {
   });
   const [total, setTotal] = useState(0);
   const [totalPorRecuperar, setTotalPorRecuperar] = useState(0);
-  const [filterByMonth, setFilterByMonth] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [searchText, setSearchText] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const formatterMXN = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
-    minimumFractionDigits: 2,
+  // Estado para Snackbar (notificaciones)
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
   });
 
-  // Ajusta la URL base según tu configuración
-  const API_URL = 'https://sigma.runsolutions-services.com/api/flowRecoveryV2';
-
+  // Carga inicial de datos
   useEffect(() => {
     fetchRecords();
     fetchClientes();
@@ -38,23 +330,28 @@ const FlowRecoveryV2Form = () => {
   }, []);
 
   useEffect(() => {
+    // Calcular totales
     const totalRecuperado = records
-      .filter(r => r.recuperado)
+      .filter((r) => r.recuperado)
       .reduce((acc, curr) => acc + parseFloat(curr.monto || 0), 0);
     setTotal(totalRecuperado);
 
     const totalNoRecuperado = records
-      .filter(r => !r.recuperado)
-      .reduce((sum, r) => sum + parseFloat(r.monto || 0), 0);
+      .filter((r) => !r.recuperado)
+      .reduce((acc, curr) => acc + parseFloat(curr.monto || 0), 0);
     setTotalPorRecuperar(totalNoRecuperado);
   }, [records]);
 
   const fetchRecords = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(API_URL);
       setRecords(response.data);
     } catch (error) {
       console.error('Error al obtener registros:', error);
+      setSnackbar({ open: true, message: 'Error al cargar registros', severity: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,10 +373,14 @@ const FlowRecoveryV2Form = () => {
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setRecord((prev) => ({ ...prev, [name]: value }));
+  };
+
   const toggleForm = () => {
-    setShowForm(!showForm);
+    setShowForm((prev) => !prev);
     if (!showForm) {
-      // Reinicia el formulario para un nuevo registro al abrir la tarjeta
       setIsEditing(false);
       setEditingId(null);
       setRecord({
@@ -92,22 +393,21 @@ const FlowRecoveryV2Form = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setRecord({ ...record, [e.target.name]: e.target.value });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (isEditing) {
         await axios.put(`${API_URL}/${editingId}`, record);
+        setSnackbar({ open: true, message: 'Registro actualizado correctamente', severity: 'success' });
       } else {
         await axios.post(API_URL, record);
+        setSnackbar({ open: true, message: 'Registro registrado correctamente', severity: 'success' });
       }
       fetchRecords();
-      toggleForm(); // Cierra la tarjeta después de enviar
+      toggleForm();
     } catch (error) {
-      console.error('Error al registrar registro:', error);
+      console.error('Error al registrar/actualizar registro:', error);
+      setSnackbar({ open: true, message: 'Error en la operación', severity: 'error' });
     }
   };
 
@@ -128,176 +428,161 @@ const FlowRecoveryV2Form = () => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este registro?')) return;
     try {
       await axios.delete(`${API_URL}/${id}`);
+      setSnackbar({ open: true, message: 'Registro eliminado', severity: 'success' });
       fetchRecords();
     } catch (error) {
       console.error('Error al eliminar registro:', error);
+      setSnackbar({ open: true, message: 'Error al eliminar', severity: 'error' });
     }
   };
 
-  const toggleRecuperado = async (id) => {
+  const handleToggleRecuperado = async (id) => {
     try {
       await axios.put(`${API_URL}/${id}/toggle`);
+      setSnackbar({ open: true, message: 'Estado alternado', severity: 'success' });
       fetchRecords();
     } catch (error) {
       console.error('Error al alternar estado:', error);
+      setSnackbar({ open: true, message: 'Error al alternar estado', severity: 'error' });
     }
   };
 
-  const recordsFiltrados = filterByMonth
-    ? records.filter(r => new Date(r.fecha).getMonth() + 1 === parseInt(filterByMonth))
+  // Filtrado por mes (si se selecciona en el Autocomplete) y por búsqueda en concepto
+  const recordsFilteredByMonth = selectedMonth
+    ? records.filter((r) => new Date(r.fecha).getMonth() + 1 === selectedMonth.value)
     : records;
 
+  const finalRecords = recordsFilteredByMonth.filter((rec) =>
+    rec.concepto.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
-    <section className="flowrecoveryv2-module">
-      <h2>Flow Recovery V2</h2>
-      <button className="toggle-form-button" onClick={toggleForm}>
-        {showForm ? 'Ocultar Formulario' : 'Registrar Registro'}
-      </button>
+    <Container sx={{ py: 4, backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+      <Typography variant="h3" align="center" sx={{ mb: 4, color: 'red', fontWeight: 'bold' }}>
+        Flow Recovery V2
+      </Typography>
 
-      {/* Tarjeta overlay con el formulario */}
-      {showForm && (
-        <div className="record-card">
-          <button className="close-card-button" onClick={toggleForm}>×</button>
-          <form onSubmit={handleSubmit} className="flowrecoveryv2-form">
-            <label htmlFor="concepto">Concepto:</label>
-            <input
-              type="text"
-              id="concepto"
-              name="concepto"
-              value={record.concepto}
-              onChange={handleChange}
-              required
-            />
+      {/* Cuadro de totales */}
+      <Box
+        sx={{
+          maxWidth: 400,
+          mx: 'auto',
+          mb: 4,
+          p: 3,
+          borderRadius: 2,
+          boxShadow: 3,
+          backgroundColor: '#fff',
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant="h6">
+          Total Recuperado:{' '}
+          <span style={{ color: 'green', fontWeight: 'bold' }}>
+            {formatterMXN.format(total)}
+          </span>
+        </Typography>
+        <Typography variant="h6" sx={{ mt: 1 }}>
+          Total Por Recuperar:{' '}
+          <span style={{ color: 'red', fontWeight: 'bold' }}>
+            {formatterMXN.format(totalPorRecuperar)}
+          </span>
+        </Typography>
+      </Box>
 
-            <label htmlFor="monto">Monto:</label>
-            <input
-              type="number"
-              id="monto"
-              name="monto"
-              value={record.monto}
-              onChange={handleChange}
-              required
-            />
+      {/* Filtros: Botón para abrir formulario, Autocomplete para mes y campo de búsqueda */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 2,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Button
+          variant="contained"
+          color="success"
+          onClick={toggleForm}
+          sx={{ transition: 'all 0.3s ease', '&:hover': { transform: 'scale(1.05)' } }}
+        >
+          {showForm ? 'Ocultar Formulario' : 'Registrar Registro'}
+        </Button>
+        <Box sx={{ width: { xs: '100%', md: 250 } }}>
+          <Autocomplete
+            options={monthOptions}
+            value={selectedMonth}
+            onChange={(event, newValue) => setSelectedMonth(newValue)}
+            renderInput={(params) => <TextField {...params} label="Filtrar por Mes" variant="outlined" />}
+            clearOnEscape
+          />
+        </Box>
+        <Box sx={{ width: { xs: '100%', md: 250 } }}>
+          <TextField
+            variant="outlined"
+            placeholder="Buscar por concepto..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FontAwesomeIcon icon={faSearch} />
+                </InputAdornment>
+              ),
+            }}
+            fullWidth
+          />
+        </Box>
+      </Box>
 
-            <label htmlFor="fecha">Fecha:</label>
-            <input
-              type="date"
-              id="fecha"
-              name="fecha"
-              value={record.fecha}
-              onChange={handleChange}
-              required
-            />
+      {/* Diálogo con el formulario */}
+      <FlowRecoveryFormDialog
+        open={showForm}
+        onClose={toggleForm}
+        isEditing={isEditing}
+        formData={record}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+        clientes={clientes}
+        proyectos={proyectos}
+      />
 
-            <label htmlFor="cliente_id">Cliente:</label>
-            <select
-              id="cliente_id"
-              name="cliente_id"
-              value={record.cliente_id}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccione un cliente</option>
-              {clientes.map((cliente) => (
-                <option key={cliente.id} value={cliente.id}>
-                  {cliente.nombre}
-                </option>
-              ))}
-            </select>
-
-            <label htmlFor="proyecto_id">Proyecto:</label>
-            <select
-              id="proyecto_id"
-              name="proyecto_id"
-              value={record.proyecto_id}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccione un proyecto</option>
-              {proyectos.map((proyecto) => (
-                <option key={proyecto.id} value={proyecto.id}>
-                  {proyecto.nombre}
-                </option>
-              ))}
-            </select>
-
-            <button type="submit" className="submit-button">
-              {isEditing ? 'Actualizar Registro' : 'Registrar Registro'}
-            </button>
-          </form>
-        </div>
+      {/* Indicador de carga */}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+            Registros
+          </Typography>
+          <FlowRecoveryTable
+            records={finalRecords}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggleRecuperado={handleToggleRecuperado}
+          />
+        </>
       )}
 
-      <div className="totals-filter-container">
-        <div className="totals">
-          <div className="total-card">
-            <h4>Total Recuperado</h4>
-            <p className="total-value recovered">{formatterMXN.format(total)}</p>
-          </div>
-          <div className="total-card">
-            <h4>Total Por Recuperar</h4>
-            <p className="total-value not-recovered">{formatterMXN.format(totalPorRecuperar)}</p>
-          </div>
-        </div>
-        <div className="filter-month">
-          <label htmlFor="filterByMonth">Filtrar por Mes:</label>
-          <select
-            id="filterByMonth"
-            value={filterByMonth}
-            onChange={(e) => setFilterByMonth(e.target.value)}
-          >
-            <option value="">Todos los meses</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString('es', { month: 'long' })}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <h3>Registros</h3>
-      <table className="flowrecoveryv2-table">
-        <thead>
-          <tr>
-            <th>Concepto</th>
-            <th className="text-right">Monto</th>
-            <th>Fecha</th>
-            <th className="text-center">Recuperado</th>
-            <th>Cliente</th>
-            <th>Proyecto</th>
-            <th className="text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recordsFiltrados.map((rec) => (
-            <tr key={rec.id}>
-              <td>{rec.concepto}</td>
-              <td className="text-right">{formatterMXN.format(parseFloat(rec.monto) || 0)}</td>
-              <td>{rec.fecha ? new Date(rec.fecha).toLocaleDateString('es-MX') : 'Sin fecha'}</td>
-              <td className="text-center">
-                <button
-                  onClick={() => toggleRecuperado(rec.id)}
-                  className={`toggle-button ${rec.recuperado ? 'toggle-yes' : 'toggle-no'}`}
-                >
-                  {rec.recuperado ? 'Sí' : 'No'}
-                </button>
-              </td>
-              <td>{rec.cliente_nombre || 'Sin asignar'}</td>
-              <td>{rec.proyecto_nombre || 'Sin asignar'}</td>
-              <td className="actions text-center">
-                <button className="icon-button edit-button" onClick={() => handleEdit(rec)}>
-                  <FontAwesomeIcon icon={faEdit} />
-                </button>
-                <button className="icon-button delete-button" onClick={() => handleDelete(rec.id)}>
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 };
 

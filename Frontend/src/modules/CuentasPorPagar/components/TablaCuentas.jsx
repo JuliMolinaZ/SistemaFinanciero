@@ -1,5 +1,18 @@
 // src/modules/CuentasPorPagar/components/TablaCuentas.jsx
 import React from 'react';
+import {
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
+  IconButton,
+  Tooltip,
+  Typography,
+  Box,
+} from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faDollarSign, faPlus } from '@fortawesome/free-solid-svg-icons';
 
@@ -10,64 +23,148 @@ const TablaCuentas = ({
   handleAbrirPagoModal,
   handleTogglePagado,
   handleEdit,
-  handleDelete
+  handleDelete,
 }) => {
   return (
-    <div className="table-responsive">
-      <table className="cuentas-table">
-        <thead>
-          <tr>
-            <th>Concepto</th>
-            <th>Monto Neto</th>
-            <th>Monto con IVA</th>
-            <th>Pagos Parciales</th>
-            <th>Restante</th>
-            <th>Categoría</th>
-            <th>Proveedor</th>
-            <th>Fecha</th>
-            <th>Pagado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
+    <TableContainer
+      component={Paper}
+      sx={{
+        boxShadow: 2,
+        borderRadius: 2,
+        mt: 2,
+        backgroundColor: 'grey.50',
+      }}
+    >
+      <Table>
+        <TableHead sx={{ backgroundColor: 'black' }}>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Concepto</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="right">
+              Monto Neto
+            </TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="right">
+              Monto con IVA
+            </TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="right">
+              Pagos Parciales
+            </TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="right">
+              Restante
+            </TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Categoría</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Proveedor</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Fecha</TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">
+              Pagado
+            </TableCell>
+            <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">
+              Acciones
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {cuentas.map((c) => {
             const pagosParciales = parseFloat(c.pagos_parciales || 0);
             const totalConIVA = parseFloat(c.monto_con_iva || 0);
             const restante = totalConIVA - pagosParciales;
             return (
-              <tr key={c.id} className={c.pagado ? 'pagada' : 'pendiente'}>
-                <td data-label="Concepto">{c.concepto}</td>
-                <td data-label="Monto Neto">{formatoMoneda(c.monto_neto)}</td>
-                <td data-label="Monto con IVA">{formatoMoneda(c.monto_con_iva)}</td>
-                <td data-label="Pagos Parciales">{formatoMoneda(pagosParciales)}</td>
-                <td data-label="Restante">{formatoMoneda(restante)}</td>
-                <td data-label="Categoría">{c.categoria}</td>
-                <td data-label="Proveedor">
+              <TableRow
+                key={c.id}
+                sx={{
+                  backgroundColor: c.pagado ? '#81c784' : '#fff176',
+                  '&:hover': {
+                    backgroundColor: c.pagado ? '#66bb6a' : '#ffee58',
+                  },
+                }}
+              >
+                <TableCell>{c.concepto}</TableCell>
+                <TableCell align="right">{formatoMoneda(c.monto_neto)}</TableCell>
+                <TableCell align="right">{formatoMoneda(c.monto_con_iva)}</TableCell>
+                <TableCell align="right">{formatoMoneda(pagosParciales)}</TableCell>
+                <TableCell align="right">{formatoMoneda(restante)}</TableCell>
+                <TableCell>{c.categoria}</TableCell>
+                <TableCell>
                   {proveedores.find((p) => p.id === c.proveedor_id)?.nombre || 'N/A'}
-                </td>
-                <td data-label="Fecha">{new Date(c.fecha).toLocaleDateString()}</td>
-                <td data-label="Pagado">{c.pagado ? 'Sí' : 'No'}</td>
-                <td data-label="Acciones" className="actions">
-                  <button onClick={() => handleAbrirPagoModal(c)} className="icon-button add-payment-button">
-                    <FontAwesomeIcon icon={faPlus} />
-                  </button>
-                  <button onClick={() => handleTogglePagado(c.id)} className="icon-button pay-button">
-                    <FontAwesomeIcon icon={faDollarSign} />
-                  </button>
-                  <button onClick={() => handleEdit(c.id)} className="icon-button edit-button">
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  <button onClick={() => handleDelete(c.id)} className="icon-button delete-button">
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell>{new Date(c.fecha).toLocaleDateString()}</TableCell>
+                <TableCell align="center">{c.pagado ? 'Sí' : 'No'}</TableCell>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <Tooltip title="Agregar Pago Parcial">
+                      <IconButton
+                        onClick={() => handleAbrirPagoModal(c)}
+                        size="small"
+                        sx={{
+                          backgroundColor: '#64b5f6',
+                          borderRadius: 1,
+                          boxShadow: 1,
+                          color: 'white',
+                          '&:hover': { backgroundColor: '#42a5f5' },
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faPlus} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Marcar como Pagado">
+                      <IconButton
+                        onClick={() => handleTogglePagado(c.id)}
+                        size="small"
+                        sx={{
+                          backgroundColor: '#66bb6a',
+                          borderRadius: 1,
+                          boxShadow: 1,
+                          color: 'white',
+                          '&:hover': { backgroundColor: '#4caf50' },
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faDollarSign} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Editar">
+                      <IconButton
+                        onClick={() => handleEdit(c.id)}
+                        size="small"
+                        sx={{
+                          backgroundColor: '#ffb74d',
+                          borderRadius: 1,
+                          boxShadow: 1,
+                          color: 'white',
+                          '&:hover': { backgroundColor: '#ffa726' },
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Eliminar">
+                      <IconButton
+                        onClick={() => handleDelete(c.id)}
+                        size="small"
+                        sx={{
+                          backgroundColor: '#e57373',
+                          borderRadius: 1,
+                          boxShadow: 1,
+                          color: 'white',
+                          '&:hover': { backgroundColor: '#ef5350' },
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+      {cuentas.length === 0 && (
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="subtitle1">No hay registros para mostrar</Typography>
+        </Box>
+      )}
+    </TableContainer>
   );
 };
 
 export default React.memo(TablaCuentas);
+

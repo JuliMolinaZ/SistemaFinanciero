@@ -1,3 +1,4 @@
+// src/modules/CuentasPagar/CuentasPagarForm.jsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileCsv } from '@fortawesome/free-solid-svg-icons';
@@ -8,13 +9,28 @@ import TablaCuentas from './components/TablaCuentas';
 import ModalRegistro from './components/ModalRegistro';
 import ModalPagoParcial from './components/ModalPagoParcial';
 import CalendarPagos from './components/CalendarPagos';
-import './CuentasPagarForm.css';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Slide
+} from '@mui/material';
+import { calcularTotalesRecuperacion } from '../../utils/cuentas';
+
+// Función de transición para Snackbar
+function SlideTransition(props) {
+  return <Slide {...props} direction="up" />;
+}
 
 const CuentasPagarForm = () => {
-  /*** Estados y Custom Hook ***/
+  // Custom Hook y estados globales
   const { cuentas, fetchCuentas, updateCuenta, createCuenta, deleteCuenta } = useCuentasPagar();
 
-  // Estado para la cuenta actual (registro/actualización)
+  // Estado para el formulario de cuenta (registro/edición)
   const [cuenta, setCuenta] = useState({
     concepto: '',
     monto_neto: '',
@@ -41,20 +57,33 @@ const CuentasPagarForm = () => {
   const [estadoFiltro, setEstadoFiltro] = useState('');
   const [cuentasFiltradas, setCuentasFiltradas] = useState([]);
 
-  // Estados para modal de pagos parciales
+  // Estados para Modal de Pagos Parciales
   const [showPagoModal, setShowPagoModal] = useState(false);
   const [selectedCuenta, setSelectedCuenta] = useState(null);
   const [pagoMonto, setPagoMonto] = useState('');
   const [errorPago, setErrorPago] = useState('');
 
-  // Estado para mostrar/ocultar el calendario de pagos
+  // Estado para mostrar/ocultar Calendario de Pagos
   const [showCalendar, setShowCalendar] = useState(false);
 
   // Estados para proveedores y categorías
   const [proveedores, setProveedores] = useState([]);
   const [categorias, setCategorias] = useState([]);
 
-  /*** Efectos Iniciales ***/
+  // Estado para notificaciones
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  // Manejo de Snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  // Efecto para cargar cuentas y datos iniciales
   useEffect(() => {
     fetchCuentas();
   }, [fetchCuentas]);
@@ -62,16 +91,16 @@ const CuentasPagarForm = () => {
   useEffect(() => {
     const fetchProveedores = async () => {
       try {
-        const response = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
-        setProveedores(response.data);
+        const res = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
+        setProveedores(res.data);
       } catch (err) {
         console.error('Error al obtener proveedores:', err);
       }
     };
     const fetchCategorias = async () => {
       try {
-        const response = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
-        setCategorias(response.data);
+        const res = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
+        setCategorias(res.data);
       } catch (err) {
         console.error('Error al obtener categorías:', err);
       }
@@ -80,7 +109,7 @@ const CuentasPagarForm = () => {
     fetchCategorias();
   }, []);
 
-  /*** Función para formatear moneda ***/
+  // Función para formatear moneda
   const formatoMoneda = useCallback((valor) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -88,7 +117,7 @@ const CuentasPagarForm = () => {
     }).format(valor);
   }, []);
 
-  /*** Filtrado y Cálculo de Totales ***/
+  // Filtrado de cuentas según filtros aplicados
   const filtrarCuentas = useCallback(() => {
     let filtradas = cuentas;
     if (filtroMes) {
@@ -119,6 +148,7 @@ const CuentasPagarForm = () => {
     filtrarCuentas();
   }, [filtrarCuentas]);
 
+  // Cálculo de totales
   useEffect(() => {
     const totalPagadasCalc = cuentasFiltradas.reduce((acc, curr) => {
       const pago = curr.pagado
@@ -145,7 +175,7 @@ const CuentasPagarForm = () => {
     setEstadoFiltro('');
   };
 
-  /*** Manejo del Formulario (Registro/Actualización) ***/
+  // Manejo del formulario (registro/edición)
   const toggleFormModal = useCallback(() => {
     setShowFormModal((prev) => {
       if (prev) {
@@ -196,12 +226,31 @@ const CuentasPagarForm = () => {
 
   const handleSubmitForm = async (e) => {
     e.preventDefault();
-    if (isEditing) {
-      await updateCuenta(editingId, cuenta);
-    } else {
-      await createCuenta(cuenta);
+    try {
+      if (isEditing) {
+        await updateCuenta(editingId, cuenta);
+        setSnackbar({
+          open: true,
+          message: 'Cuenta actualizada exitosamente.',
+          severity: 'success',
+        });
+      } else {
+        await createCuenta(cuenta);
+        setSnackbar({
+          open: true,
+          message: 'Cuenta registrada exitosamente.',
+          severity: 'success',
+        });
+      }
+      toggleFormModal();
+    } catch (error) {
+      console.error('Error en el formulario:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al enviar el formulario.',
+        severity: 'error',
+      });
     }
-    toggleFormModal();
   };
 
   const handleEdit = (id) => {
@@ -214,7 +263,21 @@ const CuentasPagarForm = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por pagar?')) {
-      await deleteCuenta(id);
+      try {
+        await deleteCuenta(id);
+        setSnackbar({
+          open: true,
+          message: 'Cuenta eliminada exitosamente.',
+          severity: 'success',
+        });
+      } catch (error) {
+        console.error('Error al eliminar:', error.response?.data || error.message);
+        setSnackbar({
+          open: true,
+          message: 'Error al eliminar la cuenta.',
+          severity: 'error',
+        });
+      }
     }
   };
 
@@ -223,11 +286,11 @@ const CuentasPagarForm = () => {
       await axios.put(`/api/cuentas-pagar/${id}/pagado`);
       fetchCuentas();
     } catch (err) {
-      console.error('Error al alternar el estado de pagado:', err);
+      console.error('Error al alternar pagado:', err);
     }
   };
 
-  /*** Modal de Pagos Parciales ***/
+  // Modal de Pagos Parciales
   const handleAbrirPagoModal = (cuenta) => {
     setSelectedCuenta(cuenta);
     setPagoMonto('');
@@ -260,23 +323,33 @@ const CuentasPagarForm = () => {
       });
       fetchCuentas();
       handleCerrarPagoModal();
+      setSnackbar({
+        open: true,
+        message: 'Pago parcial registrado.',
+        severity: 'success',
+      });
     } catch (err) {
       console.error('Error al guardar pago parcial:', err);
+      setSnackbar({
+        open: true,
+        message: 'Error al guardar pago parcial.',
+        severity: 'error',
+      });
     }
   };
 
-  /*** Calendario de Pagos ***/
+  // Calendario de Pagos
   const handleDateSelect = (dateString) => {
     setFechaInicio(dateString);
     setFechaFin(dateString);
   };
 
-  /*** Ordenamiento de Cuentas Filtradas ***/
+  // Ordenamiento de cuentas (más recientes primero)
   const cuentasOrdenadas = useMemo(() => {
     return [...cuentasFiltradas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
   }, [cuentasFiltradas]);
 
-  /*** Exportar a CSV ***/
+  // Exportar a CSV
   const handleExportCSV = async () => {
     try {
       const params = {};
@@ -298,22 +371,87 @@ const CuentasPagarForm = () => {
       document.body.removeChild(link);
     } catch (err) {
       console.error('Error al exportar CSV:', err);
+      setSnackbar({
+        open: true,
+        message: 'Error al exportar CSV.',
+        severity: 'error',
+      });
     }
   };
 
-  return (
-    <section className="cuentas-pagar-module">
-      <h2>Cuentas por Pagar</h2>
+  if (!cuentas) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-      {/* Encabezado con el botón Registrar Cuenta */}
-      <div className="header-actions">
-        <button onClick={toggleFormModal} className="toggle-form-button">
+  return (
+    <Container sx={{ py: 4, backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+      {/* Título principal */}
+      <Typography
+        variant="h3"
+        align="center"
+        sx={{
+          mb: 4,
+          color: '#e63946',
+          fontWeight: 'bold',
+          borderBottom: '2px solid #e63946',
+          pb: 1,
+          textTransform: 'uppercase',
+        }}
+      >
+        Cuentas por Pagar
+      </Typography>
+
+      {/* Encabezado con acciones */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={toggleFormModal}
+          sx={{ boxShadow: 3, textTransform: 'none', px: 4, py: 1 }}
+        >
           {showFormModal ? 'Cerrar Formulario' : 'Registrar Cuenta'}
-        </button>
-      </div>
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleExportCSV}
+          sx={{ boxShadow: 3, textTransform: 'none', px: 4, py: 1 }}
+        >
+          <FontAwesomeIcon icon={faFileCsv} style={{ marginRight: '0.5rem' }} />
+          Exportar CSV
+        </Button>
+      </Box>
 
       {/* Filtros y Totales */}
-      <div className="card-filtros-totales">
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          width: '100%',
+          maxWidth: 900,
+          mx: 'auto',
+          p: 2,
+          backgroundColor: '#fff',
+          border: '1px solid #ddd',
+          borderRadius: 2,
+          boxShadow: 3,
+          mb: 4,
+        }}
+      >
         <Filtros
           filtroMes={filtroMes}
           setFiltroMes={setFiltroMes}
@@ -325,37 +463,52 @@ const CuentasPagarForm = () => {
           setEstadoFiltro={setEstadoFiltro}
           handleClearFilters={handleClearFilters}
         />
-        <div className="totales">
-          <div className="total">
-            <span>Cuentas Pagadas</span>
-            <span className="valor-total">{formatoMoneda(totalPagadas)}</span>
-          </div>
-          <div className="total">
-            <span>Cuentas por Pagar</span>
-            <span className="valor-total">{formatoMoneda(totalPorPagar)}</span>
-          </div>
-        </div>
-      </div>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            backgroundColor: '#e9ecef',
+            borderRadius: 1,
+            p: 1,
+          }}
+        >
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Cuentas Pagadas
+            </Typography>
+            <Typography variant="h6" sx={{ color: '#01af09' }}>
+              {formatoMoneda(totalPagadas)}
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+              Cuentas por Pagar
+            </Typography>
+            <Typography variant="h6" sx={{ color: '#e63946' }}>
+              {formatoMoneda(totalPorPagar)}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
-      {/* Botón para mostrar/ocultar el Calendario de Pagos */}
-      <div className="calendar-toggle">
-        <button
+      {/* Calendario de Pagos */}
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Button
+          variant="contained"
+          color="primary"
           onClick={() => setShowCalendar((prev) => !prev)}
-          className="toggle-calendar-button"
+          sx={{ boxShadow: 3, textTransform: 'none', px: 4, py: 1 }}
         >
           {showCalendar ? 'Ocultar Calendario de Pagos' : 'Visualizar Calendario de Pagos'}
-        </button>
-      </div>
+        </Button>
+      </Box>
       {showCalendar && <CalendarPagos cuentas={cuentas} onDateSelect={handleDateSelect} />}
 
-      {/* Botón Exportar CSV ubicado entre el calendario y la tabla */}
-      <div className="export-container">
-        <button onClick={handleExportCSV} className="export-button">
-          <FontAwesomeIcon icon={faFileCsv} /> Exportar CSV
-        </button>
-      </div>
-
-      <h3>Cuentas por Pagar Registradas</h3>
+      {/* Tabla de Cuentas por Pagar */}
+      <Typography variant="h5" sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
+        Cuentas por Pagar Registradas
+      </Typography>
       <TablaCuentas
         cuentas={cuentasOrdenadas}
         proveedores={proveedores}
@@ -392,14 +545,24 @@ const CuentasPagarForm = () => {
           formatoMoneda={formatoMoneda}
         />
       )}
-    </section>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        TransitionComponent={SlideTransition}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 };
 
 export default CuentasPagarForm;
-
-
-
 
 
 

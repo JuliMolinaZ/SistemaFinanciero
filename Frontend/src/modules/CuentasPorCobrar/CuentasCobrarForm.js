@@ -21,12 +21,21 @@ import {
   IconButton,
   Grid,
   MenuItem,
-  InputAdornment
+  InputAdornment,
+  Snackbar,
+  Alert,
+  Slide,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
+
+const API_BASE = 'https://sigma.runsolutions-services.com/api';
 
 const CuentasCobrarForm = () => {
   const [cuentas, setCuentas] = useState([]);
@@ -35,12 +44,22 @@ const CuentasCobrarForm = () => {
     proyecto_id: '',
     concepto: '',
     monto_sin_iva: '',
-    monto_con_iva: ''
+    monto_con_iva: '',
   });
   const [openDialog, setOpenDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filterByMonth, setFilterByMonth] = useState('');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   useEffect(() => {
     fetchCuentas();
@@ -49,19 +68,29 @@ const CuentasCobrarForm = () => {
 
   const fetchCuentas = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/cuentas-cobrar');
+      const response = await axios.get(`${API_BASE}/cuentas-cobrar`);
       setCuentas(response.data);
     } catch (error) {
-      console.error('Error al obtener cuentas por cobrar:', error);
+      console.error('Error al obtener cuentas por cobrar:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al obtener cuentas por cobrar.',
+        severity: 'error',
+      });
     }
   };
 
   const fetchProyectos = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/projects');
+      const response = await axios.get(`${API_BASE}/projects`);
       setProyectos(response.data);
     } catch (error) {
-      console.error('Error al obtener proyectos:', error);
+      console.error('Error al obtener proyectos:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al obtener proyectos.',
+        severity: 'error',
+      });
     }
   };
 
@@ -74,7 +103,7 @@ const CuentasCobrarForm = () => {
         proyecto_id: '',
         concepto: '',
         monto_sin_iva: '',
-        monto_con_iva: ''
+        monto_con_iva: '',
       });
     }
     setOpenDialog(!openDialog);
@@ -86,8 +115,8 @@ const CuentasCobrarForm = () => {
       ...prev,
       [name]: value,
       ...(name === 'monto_sin_iva' && {
-        monto_con_iva: (parseFloat(value) * 1.16 || 0).toFixed(2)
-      })
+        monto_con_iva: (parseFloat(value) * 1.16 || 0).toFixed(2),
+      }),
     }));
   };
 
@@ -95,14 +124,29 @@ const CuentasCobrarForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`/api/cuentas-cobrar/${editingId}`, cuenta);
+        await axios.put(`${API_BASE}/cuentas-cobrar/${editingId}`, cuenta);
+        setSnackbar({
+          open: true,
+          message: 'Cuenta actualizada exitosamente.',
+          severity: 'success',
+        });
       } else {
-        await axios.post('/api/cuentas-cobrar', cuenta);
+        await axios.post(`${API_BASE}/cuentas-cobrar`, cuenta);
+        setSnackbar({
+          open: true,
+          message: 'Cuenta registrada exitosamente.',
+          severity: 'success',
+        });
       }
       fetchCuentas();
       toggleDialog();
     } catch (error) {
-      console.error('Error al registrar cuenta por cobrar:', error);
+      console.error('Error al registrar cuenta por cobrar:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al registrar la cuenta por cobrar.',
+        severity: 'error',
+      });
     }
   };
 
@@ -117,10 +161,20 @@ const CuentasCobrarForm = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por cobrar?')) return;
     try {
-      await axios.delete(`/api/cuentas-cobrar/${id}`);
+      await axios.delete(`${API_BASE}/cuentas-cobrar/${id}`);
       setCuentas(cuentas.filter((c) => c.id !== id));
+      setSnackbar({
+        open: true,
+        message: 'Cuenta eliminada exitosamente.',
+        severity: 'success',
+      });
     } catch (error) {
-      console.error('Error al eliminar cuenta por cobrar:', error);
+      console.error('Error al eliminar cuenta por cobrar:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al eliminar la cuenta.',
+        severity: 'error',
+      });
     }
   };
 
@@ -132,7 +186,7 @@ const CuentasCobrarForm = () => {
 
   const { totalSinIVA, totalConIVA } = calculateTotals();
 
-  // Filtrar cuentas por mes (suponiendo que la propiedad "fecha" está disponible)
+  // Filtrar cuentas por mes (suponiendo que la propiedad "fecha" exista en cada cuenta)
   const cuentasFiltradas = filterByMonth
     ? cuentas.filter((c) => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth))
     : cuentas;
@@ -140,7 +194,7 @@ const CuentasCobrarForm = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
-      currency: 'MXN'
+      currency: 'MXN',
     }).format(amount);
   };
 
@@ -157,10 +211,7 @@ const CuentasCobrarForm = () => {
           letterSpacing: 2,
           color: '#e63946',
           mb: 3,
-          textShadow: `
-            1px 1px 0 #000,
-            3px 3px 0 rgba(0,0,0,0.2)
-          `,
+          textShadow: `1px 1px 0 #000, 3px 3px 0 rgba(0,0,0,0.2)`,
         }}
       >
         Cuentas por Cobrar
@@ -451,6 +502,24 @@ const CuentasCobrarForm = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        TransitionComponent={SlideTransition}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
