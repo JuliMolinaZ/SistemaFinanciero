@@ -4,32 +4,42 @@ import { Navigate } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
 import AccessDeniedMessage from './AccessDeniedMessage';
 
-const PrivateRoute = ({ children, allowedRoles, moduleId }) => {
+const PrivateRoute = ({ children, allowedRoles, moduleName }) => {
   const { currentUser, profileData, permisos } = useContext(GlobalContext);
-  const safePermisos = permisos || [];
 
   // Si no hay usuario o perfil, redirige al login
   if (!currentUser || !profileData) {
     return <Navigate to="/login" replace />;
   }
 
-  // Normalizamos el rol a minúsculas para evitar problemas
-  const userRole = profileData.role.toLowerCase();
-  const normalizedAllowedRoles = allowedRoles.map((role) => role.toLowerCase());
-  if (!normalizedAllowedRoles.includes(userRole)) {
-    return <Navigate to="/" replace />;
-  }
+  // Normalizamos el rol del usuario
+  const userRole = profileData.role.trim().toLowerCase();
 
-  // Juan Carlos siempre tiene acceso a todos los módulos
+  // Si el usuario es Juan Carlos, se le permite todo sin más validaciones
   if (userRole === 'juan carlos') {
     return children;
   }
 
-  // Para el Administrador, si se proporciona un moduleId se verifica el permiso
-  if (moduleId) {
-    const permiso = safePermisos.find(p => Number(p.id) === Number(moduleId));
-    console.log(`Verificando permiso para módulo con id ${moduleId} (rol: ${userRole}):`, permiso);
+  // Mientras los permisos no se hayan cargado, se muestra un mensaje o spinner
+  if (permisos.length === 0) {
+    return <div>Loading permissions...</div>;
+  }
+
+  // Si se especifica moduleName, buscamos el permiso correspondiente de forma insensible a mayúsculas
+  if (moduleName) {
+    const permiso = permisos.find(
+      p => p.modulo.trim().toLowerCase() === moduleName.trim().toLowerCase()
+    );
+    console.log("moduleName:", moduleName, "permiso encontrado:", permiso);
     if (!permiso || Number(permiso.acceso_administrador) !== 1) {
+      return <AccessDeniedMessage />;
+    }
+  }
+
+  // Verificar allowedRoles (esto es para otros roles distintos de Juan Carlos)
+  if (allowedRoles && allowedRoles.length > 0) {
+    const normalizedAllowedRoles = allowedRoles.map(role => role.trim().toLowerCase());
+    if (!normalizedAllowedRoles.includes(userRole)) {
       return <AccessDeniedMessage />;
     }
   }

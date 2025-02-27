@@ -17,9 +17,24 @@ export const GlobalProvider = ({ children }) => {
   const [profileData, setProfileData] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  // Agregamos la propiedad permisos
+  // Estado de permisos
   const [permisos, setPermisos] = useState([]);
 
+  // Cargar permisos al inicio
+  useEffect(() => {
+    const fetchPermisos = async () => {
+      try {
+        const response = await axios.get('/api/permisos');
+        console.log("Permisos obtenidos en GlobalState:", response.data);
+        setPermisos(response.data);
+      } catch (error) {
+        console.error("Error fetching permisos in GlobalState:", error);
+      }
+    };
+    fetchPermisos();
+  }, []);
+
+  // Manejo de autenticación y perfil
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
@@ -100,16 +115,11 @@ export const GlobalProvider = ({ children }) => {
         sidebarCollapsed,
         setSidebarCollapsed,
         authLoading,
-        permisos,     
-        setPermisos,   
+        permisos,
+        setPermisos,
       }}
     >
       {children}
     </GlobalContext.Provider>
   );
 };
-
-
-
-
-

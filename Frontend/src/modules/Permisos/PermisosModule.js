@@ -21,7 +21,6 @@ import {
 } from '@mui/material';
 import { GlobalContext } from '../../context/GlobalState';
 
-// Transición deslizante desde la derecha
 function SlideTransition(props) {
   return <Slide {...props} direction="left" />;
 }
@@ -33,19 +32,18 @@ const PermisosModule = () => {
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const theme = useTheme();
-
-  // URL del API
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const fetchPermisos = async () => {
       try {
         const response = await axios.get(`${API_URL}/api/permisos`);
+        // Guardamos el arreglo original en el estado global
         setPermisos(response.data);
-        // Convertir el valor de acceso_administrador a booleano (si es numérico)
+        // Convertimos acceso_administrador a booleano para el estado local
         const permisosConvertidos = response.data.map(p => ({
           ...p,
-          acceso_administrador: Boolean(p.acceso_administrador),
+          acceso_administrador: Boolean(Number(p.acceso_administrador)),
         }));
         setLocalPermisos(permisosConvertidos);
       } catch (error) {
@@ -59,20 +57,20 @@ const PermisosModule = () => {
     fetchPermisos();
   }, [API_URL, setPermisos]);
 
-  // Verifica si hay cambios comparando el estado global con el local
+  // Compara el estado global con el local para saber si hay cambios
   const hasChanges = useMemo(() => {
     if (!permisos || permisos.length === 0) return false;
-    return localPermisos.some((localPermiso) => {
-      const original = permisos.find((p) => p.modulo === localPermiso.modulo);
-      // Convertimos ambos a booleano para comparar
-      return original && Boolean(original.acceso_administrador) !== localPermiso.acceso_administrador;
+    return localPermisos.some(localPermiso => {
+      const original = permisos.find(p => p.id === localPermiso.id);
+      return original && Boolean(Number(original.acceso_administrador)) !== localPermiso.acceso_administrador;
     });
   }, [localPermisos, permisos]);
 
-  const handleToggle = (modulo) => {
-    setLocalPermisos((prev) =>
-      prev.map((permiso) =>
-        permiso.modulo === modulo
+  // Usamos el id para identificar de forma única cada permiso
+  const handleToggle = (id) => {
+    setLocalPermisos(prev =>
+      prev.map(permiso =>
+        permiso.id === id
           ? { ...permiso, acceso_administrador: !permiso.acceso_administrador }
           : permiso
       )
@@ -82,11 +80,11 @@ const PermisosModule = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Se actualiza cada permiso; se envía la propiedad como booleano
+      // Actualizamos cada permiso utilizando su id
       await Promise.all(
-        localPermisos.map((permiso) =>
-          axios.put(`${API_URL}/api/permisos/${permiso.modulo}`, {
-            acceso_administrador: Boolean(permiso.acceso_administrador),
+        localPermisos.map(permiso =>
+          axios.put(`${API_URL}/api/permisos/${permiso.id}`, {
+            acceso_administrador: permiso.acceso_administrador ? 1 : 0,
           })
         )
       );
@@ -102,7 +100,7 @@ const PermisosModule = () => {
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') return;
-    setSnackbar((prev) => ({ ...prev, open: false }));
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   if (loading) {
@@ -121,71 +119,34 @@ const PermisosModule = () => {
   }
 
   return (
-    <Box
-      sx={{
-        background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
-        minHeight: '100vh',
-        py: 4,
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: '900px',
-          mx: 'auto',
-          backgroundColor: 'white',
-          p: { xs: 2, md: 4 },
-          borderRadius: 2,
-          boxShadow: 3,
-        }}
-      >
+    <Box sx={{ background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)', minHeight: '100vh', py: 4 }}>
+      <Box sx={{ maxWidth: '900px', mx: 'auto', backgroundColor: 'white', p: { xs: 2, md: 4 }, borderRadius: 2, boxShadow: 3 }}>
         <Typography
           variant="h4"
           gutterBottom
-          sx={{
-            color: theme.palette.primary.dark,
-            fontWeight: 'bold',
-            mb: 2,
-            textShadow: '1px 1px 2px rgba(0,0,0,0.2)',
-          }}
+          sx={{ color: theme.palette.primary.dark, fontWeight: 'bold', mb: 2, textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}
         >
           Administración de Permisos
         </Typography>
         <Typography variant="subtitle1" sx={{ mb: 3, color: theme.palette.text.secondary }}>
           Activa o desactiva los permisos para que los módulos sean visibles para el Administrador.
         </Typography>
-        <TableContainer
-          component={Paper}
-          sx={{
-            mb: 3,
-            borderRadius: 2,
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-          }}
-        >
+        <TableContainer component={Paper} sx={{ mb: 3, borderRadius: 2, boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
           <Table>
             <TableHead sx={{ backgroundColor: theme.palette.primary.main }}>
               <TableRow>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>
-                  Módulo
-                </TableCell>
-                <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>
-                  Acceso Administrador
-                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>Módulo</TableCell>
+                <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>Acceso Administrador</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {localPermisos.map((permiso) => (
-                <TableRow
-                  key={permiso.modulo}
-                  hover
-                  sx={{
-                    '&:nth-of-type(even)': { backgroundColor: '#f5f5f5' },
-                  }}
-                >
+              {localPermisos.map(permiso => (
+                <TableRow key={permiso.id} hover sx={{ '&:nth-of-type(even)': { backgroundColor: '#f5f5f5' } }}>
                   <TableCell sx={{ fontSize: '1rem', fontWeight: 500 }}>{permiso.modulo}</TableCell>
                   <TableCell align="center">
                     <Switch
                       checked={permiso.acceso_administrador}
-                      onChange={() => handleToggle(permiso.modulo)}
+                      onChange={() => handleToggle(permiso.id)}
                       color="primary"
                     />
                   </TableCell>
@@ -211,7 +172,6 @@ const PermisosModule = () => {
         autoHideDuration={3000}
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        TransitionComponent={SlideTransition}
       >
         <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
           {snackbar.message}

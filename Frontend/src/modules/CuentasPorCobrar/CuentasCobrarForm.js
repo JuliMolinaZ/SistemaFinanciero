@@ -1,4 +1,3 @@
-// src/modules/CuentasPorCobrar/CuentasCobrarForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -25,15 +24,44 @@ import {
   Snackbar,
   Alert,
   Slide,
+  Collapse
 } from '@mui/material';
+
+import { styled } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
+import PaymentIcon from '@mui/icons-material/Payment';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 
+// Transición para Snackbar
 function SlideTransition(props) {
   return <Slide {...props} direction="left" />;
 }
+
+// Botón para expandir (mostrar complementos)
+const ExpandMore = styled((props) => {
+  const { expand, ...other } = props;
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
+
+// Función para formatear la fecha en un formato legible
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
 
 const API_BASE = 'https://sigma.runsolutions-services.com/api';
 
@@ -45,6 +73,7 @@ const CuentasCobrarForm = () => {
     concepto: '',
     monto_sin_iva: '',
     monto_con_iva: '',
+    fecha: ''
   });
   const [openDialog, setOpenDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -56,6 +85,19 @@ const CuentasCobrarForm = () => {
     severity: 'success',
   });
 
+  // Estados para complementos de pago
+  const [expandedRows, setExpandedRows] = useState([]); // ids de cuentas expandidas
+  const [complementosByCuenta, setComplementosByCuenta] = useState({}); // { cuentaId: [complementos] }
+  const [openComplementoDialog, setOpenComplementoDialog] = useState(false);
+  const [selectedCuentaId, setSelectedCuentaId] = useState(null);
+  const [complemento, setComplemento] = useState({
+    fecha_pago: '',
+    concepto: '',
+    monto_sin_iva: '',
+    monto_con_iva: ''
+  });
+
+  // Manejo del snackbar
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') return;
     setSnackbar({ ...snackbar, open: false });
@@ -66,6 +108,7 @@ const CuentasCobrarForm = () => {
     fetchProyectos();
   }, []);
 
+  // Obtener cuentas por cobrar
   const fetchCuentas = async () => {
     try {
       const response = await axios.get(`${API_BASE}/cuentas-cobrar`);
@@ -80,6 +123,7 @@ const CuentasCobrarForm = () => {
     }
   };
 
+  // Obtener proyectos
   const fetchProyectos = async () => {
     try {
       const response = await axios.get(`${API_BASE}/projects`);
@@ -94,9 +138,9 @@ const CuentasCobrarForm = () => {
     }
   };
 
+  // Alternar el diálogo del formulario de cuenta
   const toggleDialog = () => {
     if (openDialog) {
-      // Al cerrar se reinician estados
       setIsEditing(false);
       setEditingId(null);
       setCuenta({
@@ -104,11 +148,13 @@ const CuentasCobrarForm = () => {
         concepto: '',
         monto_sin_iva: '',
         monto_con_iva: '',
+        fecha: ''
       });
     }
     setOpenDialog(!openDialog);
   };
 
+  // Manejar cambios en el formulario de cuenta
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCuenta((prev) => ({
@@ -120,6 +166,7 @@ const CuentasCobrarForm = () => {
     }));
   };
 
+  // Envío del formulario para crear/editar una cuenta
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -150,6 +197,7 @@ const CuentasCobrarForm = () => {
     }
   };
 
+  // Iniciar edición de una cuenta
   const handleEdit = (id) => {
     const cuentaToEdit = cuentas.find((c) => c.id === id);
     setCuenta(cuentaToEdit);
@@ -158,6 +206,7 @@ const CuentasCobrarForm = () => {
     setOpenDialog(true);
   };
 
+  // Eliminar una cuenta por cobrar
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por cobrar?')) return;
     try {
@@ -178,6 +227,7 @@ const CuentasCobrarForm = () => {
     }
   };
 
+  // Calcular totales generales
   const calculateTotals = () => {
     const totalSinIVA = cuentas.reduce((acc, c) => acc + parseFloat(c.monto_sin_iva || 0), 0);
     const totalConIVA = cuentas.reduce((acc, c) => acc + parseFloat(c.monto_con_iva || 0), 0);
@@ -186,11 +236,12 @@ const CuentasCobrarForm = () => {
 
   const { totalSinIVA, totalConIVA } = calculateTotals();
 
-  // Filtrar cuentas por mes (suponiendo que la propiedad "fecha" exista en cada cuenta)
+  // Filtrar cuentas por mes (suponiendo que la propiedad "fecha" existe)
   const cuentasFiltradas = filterByMonth
     ? cuentas.filter((c) => new Date(c.fecha).getMonth() + 1 === parseInt(filterByMonth))
     : cuentas;
 
+  // Formatear moneda
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -198,9 +249,122 @@ const CuentasCobrarForm = () => {
     }).format(amount);
   };
 
+  // --- FUNCIONALIDAD DE COMPLEMENTOS DE PAGO ---
+
+  // Alternar la expansión de una fila para mostrar complementos
+  const handleExpandClick = (cuentaId) => {
+    const isExpanded = expandedRows.includes(cuentaId);
+    if (isExpanded) {
+      setExpandedRows(expandedRows.filter((id) => id !== cuentaId));
+    } else {
+      setExpandedRows([...expandedRows, cuentaId]);
+      if (!complementosByCuenta[cuentaId]) {
+        fetchComplementos(cuentaId);
+      }
+    }
+  };
+
+  // Obtener los complementos de pago de una cuenta
+  const fetchComplementos = async (cuentaId) => {
+    try {
+      const response = await axios.get(`${API_BASE}/complementos-pago/${cuentaId}`);
+      setComplementosByCuenta((prev) => ({
+        ...prev,
+        [cuentaId]: response.data,
+      }));
+    } catch (error) {
+      console.error('Error al obtener complementos:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al obtener los complementos de pago.',
+        severity: 'error',
+      });
+    }
+  };
+
+  // Abrir diálogo para agregar un complemento
+  const handleOpenComplementoDialog = (cuentaId) => {
+    setSelectedCuentaId(cuentaId);
+    setComplemento({
+      fecha_pago: '',
+      concepto: '',
+      monto_sin_iva: '',
+      monto_con_iva: ''
+    });
+    setOpenComplementoDialog(true);
+  };
+
+  // Cerrar diálogo de complemento
+  const handleCloseComplementoDialog = () => {
+    setOpenComplementoDialog(false);
+    setSelectedCuentaId(null);
+  };
+
+  // Manejar cambios en el formulario de complemento
+  const handleComplementoChange = (e) => {
+    const { name, value } = e.target;
+    setComplemento((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'monto_sin_iva' && {
+        monto_con_iva: (parseFloat(value) * 1.16 || 0).toFixed(2),
+      }),
+    }));
+  };
+
+  // Enviar formulario para crear un complemento
+  const handleComplementoSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API_BASE}/complementos-pago/${selectedCuentaId}`, complemento);
+      setSnackbar({
+        open: true,
+        message: 'Complemento agregado exitosamente.',
+        severity: 'success',
+      });
+      fetchComplementos(selectedCuentaId);
+      handleCloseComplementoDialog();
+    } catch (error) {
+      console.error('Error al agregar complemento:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al agregar el complemento.',
+        severity: 'error',
+      });
+    }
+  };
+
+  // Función para eliminar un complemento de pago
+  const handleDeleteComplemento = async (complementoId, cuentaId) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este complemento?')) return;
+    try {
+      await axios.delete(`${API_BASE}/complementos-pago/${complementoId}`);
+      setSnackbar({
+        open: true,
+        message: 'Complemento eliminado exitosamente.',
+        severity: 'success',
+      });
+      // Recargar los complementos de la cuenta para actualizar la UI
+      fetchComplementos(cuentaId);
+    } catch (error) {
+      console.error('Error al eliminar complemento:', error.response?.data || error.message);
+      setSnackbar({
+        open: true,
+        message: 'Error al eliminar el complemento.',
+        severity: 'error',
+      });
+    }
+  };
+
+  // Calcular totales de los complementos para determinar el saldo pendiente
+  const calculateTotalComplementos = (cuentaId, field = 'monto_sin_iva') => {
+    const comps = complementosByCuenta[cuentaId] || [];
+    return comps.reduce((acc, comp) => acc + parseFloat(comp[field] || 0), 0);
+  };
+
   return (
     <Container sx={{ py: 4, maxWidth: '1200px' }}>
-      {/* Título Impactante */}
+      {/* Título */}
       <Typography
         variant="h3"
         gutterBottom
@@ -217,7 +381,7 @@ const CuentasCobrarForm = () => {
         Cuentas por Cobrar
       </Typography>
 
-      {/* Botón para abrir el formulario */}
+      {/* Botón para abrir el formulario de cuenta */}
       <Grid container justifyContent="center" sx={{ mb: 3 }}>
         <Button
           variant="contained"
@@ -237,7 +401,7 @@ const CuentasCobrarForm = () => {
         </Button>
       </Grid>
 
-      {/* Diálogo para el Formulario */}
+      {/* Diálogo para registrar o editar una cuenta */}
       <Dialog open={openDialog} onClose={toggleDialog} fullWidth maxWidth="sm">
         <DialogTitle
           sx={{
@@ -320,6 +484,19 @@ const CuentasCobrarForm = () => {
               variant="outlined"
               sx={{ backgroundColor: '#fff', borderRadius: 1, mt: 1 }}
             />
+            <TextField
+              margin="dense"
+              label="Fecha"
+              name="fecha"
+              type="date"
+              value={cuenta.fecha}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{ backgroundColor: '#fff', borderRadius: 1, mt: 1 }}
+              InputLabelProps={{ shrink: true }}
+            />
           </DialogContent>
           <DialogActions
             sx={{
@@ -351,7 +528,7 @@ const CuentasCobrarForm = () => {
         </Box>
       </Dialog>
 
-      {/* Totales en Cards */}
+      {/* Totales Generales */}
       <Grid container spacing={3} justifyContent="center" sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={4}>
           <Box
@@ -458,38 +635,123 @@ const CuentasCobrarForm = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {cuentasFiltradas.map((c) => (
-              <TableRow key={c.id} sx={{ '&:hover': { backgroundColor: '#ececec' } }}>
-                <TableCell>
-                  {proyectos.find((p) => p.id === c.proyecto_id)?.nombre || 'N/A'}
-                </TableCell>
-                <TableCell>{c.concepto}</TableCell>
-                <TableCell>{formatCurrency(c.monto_sin_iva)}</TableCell>
-                <TableCell>{formatCurrency(c.monto_con_iva)}</TableCell>
-                <TableCell align="center">
-                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                    <IconButton
-                      sx={{
-                        backgroundColor: '#4caf50',
-                        '&:hover': { backgroundColor: '#45a049' },
-                      }}
-                      onClick={() => handleEdit(c.id)}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      sx={{
-                        backgroundColor: '#f44336',
-                        '&:hover': { backgroundColor: '#d32f2f' },
-                      }}
-                      onClick={() => handleDelete(c.id)}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
+            {cuentasFiltradas.map((c) => {
+              // Calcular totales de complementos para determinar saldo
+              const totalCompSinIVA = calculateTotalComplementos(c.id, 'monto_sin_iva');
+              const totalCompConIVA = calculateTotalComplementos(c.id, 'monto_con_iva');
+              const saldoSinIVA = parseFloat(c.monto_sin_iva) - totalCompSinIVA;
+              const saldoConIVA = parseFloat(c.monto_con_iva) - totalCompConIVA;
+
+              return (
+                <React.Fragment key={c.id}>
+                  <TableRow sx={{ '&:hover': { backgroundColor: '#ececec' } }}>
+                    <TableCell>
+                      {proyectos.find((p) => p.id === c.proyecto_id)?.nombre || 'N/A'}
+                    </TableCell>
+                    <TableCell>{c.concepto}</TableCell>
+                    <TableCell>
+                      {formatCurrency(c.monto_sin_iva)} <br />
+                      <small style={{ color: 'green' }}>
+                        Saldo: {formatCurrency(saldoSinIVA)}
+                      </small>
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(c.monto_con_iva)} <br />
+                      <small style={{ color: 'green' }}>
+                        Saldo: {formatCurrency(saldoConIVA)}
+                      </small>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <IconButton
+                          sx={{
+                            backgroundColor: '#4caf50',
+                            '&:hover': { backgroundColor: '#45a049' },
+                          }}
+                          onClick={() => handleEdit(c.id)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          sx={{
+                            backgroundColor: '#f44336',
+                            '&:hover': { backgroundColor: '#d32f2f' },
+                          }}
+                          onClick={() => handleDelete(c.id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        <ExpandMore
+                          expand={expandedRows.includes(c.id)}
+                          onClick={() => handleExpandClick(c.id)}
+                          aria-expanded={expandedRows.includes(c.id)}
+                          aria-label="mostrar complementos"
+                        >
+                          <ExpandMoreIcon />
+                        </ExpandMore>
+                        <IconButton
+                          sx={{
+                            backgroundColor: '#1976d2',
+                            '&:hover': { backgroundColor: '#1565c0' },
+                          }}
+                          onClick={() => handleOpenComplementoDialog(c.id)}
+                        >
+                          <PaymentIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                  {/* Fila expandible para mostrar complementos */}
+                  <TableRow>
+                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                      <Collapse in={expandedRows.includes(c.id)} timeout="auto" unmountOnExit>
+                        <Box margin={2} sx={{ backgroundColor: '#f9f9f9', padding: 2, borderRadius: '8px' }}>
+                          <Typography variant="subtitle1" gutterBottom component="div">
+                            Complementos de Pago
+                          </Typography>
+                          {complementosByCuenta[c.id] && complementosByCuenta[c.id].length > 0 ? (
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Fecha de Pago</TableCell>
+                                  <TableCell>Concepto</TableCell>
+                                  <TableCell>Monto sin IVA</TableCell>
+                                  <TableCell>Monto con IVA</TableCell>
+                                  <TableCell align="center">Acciones</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {complementosByCuenta[c.id].map((comp) => (
+                                  <TableRow key={comp.id}>
+                                    <TableCell>{formatDate(comp.fecha_pago)}</TableCell>
+                                    <TableCell>{comp.concepto}</TableCell>
+                                    <TableCell>{formatCurrency(comp.monto_sin_iva)}</TableCell>
+                                    <TableCell>{formatCurrency(comp.monto_con_iva)}</TableCell>
+                                    <TableCell align="center">
+                                      <IconButton
+                                        sx={{
+                                          backgroundColor: '#f44336',
+                                          '&:hover': { backgroundColor: '#d32f2f' },
+                                        }}
+                                        onClick={() => handleDeleteComplemento(comp.id, c.id)}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          ) : (
+                            <Typography variant="body2">No hay complementos registrados.</Typography>
+                          )}
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
+              );
+            })}
             {cuentasFiltradas.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center">
@@ -503,6 +765,112 @@ const CuentasCobrarForm = () => {
         </Table>
       </TableContainer>
 
+      {/* Diálogo para agregar un complemento */}
+      <Dialog open={openComplementoDialog} onClose={handleCloseComplementoDialog} fullWidth maxWidth="sm">
+        <DialogTitle
+          sx={{
+            p: 2,
+            background: 'linear-gradient(90deg, #1976d2, #1565c0)',
+            color: '#fff',
+            fontWeight: 'bold',
+            position: 'relative',
+          }}
+        >
+          Agregar Complemento de Pago
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseComplementoDialog}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: '#fff',
+              '&:hover': { color: '#ffeb3b' },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <Box component="form" onSubmit={handleComplementoSubmit} noValidate>
+          <DialogContent sx={{ backgroundColor: '#f5f5f5', p: 3 }}>
+            <TextField
+              margin="dense"
+              label="Fecha de Pago"
+              name="fecha_pago"
+              type="date"
+              value={complemento.fecha_pago}
+              onChange={handleComplementoChange}
+              fullWidth
+              required
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+              sx={{ backgroundColor: '#fff', borderRadius: 1 }}
+            />
+            <TextField
+              margin="dense"
+              label="Concepto"
+              name="concepto"
+              value={complemento.concepto}
+              onChange={handleComplementoChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{ backgroundColor: '#fff', borderRadius: 1, mt: 1 }}
+            />
+            <TextField
+              margin="dense"
+              label="Monto sin IVA"
+              name="monto_sin_iva"
+              type="number"
+              value={complemento.monto_sin_iva}
+              onChange={handleComplementoChange}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{ backgroundColor: '#fff', borderRadius: 1, mt: 1 }}
+            />
+            <TextField
+              margin="dense"
+              label="Monto con IVA"
+              name="monto_con_iva"
+              type="number"
+              value={complemento.monto_con_iva}
+              InputProps={{ readOnly: true }}
+              fullWidth
+              variant="outlined"
+              sx={{ backgroundColor: '#fff', borderRadius: 1, mt: 1 }}
+            />
+          </DialogContent>
+          <DialogActions
+            sx={{
+              backgroundColor: '#f5f5f5',
+              p: 2,
+              justifyContent: 'space-between',
+            }}
+          >
+            <Button onClick={handleCloseComplementoDialog} sx={{ color: '#1976d2', fontWeight: 'bold' }}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                backgroundColor: '#1976d2',
+                px: 3,
+                py: 1.5,
+                fontWeight: 'bold',
+                borderRadius: '8px',
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                transition: 'all 0.3s ease',
+                '&:hover': { backgroundColor: '#1565c0', transform: 'scale(1.02)' },
+              }}
+            >
+              Agregar Complemento
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+
       {/* Snackbar para notificaciones */}
       <Snackbar
         open={snackbar.open}
@@ -511,12 +879,7 @@ const CuentasCobrarForm = () => {
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         TransitionComponent={SlideTransition}
       >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

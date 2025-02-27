@@ -43,17 +43,11 @@ const Sidebar = () => {
     fetchPermisos();
   }, [API_URL]);
 
-  // Verifica si el permiso existe y tiene acceso_administrador === 1
-  const hasPermission = (modulo) => {
-    const permiso = permisos.find((p) => p.modulo === modulo);
-    return permiso?.acceso_administrador === 1;
-  };
-
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Normalizamos el rol para evitar diferencias en mayúsculas/minúsculas
+  // Normalizamos el rol y determinamos si es Juan Carlos o Administrador
   const userRole = profileData?.role || '';
   const normalizedRole = userRole.trim().toLowerCase();
   const isJuanCarlos = normalizedRole === 'juan carlos';
@@ -61,6 +55,16 @@ const Sidebar = () => {
 
   console.log('Perfil del usuario:', profileData);
   console.log('Rol normalizado:', normalizedRole);
+
+  // Función que retorna true para cualquier módulo si el usuario es Juan Carlos.
+  // Para otros, se evalúa según el permiso (acceso_administrador === 1)
+  const hasPermission = (modulo) => {
+    if (isJuanCarlos) return true;
+    const permiso = permisos.find(
+      p => p.modulo.trim().toLowerCase() === modulo.trim().toLowerCase()
+    );
+    return permiso ? Number(permiso.acceso_administrador) === 1 : false;
+  };
 
   // Estilos para los items del menú
   const listItemSx = {
@@ -98,7 +102,6 @@ const Sidebar = () => {
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           top: '72px',
-          // Establecemos la altura para ocupar el espacio restante de la pantalla
           height: 'calc(100vh - 72px)',
           width: sidebarCollapsed ? drawerWidthClosed : drawerWidthOpen,
           boxSizing: 'border-box',
@@ -125,11 +128,9 @@ const Sidebar = () => {
         </IconButton>
       </Toolbar>
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.3)' }} />
-
-      {/* Contenedor scrollable para la lista */}
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
         <List>
-          {/* Items comunes */}
+          {/* Módulos fijos */}
           <ListItemButton component={LinkBehavior} to="/" sx={listItemSx}>
             <ListItemIcon sx={listItemIconSx}>
               <span role="img" aria-label="inicio">🏠</span>
@@ -137,6 +138,7 @@ const Sidebar = () => {
             {!sidebarCollapsed && <ListItemText primary="Inicio" />}
           </ListItemButton>
 
+          {/* Botón de Usuarios: visible para ambos */}
           {(isAdmin || isJuanCarlos) && (
             <ListItemButton component={LinkBehavior} to="/usuarios" sx={listItemSx}>
               <ListItemIcon sx={listItemIconSx}>
@@ -146,15 +148,7 @@ const Sidebar = () => {
             </ListItemButton>
           )}
 
-          {(isJuanCarlos || (isAdmin && hasPermission('costos_fijos'))) && (
-            <ListItemButton component={LinkBehavior} to="/costos-fijos" sx={listItemSx}>
-              <ListItemIcon sx={listItemIconSx}>
-                <span role="img" aria-label="costos fijos">💼</span>
-              </ListItemIcon>
-              {!sidebarCollapsed && <ListItemText primary="Costos Fijos" />}
-            </ListItemButton>
-          )}
-
+          {/* Cliente siempre visible */}
           <ListItemButton component={LinkBehavior} to="/clientes" sx={listItemSx}>
             <ListItemIcon sx={listItemIconSx}>
               <span role="img" aria-label="clientes">👥</span>
@@ -162,6 +156,7 @@ const Sidebar = () => {
             {!sidebarCollapsed && <ListItemText primary="Clientes" />}
           </ListItemButton>
 
+          {/* Módulos controlados por permiso: para Admin se valida y para Juan Carlos siempre */}
           {(isJuanCarlos || (isAdmin && hasPermission('proyectos'))) && (
             <ListItemButton component={LinkBehavior} to="/proyectos" sx={listItemSx}>
               <ListItemIcon sx={listItemIconSx}>
@@ -180,6 +175,24 @@ const Sidebar = () => {
             </ListItemButton>
           )}
 
+          {(isJuanCarlos || (isAdmin && hasPermission('costos_fijos'))) && (
+            <ListItemButton component={LinkBehavior} to="/costos-fijos" sx={listItemSx}>
+              <ListItemIcon sx={listItemIconSx}>
+                <span role="img" aria-label="costos fijos">💼</span>
+              </ListItemIcon>
+              {!sidebarCollapsed && <ListItemText primary="Costos Fijos" />}
+            </ListItemButton>
+          )}
+
+          {(isJuanCarlos || (isAdmin && hasPermission('cuentas_pagar'))) && (
+            <ListItemButton component={LinkBehavior} to="/cuentas-pagar" sx={listItemSx}>
+              <ListItemIcon sx={listItemIconSx}>
+                <span role="img" aria-label="cuentas por pagar">💸</span>
+              </ListItemIcon>
+              {!sidebarCollapsed && <ListItemText primary="Cuentas por Pagar" />}
+            </ListItemButton>
+          )}
+
           {(isAdmin || isJuanCarlos) && (
             <>
               <ListItemButton component={LinkBehavior} to="/proveedores" sx={listItemSx}>
@@ -189,18 +202,11 @@ const Sidebar = () => {
                 {!sidebarCollapsed && <ListItemText primary="Proveedores" />}
               </ListItemButton>
 
-              <ListItemButton component={LinkBehavior} to="/cuentas-pagar" sx={listItemSx}>
-                <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="cuentas por pagar">💸</span>
-                </ListItemIcon>
-                {!sidebarCollapsed && <ListItemText primary="Cuentas por Pagar" />}
-              </ListItemButton>
-
               <ListItemButton component={LinkBehavior} to="/contabilidad" sx={listItemSx}>
                 <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="movimientos contables">📊</span>
+                  <span role="img" aria-label="contabilidad">📊</span>
                 </ListItemIcon>
-                {!sidebarCollapsed && <ListItemText primary="Movimientos Contables" />}
+                {!sidebarCollapsed && <ListItemText primary="Contabilidad" />}
               </ListItemButton>
 
               <ListItemButton component={LinkBehavior} to="/categorias" sx={listItemSx}>
@@ -212,7 +218,7 @@ const Sidebar = () => {
 
               <ListItemButton component={LinkBehavior} to="/emitidas" sx={listItemSx}>
                 <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="facturas emitidas">📝</span>
+                  <span role="img" aria-label="emitidas">📝</span>
                 </ListItemIcon>
                 {!sidebarCollapsed && <ListItemText primary="Facturas Emitidas" />}
               </ListItemButton>
@@ -228,37 +234,41 @@ const Sidebar = () => {
             </ListItemButton>
           )}
 
-          {isJuanCarlos && (
-            <>
-              <ListItemButton component={LinkBehavior} to="/realtime-graph" sx={listItemSx}>
-                <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="gráficos">📈</span>
-                </ListItemIcon>
-                {!sidebarCollapsed && <ListItemText primary="Gráficos" />}
-              </ListItemButton>
+          {/* Módulos que antes estaban solo en bloque de Juan Carlos, ahora se muestran para Admin si el permiso está activo */}
+          {(isJuanCarlos || (isAdmin && hasPermission('realtime_graph'))) && (
+            <ListItemButton component={LinkBehavior} to="/realtime-graph" sx={listItemSx}>
+              <ListItemIcon sx={listItemIconSx}>
+                <span role="img" aria-label="realtime graph">📈</span>
+              </ListItemIcon>
+              {!sidebarCollapsed && <ListItemText primary="Gráficos" />}
+            </ListItemButton>
+          )}
 
-              <ListItemButton component={LinkBehavior} to="/flow-recovery-v2" sx={listItemSx}>
-                <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="flow recovery v2">💵</span>
-                </ListItemIcon>
-                {!sidebarCollapsed && <ListItemText primary="Flow Recovery V2" />}
-              </ListItemButton>
+          {(isJuanCarlos || (isAdmin && hasPermission('flow_recovery_v2'))) && (
+            <ListItemButton component={LinkBehavior} to="/flow-recovery-v2" sx={listItemSx}>
+              <ListItemIcon sx={listItemIconSx}>
+                <span role="img" aria-label="flow recovery v2">💵</span>
+              </ListItemIcon>
+              {!sidebarCollapsed && <ListItemText primary="Flow Recovery V2" />}
+            </ListItemButton>
+          )}
 
-              <ListItemButton component={LinkBehavior} to="/recuperacion" sx={listItemSx}>
-                <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="moneyflow recovery">🔄</span>
-                </ListItemIcon>
-                {!sidebarCollapsed && <ListItemText primary="MoneyFlow Recovery" />}
-              </ListItemButton>
+          {(isJuanCarlos || (isAdmin && hasPermission('recuperacion'))) && (
+            <ListItemButton component={LinkBehavior} to="/recuperacion" sx={listItemSx}>
+              <ListItemIcon sx={listItemIconSx}>
+                <span role="img" aria-label="recuperacion">🔄</span>
+              </ListItemIcon>
+              {!sidebarCollapsed && <ListItemText primary="MoneyFlow Recovery" />}
+            </ListItemButton>
+          )}
 
-              <ListItemButton component={LinkBehavior} to="/permisos" sx={listItemSx}>
-                <ListItemIcon sx={listItemIconSx}>
-                  <span role="img" aria-label="permisos">⚙️</span>
-                </ListItemIcon>
-                {!sidebarCollapsed && <ListItemText primary="Permisos" />}
-              </ListItemButton>
-              
-            </>
+          {(isJuanCarlos || (isAdmin && hasPermission('permisos'))) && (
+            <ListItemButton component={LinkBehavior} to="/permisos" sx={listItemSx}>
+              <ListItemIcon sx={listItemIconSx}>
+                <span role="img" aria-label="permisos">⚙️</span>
+              </ListItemIcon>
+              {!sidebarCollapsed && <ListItemText primary="Permisos" />}
+            </ListItemButton>
           )}
         </List>
       </Box>

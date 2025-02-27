@@ -11,8 +11,8 @@ const LoadingScreen = () => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        backgroundColor: '#1e1e1e', // Fondo gris oscuro
-        color: '#ffffff',         // Texto blanco
+        backgroundColor: '#1e1e1e', 
+        color: '#ffffff',         
         p: 2,
       }}
     >
@@ -20,7 +20,7 @@ const LoadingScreen = () => {
       <CircularProgress
         size={50}
         sx={{
-          color: '#1d72b8', // Azul vibrante para el spinner
+          color: '#1d72b8', 
           mb: 2,
         }}
       />
@@ -31,7 +31,7 @@ const LoadingScreen = () => {
         sx={{
           fontWeight: 'bold',
           mb: 2,
-          color: '#57b3f9', // Azul claro para el texto
+          color: '#57b3f9', 
         }}
       >
         Cargando...

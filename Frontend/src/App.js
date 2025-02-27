@@ -1,12 +1,11 @@
 // src/App.js
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate
 } from 'react-router-dom';
-import axios from 'axios';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { GlobalContext } from './context/GlobalState';
 import LoadingScreen from './components/LoadingScreen';
@@ -40,22 +39,6 @@ import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   const { currentUser, profileComplete, sidebarCollapsed, profileData, authLoading } = useContext(GlobalContext);
-  const [localPermisos, setLocalPermisos] = useState([]);
-
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-  useEffect(() => {
-    const fetchPermisos = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/permisos`);
-        console.log('Permisos obtenidos:', response.data);
-        setLocalPermisos(response.data);
-      } catch (error) {
-        console.error('Error al obtener los permisos:', error.response?.data || error.message);
-      }
-    };
-    fetchPermisos();
-  }, [API_URL]);
 
   const mainMarginLeft = sidebarCollapsed ? '60px' : '220px';
 
@@ -71,7 +54,7 @@ function App() {
         ) : (
           <>
             <Header />
-            <Sidebar permisos={localPermisos} />
+            <Sidebar />
             <main
               style={{
                 marginLeft: mainMarginLeft,
@@ -89,7 +72,7 @@ function App() {
                 <Route
                   path="/proyectos"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos', 'Administrador']} condition="proyectos">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="proyectos">
                       <ProyectosForm />
                     </PrivateRoute>
                   }
@@ -97,7 +80,7 @@ function App() {
                 <Route
                   path="/proveedores"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="proveedores">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="proveedores">
                       <ProveedoresForm />
                     </PrivateRoute>
                   }
@@ -105,7 +88,7 @@ function App() {
                 <Route
                   path="/cuentas-pagar"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="cuentas_pagar">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="cuentas_pagar">
                       <CuentasPagarForm />
                     </PrivateRoute>
                   }
@@ -113,7 +96,7 @@ function App() {
                 <Route
                   path="/costos-fijos"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos', 'Administrador']} condition="costos_fijos">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="costos_fijos">
                       <CostosFijos />
                     </PrivateRoute>
                   }
@@ -121,7 +104,7 @@ function App() {
                 <Route
                   path="/cuentas-cobrar"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos', 'Administrador']} condition="cuentas_cobrar">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="cuentas_cobrar">
                       <CuentasCobrarForm />
                     </PrivateRoute>
                   }
@@ -129,7 +112,7 @@ function App() {
                 <Route
                   path="/contabilidad"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="contabilidad">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="contabilidad">
                       <ContabilidadForm />
                     </PrivateRoute>
                   }
@@ -137,7 +120,7 @@ function App() {
                 <Route
                   path="/categorias"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="categorias">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="categorias">
                       <CategoriasForm />
                     </PrivateRoute>
                   }
@@ -145,7 +128,7 @@ function App() {
                 <Route
                   path="/recuperacion"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos']} condition="recuperacion">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="recuperacion">
                       <RecuperacionForm />
                     </PrivateRoute>
                   }
@@ -153,7 +136,7 @@ function App() {
                 <Route
                   path="/usuarios"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="usuarios">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="usuarios">
                       <UsersList />
                     </PrivateRoute>
                   }
@@ -161,7 +144,7 @@ function App() {
                 <Route
                   path="/permisos"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos']} condition="permisos">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="permisos">
                       <PermisosModule />
                     </PrivateRoute>
                   }
@@ -169,7 +152,7 @@ function App() {
                 <Route
                   path="/realtime-graph"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos']} condition="realtime_graph">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="realtime_graph">
                       <RealtimeGraph />
                     </PrivateRoute>
                   }
@@ -177,7 +160,7 @@ function App() {
                 <Route
                   path="/emitidas"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="emitidas">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="emitidas">
                       <EmitidasForms />
                     </PrivateRoute>
                   }
@@ -185,7 +168,7 @@ function App() {
                 <Route
                   path="/cotizaciones"
                   element={
-                    <PrivateRoute allowedRoles={['Administrador', 'Juan Carlos']} condition="cotizaciones">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="cotizaciones">
                       <CotizacionesForm />
                     </PrivateRoute>
                   }
@@ -193,7 +176,7 @@ function App() {
                 <Route
                   path="/flow-recovery-v2"
                   element={
-                    <PrivateRoute allowedRoles={['Juan Carlos']} condition="flow_recovery_v2">
+                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="flow_recovery_v2">
                       <FlowRecoveryV2Form />
                     </PrivateRoute>
                   }

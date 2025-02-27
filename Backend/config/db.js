@@ -1,8 +1,11 @@
-// config/db.js
 const mysql = require('mysql2/promise');
 const path = require('path');
-// __dirname es '/root/SistemaFinanciero/Backend/config', así que retrocedemos un nivel para llegar a la carpeta 'Backend'
+
+// Cargar variables de entorno desde el archivo .env ubicado en la raíz del Backend
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+// Verificar que se haya cargado la variable de entorno DB_USER
+console.log("DB_USER:", process.env.DB_USER);
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -15,4 +18,5 @@ const pool = mysql.createPool({
 });
 
 module.exports = pool;
+
 

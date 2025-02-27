@@ -31,7 +31,7 @@ import {
   Slide,
 } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faClose } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faClose, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import {
   BarChart,
   Bar,
@@ -327,7 +327,7 @@ const FixedCostFormDialog = ({ open, onClose, isEditing, formData, onChange, onS
 );
 
 // Componente para la tabla de costos fijos
-const FixedCostTable = ({ costosFijos, handleEdit, handleDelete }) => (
+const FixedCostTable = ({ costosFijos, handleEdit, handleDelete, handleEnviarACuenta }) => (
   <TableContainer
     component={Paper}
     sx={{ width: '100%', maxWidth: 1000, mb: 4, borderRadius: 2, boxShadow: 2, mx: 'auto' }}
@@ -357,6 +357,21 @@ const FixedCostTable = ({ costosFijos, handleEdit, handleDelete }) => (
             <TableCell>{new Date(costo.fecha).toLocaleDateString('es-MX')}</TableCell>
             <TableCell>
               <Box sx={{ display: 'flex', gap: 1 }}>
+                <Tooltip title="Enviar a Cuentas por Pagar">
+                  <span>
+                    <IconButton
+                      onClick={() => handleEnviarACuenta(costo)}
+                      disabled={costo.cuenta_creada}
+                      sx={{
+                        backgroundColor: costo.cuenta_creada ? 'gray' : '#ffc107',
+                        color: '#fff',
+                        '&:hover': { backgroundColor: costo.cuenta_creada ? 'gray' : '#e0a800' }
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faPaperPlane} />
+                    </IconButton>
+                  </span>
+                </Tooltip>
                 <Tooltip title="Editar">
                   <IconButton
                     onClick={() => handleEdit(costo)}
@@ -427,6 +442,7 @@ const CostosFijos = () => {
         monto_mxn: parseFloat(costo.monto_mxn) || 0,
         monto_usd: parseFloat(costo.monto_usd) || 0,
         impuestos_imss: parseFloat(costo.impuestos_imss) || 0,
+        cuenta_creada: costo.cuenta_creada, // nuevo campo para controlar el envío
       }));
       setCostosFijos(costos);
     } catch (error) {
@@ -514,6 +530,19 @@ const CostosFijos = () => {
     setShowForm(true);
   };
 
+  const handleEnviarACuenta = async (costo) => {
+    if (costo.cuenta_creada) return;
+    try {
+      const response = await axios.post(`https://sigma.runsolutions-services.com/api/costos-fijos/${costo.id}/enviar`);
+      setSnackbar({ open: true, message: response.data.message, severity: 'success' });
+      // Actualizar el estado local para marcar este costo como enviado
+      setCostosFijos(costosFijos.map(item => item.id === costo.id ? { ...item, cuenta_creada: 1 } : item));
+    } catch (error) {
+      console.error('Error al enviar a cuentas por pagar:', error.response?.data || error.message);
+      setSnackbar({ open: true, message: 'Error al enviar a cuentas por pagar', severity: 'error' });
+    }
+  };
+
   const calcularUtilidad = () => {
     const total = costosFijos.reduce((acc, costo) => acc + (isNaN(costo.monto_mxn) ? 0 : costo.monto_mxn), 0);
     setTotalCostos(total);
@@ -590,6 +619,7 @@ const CostosFijos = () => {
             costosFijos={costosFijos}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
+            handleEnviarACuenta={handleEnviarACuenta}
           />
         </>
       )}
