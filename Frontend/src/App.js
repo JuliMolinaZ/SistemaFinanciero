@@ -9,6 +9,7 @@ import {
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { GlobalContext } from './context/GlobalState';
 import LoadingScreen from './components/LoadingScreen';
+import BackendError from './components/BackendError';
 
 import AuthForm from './modules/Usuarios/AuthForm';
 import ProfileSetup from './modules/Usuarios/ProfileSetup';
@@ -40,6 +41,7 @@ import FlowRecoveryV2Form from './modules/FlowRecoveryV2/FlowRecoveryV2Form';
 import MoneyFlowRecoveryForm from './modules/MoneyFlowRecovery/MoneyFlowRecoveryForm';
 import PrivateRoute from './components/PrivateRoute';
 import CompleteProfile from './modules/Profile/CompleteProfile';
+import ErrorTestPanel from './components/ErrorTestPanel';
 
 // Componente completamente aislado para usuarios invitados
 const InvitationProfile = () => {
@@ -52,7 +54,16 @@ const InvitationProfile = () => {
 
 // Componente interno que maneja la lógica de invitación
 function AppContent() {
-  const { currentUser, profileComplete, sidebarCollapsed, profileData, authLoading } = useContext(GlobalContext);
+  const { 
+    currentUser, 
+    profileComplete, 
+    sidebarCollapsed, 
+    profileData, 
+    authLoading,
+    backendConnected,
+    backendError,
+    checkBackendConnection
+  } = useContext(GlobalContext);
   
   // Detectar si es un usuario invitado basado en la URL - DETECCIÓN AGRESIVA
   const isInvitedUser = window.location.pathname.includes('/complete-profile/');
@@ -72,7 +83,18 @@ function AppContent() {
     return <LoadingScreen />;
   }
 
-  // DETECCIÓN AGRESIVA: Si es un usuario invitado, mostrar CompleteProfile directamente
+  // PRIORIDAD 1: Si hay error de backend, mostrar pantalla de error bonita
+  if (!backendConnected && backendError) {
+    console.log('🔌 RENDERIZANDO BackendError por problema de conexión');
+    return (
+      <BackendError 
+        errorType={backendError.type}
+        onRetry={checkBackendConnection}
+      />
+    );
+  }
+
+  // PRIORIDAD 2: Si es un usuario invitado, mostrar CompleteProfile directamente
   if (isInvitedUser) {
     console.log('🎯 RENDERIZANDO CompleteProfile para usuario invitado - DETECCIÓN AGRESIVA');
     return <InvitationProfile />;
@@ -223,17 +245,25 @@ function AppContent() {
                     </PrivateRoute>
                   }
                 />
-                <Route path="/test" element={<div>Ruta de Prueba Exitosa</div>} />
+                <Route path="/test" element={<ErrorTestPanel />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
           </>
         )
       ) : (
-        <Routes>
-          <Route path="/complete-profile/:token" element={<CompleteProfile />} />
-          <Route path="*" element={<AuthForm />} />
-        </Routes>
+        // Si no hay usuario pero hay error de backend, mostrar error de backend
+        !backendConnected && backendError ? (
+          <BackendError 
+            errorType={backendError.type}
+            onRetry={checkBackendConnection}
+          />
+        ) : (
+          <Routes>
+            <Route path="/complete-profile/:token" element={<CompleteProfile />} />
+            <Route path="*" element={<AuthForm />} />
+          </Routes>
+        )
       )}
       
 

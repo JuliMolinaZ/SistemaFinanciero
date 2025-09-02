@@ -224,6 +224,36 @@ app.use('/api/role-management', roleManagementRoutes);
 // Ruta para el dashboard
 app.use('/api/dashboard', dashboardRoutes);
 
+// Health check endpoint - DEBE estar después de las configuraciones básicas
+app.get('/api/health', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    // Verificar conexión a la base de datos
+    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
+      uptime: process.uptime(),
+      database: 'connected',
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    console.error('❌ Health check failed:', error);
+    res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      error: 'Database connection failed',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 
 
 // Configurar middlewares de manejo de errores
