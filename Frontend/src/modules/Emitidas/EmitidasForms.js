@@ -38,7 +38,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // URL base (variable de entorno)
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = 'http://localhost:5001';
 
 // Componente de transición para el Snackbar
 function SlideTransition(props) {
@@ -390,7 +390,8 @@ const CfdiTable = ({ cfdiList, onEdit, onDelete }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {cfdiList.map((cfdi) => (
+          {Array.isArray(cfdiList) && cfdiList.length > 0 ? (
+            cfdiList.map((cfdi) => (
             <TableRow key={cfdi.id} sx={{ '&:hover': { backgroundColor: '#fefefe' } }}>
               <TableCell>{cfdi.rfcReceptor}</TableCell>
               <TableCell>{cfdi.razonSocial}</TableCell>
@@ -458,7 +459,14 @@ const CfdiTable = ({ cfdiList, onEdit, onDelete }) => {
                 </Box>
               </TableCell>
             </TableRow>
-          ))}
+          ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                {loading ? 'Cargando CFDIs...' : 'No hay CFDIs registrados'}
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </TableContainer>
@@ -510,10 +518,21 @@ const EmitidasForms = () => {
     fetchCfdis();
   }, []);
 
+  // Asegurar que cfdiList siempre sea un array
+  useEffect(() => {
+    if (!Array.isArray(cfdiList)) {
+      setCfdiList([]);
+    }
+  }, [cfdiList]);
+
   const fetchCfdis = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/emitidas`);
-      setCfdiList(response.data);
+      if (response.data && response.data.success) {
+        setCfdiList(response.data.data);
+      } else {
+        setCfdiList([]);
+      }
     } catch (error) {
       console.error('Error al obtener CFDIs:', error);
       setSnackbar({
@@ -521,6 +540,7 @@ const EmitidasForms = () => {
         message: 'No se pudo obtener los CFDIs.',
         severity: 'error',
       });
+      setCfdiList([]);
     } finally {
       setLoading(false);
     }

@@ -3,10 +3,21 @@
 
 # Ignorar archivos de entorno en cualquier subdirectorio
 **/.env
+**/.env.*
+**/env.*
+**/.env.local
 
 # Ignorar archivos de log
 *.log
 logs/
+**/logs/
+
+# Ignorar backups y archivos SQL sensibles
+*.sql
+**/*.backup
+**/backup*
+**/runite_backup*
+**/backup_before_*
 
 # Ignorar archivos temporales del sistema
 .DS_Store
@@ -14,11 +25,18 @@ logs/
 # Ignorar la carpeta de build de React
 Frontend/build/
 
+# Ignorar archivos de subida
+uploads/
+**/uploads/
 
+# Ignorar archivos de script temporales
 salidas.sh
 salida_completa.txt
 
-uploads
-Backend/uploads
+# Ignorar archivos de Firebase y credenciales
+**/secrets/
+**/*service-account*.json
+**/firebase-*.json
 
-.env.local
+# Ignorar archivos de configuración con credenciales
+**/config.env

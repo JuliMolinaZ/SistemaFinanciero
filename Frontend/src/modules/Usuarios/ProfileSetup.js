@@ -27,8 +27,17 @@ const ProfileSetup = () => {
 
   useEffect(() => {
     axios.get('/api/roles')
-      .then(response => setRoles(response.data))
-      .catch(error => console.error('Error al cargar roles:', error));
+      .then(response => {
+        // Verificar la estructura de la respuesta
+        if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          setRoles(response.data.data);
+        } else if (Array.isArray(response.data)) {
+          setRoles(response.data);
+        } else {
+          setRoles([]);
+        }
+      })
+
   }, []);
 
   const handleChange = e => {
@@ -61,13 +70,11 @@ const ProfileSetup = () => {
 
     try {
       const response = await axios.put(`/api/usuarios/firebase/${currentUser.uid}`, profile);
-      console.log('Perfil actualizado en la base de datos:', response.data);
 
       setProfileData(response.data);
       setProfileComplete(true);
       navigate('/');
     } catch (error) {
-      console.error('Error actualizando perfil:', error);
       alert('Error actualizando perfil. Intenta nuevamente más tarde.');
     }
   };

@@ -1,0 +1,531 @@
+/* ImpuestosIMSSModule.css */
+
+/* Estilos generales del módulo */
+.impuestos-imss-module {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+/* Header del módulo */
+.module-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.module-title {
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem !important;
+}
+
+.module-subtitle {
+  color: #6c757d !important;
+  font-weight: 400;
+}
+
+/* Tarjetas de KPIs */
+.kpi-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.kpi-card .MuiCardContent-root {
+  position: relative;
+  z-index: 2;
+}
+
+.kpi-value {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.kpi-label {
+  font-size: 0.875rem !important;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.kpi-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  opacity: 0.3;
+  font-size: 40px;
+  z-index: 2;
+}
+
+/* Variantes de colores para KPIs */
+.kpi-card.success {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+}
+
+.kpi-card.warning {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.kpi-card.error {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+/* Botones de acción */
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.action-button {
+  border-radius: 12px;
+  text-transform: none;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  padding: 12px 24px;
+}
+
+.action-button:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+}
+
+.action-button.primary:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+}
+
+.action-button.secondary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.action-button.secondary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Sección de filtros */
+.filters-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.filters-title {
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.filter-field {
+  margin-bottom: 16px;
+}
+
+/* Tabla de impuestos */
+.impuestos-table {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.table-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.table-header .MuiTableCell-head {
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem;
+  padding: 16px 12px;
+}
+
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: #f8f9fa;
+}
+
+.table-cell {
+  padding: 16px 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Chips de estado */
+.status-chip {
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+}
+
+.status-chip.pagado {
+  background-color: #4caf50;
+  color: white;
+}
+
+.status-chip.pendiente {
+  background-color: #ff9800;
+  color: white;
+}
+
+.status-chip.vencido {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Chips de tipo de impuesto */
+.tipo-chip {
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+}
+
+.tipo-chip.isr {
+  background-color: #2196f3;
+  color: white;
+}
+
+.tipo-chip.iva {
+  background-color: #9c27b0;
+  color: white;
+}
+
+.tipo-chip.imss {
+  background-color: #ff5722;
+  color: white;
+}
+
+.tipo-chip.infonavit {
+  background-color: #795548;
+  color: white;
+}
+
+.tipo-chip.isn {
+  background-color: #607d8b;
+  color: white;
+}
+
+.tipo-chip.ieps {
+  background-color: #e91e63;
+  color: white;
+}
+
+.tipo-chip.otros {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Botones de acción en la tabla */
+.action-buttons-table {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-icon {
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.action-icon:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  transform: scale(1.1);
+}
+
+.action-icon.view {
+  color: #2196f3;
+}
+
+.action-icon.edit {
+  color: #ff9800;
+}
+
+.action-icon.delete {
+  color: #f44336;
+}
+
+/* Diálogos */
+.dialog-title {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+}
+
+.dialog-content {
+  padding: 24px;
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Formularios */
+.form-grid {
+  margin-top: 16px;
+}
+
+.form-field {
+  margin-bottom: 16px;
+}
+
+.form-field .MuiFormControl-root {
+  width: 100%;
+}
+
+.form-field .MuiInputLabel-root {
+  font-weight: 500;
+}
+
+.form-field .MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+.form-field .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea;
+}
+
+.form-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea;
+}
+
+/* Diálogo de detalles */
+.details-dialog {
+  max-width: 800px;
+}
+
+.details-section {
+  margin-bottom: 24px;
+}
+
+.details-section-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.details-grid {
+  margin-top: 16px;
+}
+
+.details-field {
+  margin-bottom: 16px;
+}
+
+.details-label {
+  font-weight: 500;
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+
+.details-value {
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.details-divider {
+  margin: 24px 0;
+  border-color: #e9ecef;
+}
+
+/* Snackbar personalizado */
+.custom-snackbar {
+  border-radius: 8px;
+}
+
+.custom-snackbar .MuiAlert-root {
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .kpi-value {
+    font-size: 2rem !important;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-button {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .filters-section {
+    padding: 16px;
+  }
+  
+  .filter-field {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .module-title {
+    font-size: 2rem !important;
+  }
+  
+  .module-subtitle {
+    font-size: 1rem !important;
+  }
+  
+  .kpi-card {
+    margin-bottom: 16px;
+  }
+  
+  .table-header .MuiTableCell-head {
+    padding: 12px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .table-cell {
+    padding: 12px 8px;
+  }
+  
+  .action-buttons-table {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .action-icon {
+    padding: 6px;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.fade-in-up-delay-1 {
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.fade-in-up-delay-2 {
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.fade-in-up-delay-3 {
+  animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.fade-in-up-delay-4 {
+  animation: fadeInUp 0.6s ease-out 0.8s both;
+}
+
+/* Estados de carga */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.loading-spinner {
+  color: #667eea;
+}
+
+/* Estados vacíos */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.empty-state-subtext {
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+/* Tooltips personalizados */
+.custom-tooltip {
+  background-color: #2c3e50;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  padding: 8px 12px;
+}
+
+/* Scrollbar personalizado */
+.impuestos-table::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.impuestos-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.impuestos-table::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.impuestos-table::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

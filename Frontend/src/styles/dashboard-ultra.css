@@ -1,0 +1,1053 @@
+/* ===== DASHBOARD ULTRA - DISEÑO PROFESIONAL Y ORGANIZADO ===== */
+
+/* Variables CSS para consistencia total - SOLO DASHBOARD */
+.dashboard-ultra-container {
+  /* Colores principales */
+  --primary-blue: #3b82f6;
+  --primary-blue-dark: #1d4ed8;
+  --primary-blue-soft: rgba(59, 130, 246, 0.1);
+  
+  --success-green: #10b981;
+  --success-green-dark: #059669;
+  --success-green-soft: rgba(16, 185, 129, 0.1);
+  
+  --warning-yellow: #f59e0b;
+  --warning-yellow-dark: #d97706;
+  --warning-yellow-soft: rgba(245, 158, 11, 0.1);
+  
+  --error-red: #ef4444;
+  --error-red-dark: #dc2626;
+  --error-red-soft: rgba(239, 68, 68, 0.1);
+  
+  --purple: #8b5cf6;
+  --purple-dark: #7c3aed;
+  --purple-soft: rgba(139, 92, 246, 0.1);
+  
+  --info-blue: #06b6d4;
+  --info-blue-dark: #0891b2;
+  --info-blue-soft: rgba(6, 182, 212, 0.1);
+  
+  /* Colores de texto */
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  
+  /* Colores de fondo */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  
+  /* Colores de borde */
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --border-dark: #9ca3af;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+  
+  /* Espaciado */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  
+  /* Bordes redondeados */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  
+  /* Tamaños de tarjetas */
+  --card-height-small: 200px;
+  --card-height-standard: 280px;
+  --card-height-large: 400px;
+  --card-height-xlarge: 500px;
+  
+  /* Padding de tarjetas */
+  --card-padding: 1.5rem;
+  --card-padding-large: 2rem;
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ===== RESET Y ESTILOS BASE ===== */
+.dashboard-ultra-container * {
+  box-sizing: border-box;
+}
+
+.dashboard-ultra-container {
+  background: #ffffff !important;
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ===== HEADER DEL DASHBOARD ===== */
+.dashboard-header {
+  background: #f8fafc !important;
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, var(--primary-blue-soft) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.8s ease;
+}
+
+.dashboard-header:hover::before {
+  transform: translateX(100%);
+}
+
+.header-title {
+  color: var(--text-primary) !important;
+  font-weight: 800 !important;
+  font-size: clamp(2rem, 5vw, 3rem) !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.header-subtitle {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+  font-size: clamp(1rem, 2.5vw, 1.5rem) !important;
+}
+
+.header-controls {
+  display: flex !important;
+  gap: var(--spacing-md) !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+
+/* ===== TABS DE NAVEGACIÓN ===== */
+.dashboard-tabs {
+  background: #ffffff !important;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+}
+
+.dashboard-tabs .MuiTab-root {
+  min-height: 56px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  border-radius: var(--radius-lg) !important;
+  margin: 0 var(--spacing-xs) !important;
+  transition: var(--transition-normal) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dashboard-tabs .MuiTab-root:hover {
+  transform: translateY(-2px) !important;
+  color: var(--primary-blue) !important;
+}
+
+.dashboard-tabs .MuiTab-root.Mui-selected {
+  color: var(--primary-blue) !important;
+  background: var(--primary-blue-soft) !important;
+}
+
+.dashboard-tabs .MuiTabs-indicator {
+  height: 4px !important;
+  border-radius: var(--radius-sm) !important;
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-dark)) !important;
+  box-shadow: 0 0 10px var(--primary-blue-soft) !important;
+}
+
+/* ===== SISTEMA DE GRID ORGANIZADO ===== */
+.dashboard-grid {
+  margin-bottom: var(--spacing-xl) !important;
+}
+
+.dashboard-grid .MuiGrid-item {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+/* Grid para KPIs */
+.grid-kpi .MuiGrid-item {
+  min-height: var(--card-height-standard) !important;
+}
+
+/* Grid para gráficas grandes */
+.grid-charts .MuiGrid-item {
+  min-height: var(--card-height-large) !important;
+}
+
+/* Grid para gráficas mixtas */
+.grid-mixed .MuiGrid-item {
+  min-height: var(--card-height-large) !important;
+}
+
+/* Grid para métricas simples */
+.grid-simple .MuiGrid-item {
+  min-height: var(--card-height-standard) !important;
+}
+
+/* ===== TARJETAS ELEGANTES ===== */
+.elegant-card {
+  height: 100% !important;
+  min-height: inherit !important;
+  border-radius: var(--radius-2xl) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition-normal) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.elegant-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-xl) !important;
+  border-color: var(--primary-blue) !important;
+}
+
+.elegant-card .MuiCardContent-root {
+  padding: var(--card-padding) !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--bg-primary) !important;
+}
+
+/* ===== TARJETAS KPI ===== */
+.kpi-card {
+  background: #ffffff !important;
+  border-radius: var(--radius-xl) !important;
+  padding: var(--card-padding) !important;
+  height: 100% !important;
+  min-height: var(--card-height-standard) !important;
+  border: 2px solid var(--border-light) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: var(--transition-normal) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-color: var(--primary-blue) !important;
+}
+
+.kpi-card .metric-icon {
+  position: absolute !important;
+  top: var(--spacing-md) !important;
+  right: var(--spacing-md) !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: var(--transition-slow) !important;
+  box-shadow: 0 4px 12px var(--primary-blue-soft) !important;
+  color: white !important;
+}
+
+.kpi-card:hover .metric-icon {
+  transform: rotate(360deg) scale(1.1) !important;
+}
+
+.kpi-card .kpi-content {
+  margin-top: var(--spacing-md) !important;
+}
+
+.kpi-card .metric-title {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  margin-bottom: var(--spacing-sm) !important;
+  line-height: 1.3 !important;
+}
+
+.kpi-card .metric-value {
+  color: var(--primary-blue) !important;
+  font-weight: 800 !important;
+  font-size: clamp(1.5rem, 4vw, 2.2rem) !important;
+  margin-bottom: var(--spacing-sm) !important;
+  line-height: 1.1 !important;
+  text-shadow: 0 2px 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+.kpi-card .metric-subtitle {
+  color: var(--text-secondary) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  margin-bottom: var(--spacing-md) !important;
+  opacity: 0.9 !important;
+}
+
+.kpi-card .kpi-progress {
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.kpi-card .progress-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.kpi-card .progress-label {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+}
+
+.kpi-card .progress-bar {
+  height: 8px !important;
+  border-radius: var(--radius-sm) !important;
+  background-color: var(--border-light) !important;
+}
+
+.kpi-card .trend-indicator {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-xs) !important;
+  margin-top: auto !important;
+}
+
+.kpi-card .trend-icon {
+  font-size: 1rem !important;
+}
+
+.kpi-card .trend-icon.trend-up {
+  color: var(--success-green) !important;
+}
+
+.kpi-card .trend-icon.trend-down {
+  color: var(--error-red) !important;
+}
+
+.kpi-card .trend-icon.trend-flat {
+  color: var(--warning-yellow) !important;
+}
+
+.kpi-card .trend-value {
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+}
+
+.kpi-card .trend-value.trend-up {
+  color: var(--success-green) !important;
+}
+
+.kpi-card .trend-value.trend-down {
+  color: var(--error-red) !important;
+}
+
+.kpi-card .trend-value.trend-flat {
+  color: var(--warning-yellow) !important;
+}
+
+/* ===== GRÁFICAS ORGANIZADAS ===== */
+.chart-container {
+  height: 100% !important;
+  min-height: inherit !important;
+}
+
+.chart-title {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  margin-bottom: var(--spacing-lg) !important;
+  text-align: center !important;
+  padding: var(--spacing-md) !important;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--primary-blue-soft) 100%) !important;
+  border-radius: var(--radius-xl) !important;
+  border: 2px solid var(--border-light) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Contenedores de gráficas */
+.line-chart-container,
+.pie-chart-container,
+.bar-chart-container {
+  height: 100% !important;
+  min-height: 300px !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  background: #ffffff !important;
+  border-radius: var(--radius-xl) !important;
+  overflow: hidden !important;
+  padding: var(--spacing-md) !important;
+}
+
+/* Leyendas de gráficas */
+.line-chart-legend,
+.pie-chart-legend,
+.bar-chart-legend {
+  display: flex !important;
+  flex-direction: column !important;
+  background: #ffffff !important;
+  border: 2px solid var(--border-light) !important;
+  border-radius: var(--radius-xl) !important;
+  padding: var(--spacing-lg) !important;
+  margin-top: var(--spacing-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  position: relative !important;
+  z-index: 10 !important;
+  overflow: visible !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
+
+/* ===== RESPONSIVE DESIGN PERFECTO ===== */
+@media (max-width: 1200px) {
+  .dashboard-ultra-container {
+    padding: var(--spacing-md);
+  }
+  
+  .dashboard-header {
+    padding: var(--spacing-lg);
+  }
+  
+  .elegant-card .MuiCardContent-root {
+    padding: var(--spacing-md) !important;
+  }
+  
+  .kpi-card {
+    padding: var(--spacing-md) !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .dashboard-ultra-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .dashboard-header {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .dashboard-tabs {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .dashboard-grid {
+    margin-bottom: var(--spacing-lg) !important;
+  }
+  
+  .elegant-card .MuiCardContent-root {
+    padding: var(--spacing-sm) !important;
+  }
+  
+  .kpi-card {
+    padding: var(--spacing-sm) !important;
+  }
+  
+  .chart-title {
+    padding: var(--spacing-sm) !important;
+    margin-bottom: var(--spacing-md) !important;
+  }
+  
+  .line-chart-container,
+  .pie-chart-container,
+  .bar-chart-container {
+    min-height: 250px !important;
+    padding: var(--spacing-sm) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-ultra-container {
+    padding: var(--spacing-xs);
+  }
+  
+  .dashboard-header {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .dashboard-tabs {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm);
+  }
+  
+  .dashboard-grid {
+    margin-bottom: var(--spacing-md) !important;
+  }
+  
+  .elegant-card .MuiCardContent-root {
+    padding: var(--spacing-xs) !important;
+  }
+  
+  .kpi-card {
+    padding: var(--spacing-xs) !important;
+  }
+  
+  .chart-title {
+    padding: var(--spacing-xs) !important;
+    margin-bottom: var(--spacing-sm) !important;
+    font-size: 1rem !important;
+  }
+  
+  .line-chart-container,
+  .pie-chart-container,
+  .bar-chart-container {
+    min-height: 200px !important;
+    padding: var(--spacing-xs) !important;
+  }
+  
+  .line-chart-legend,
+  .pie-chart-legend,
+  .bar-chart-legend {
+    padding: var(--spacing-sm) !important;
+    margin-top: var(--spacing-sm) !important;
+  }
+  
+  .header-controls {
+    flex-direction: column !important;
+    gap: var(--spacing-sm) !important;
+  }
+}
+
+/* ===== ANIMACIONES Y EFECTOS ===== */
+@keyframes subtleGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===== SCROLLBARS PERSONALIZADOS SOLO DEL DASHBOARD ===== */
+.dashboard-ultra-container ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dashboard-ultra-container ::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.dashboard-ultra-container ::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+.dashboard-ultra-container ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-dark);
+}
+
+/* ===== UTILIDADES ===== */
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.flex-center {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.flex-between {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.flex-column {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* ===== ESTADOS Y INDICADORES ===== */
+.status-indicator {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-xs) !important;
+  padding: var(--spacing-sm) !important;
+  border-radius: var(--radius-lg) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+.status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  animation: subtleGlow 1.5s ease-in-out infinite !important;
+}
+
+.status-dot.real-time {
+  background: var(--success-green) !important;
+}
+
+.status-dot.system {
+  background: var(--primary-blue) !important;
+}
+
+/* ===== FOOTER DEL DASHBOARD ===== */
+.dashboard-footer {
+  background: #f8fafc !important;
+  border-radius: var(--radius-2xl) !important;
+  padding: var(--spacing-xl) !important;
+  margin-top: var(--spacing-xl) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--border-light) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.dashboard-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, var(--primary-blue-soft) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.8s ease;
+}
+
+.dashboard-footer:hover::before {
+  transform: translateX(100%);
+}
+
+.footer-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: var(--spacing-md) !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.footer-text {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  opacity: 0.9 !important;
+}
+
+.footer-timestamp {
+  color: var(--text-secondary) !important;
+  display: block !important;
+  margin-top: var(--spacing-xs) !important;
+}
+
+.footer-status {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-md) !important;
+}
+
+/* ===== FORZAR ESTILOS EN COMPONENTES MATERIAL-UI ===== */
+.MuiLinearProgress-root {
+  height: 8px !important;
+  border-radius: var(--radius-sm) !important;
+  background-color: var(--border-light) !important;
+}
+
+.MuiLinearProgress-bar {
+  border-radius: var(--radius-sm) !important;
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-dark)) !important;
+  box-shadow: 0 2px 4px var(--primary-blue-soft) !important;
+}
+
+.MuiSwitch-root .MuiSwitch-switchBase.Mui-checked {
+  color: var(--success-green) !important;
+}
+
+.MuiSwitch-root .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: var(--success-green) !important;
+}
+
+/* ===== FORZAR TEXTO NEGRO SOLO EN EL DASHBOARD ===== */
+.dashboard-ultra-container .dashboard-header,
+.dashboard-ultra-container .dashboard-header *,
+.dashboard-ultra-container .dashboard-tabs,
+.dashboard-ultra-container .dashboard-tabs *,
+.dashboard-ultra-container .elegant-card,
+.dashboard-ultra-container .elegant-card *,
+.dashboard-ultra-container .kpi-card,
+.dashboard-ultra-container .kpi-card *,
+.dashboard-ultra-container .chart-container,
+.dashboard-ultra-container .chart-container *,
+.dashboard-ultra-container .line-chart-container,
+.dashboard-ultra-container .line-chart-container *,
+.dashboard-ultra-container .pie-chart-container,
+.dashboard-ultra-container .pie-chart-container *,
+.dashboard-ultra-container .bar-chart-container,
+.dashboard-ultra-container .bar-chart-container *,
+.dashboard-ultra-container .line-chart-legend,
+.dashboard-ultra-container .line-chart-legend *,
+.dashboard-ultra-container .pie-chart-legend,
+.dashboard-ultra-container .pie-chart-legend *,
+.dashboard-ultra-container .bar-chart-legend,
+.dashboard-ultra-container .bar-chart-legend *,
+.dashboard-ultra-container .dashboard-footer,
+.dashboard-ultra-container .dashboard-footer * {
+  color: var(--text-primary) !important;
+}
+
+/* ===== EXCEPCIONES ESPECÍFICAS PARA VALORES COLORIDOS ===== */
+.dashboard-ultra-container .metric-value,
+.dashboard-ultra-container .trend-value,
+.dashboard-ultra-container .bar-value,
+.dashboard-ultra-container .progress-bar,
+.dashboard-ultra-container .status-dot {
+  color: inherit !important;
+}
+
+/* ===== EXCEPCIONES PARA VALORES COLORIDOS ===== */
+.kpi-card .metric-value,
+.kpi-card .trend-value,
+.chart-title,
+.legend-label,
+.legend-percentage,
+.bar-value,
+.bar-label,
+.status-indicator,
+.footer-text,
+.footer-timestamp {
+  color: inherit !important;
+}
+
+/* ===== FORZAR TEXTO NEGRO EN ELEMENTOS ESPECÍFICOS ===== */
+.kpi-card .metric-title,
+.kpi-card .metric-subtitle,
+.kpi-card .progress-label,
+.chart-title,
+.legend-label,
+.legend-percentage,
+.bar-label,
+.status-indicator,
+.footer-text,
+.footer-timestamp {
+  color: var(--text-primary) !important;
+}
+
+/* ===== MANTENER COLORES EN VALORES NUMÉRICOS ===== */
+.kpi-card .metric-value {
+  color: var(--primary-blue) !important;
+}
+
+.kpi-card .trend-value.trend-up {
+  color: var(--success-green) !important;
+}
+
+.kpi-card .trend-value.trend-down {
+  color: var(--error-red) !important;
+}
+
+.kpi-card .trend-value.trend-flat {
+  color: var(--warning-yellow) !important;
+}
+
+.bar-value {
+  color: var(--primary-blue) !important;
+}
+
+/* ===== FORZAR COLORES ESPECÍFICOS ===== */
+.kpi-card .metric-value {
+  color: var(--primary-blue) !important;
+}
+
+.kpi-card .trend-value.trend-up {
+  color: var(--success-green) !important;
+}
+
+.kpi-card .trend-value.trend-down {
+  color: var(--error-red) !important;
+}
+
+.kpi-card .trend-value.trend-flat {
+  color: var(--warning-yellow) !important;
+}
+
+.chart-title {
+  color: var(--text-primary) !important;
+}
+
+.legend-label {
+  color: var(--text-primary) !important;
+}
+
+.legend-percentage {
+  color: var(--text-secondary) !important;
+}
+
+.bar-label {
+  color: var(--text-secondary) !important;
+}
+
+.bar-value {
+  color: var(--primary-blue) !important;
+}
+
+.status-indicator {
+  color: var(--text-primary) !important;
+}
+
+.footer-text {
+  color: var(--text-primary) !important;
+}
+
+.footer-timestamp {
+  color: var(--text-secondary) !important;
+}
+
+/* ===== FORZAR COLORES EN COMPONENTES MATERIAL-UI ===== */
+.dashboard-tabs .MuiTab-root {
+  color: var(--text-secondary) !important;
+}
+
+.dashboard-tabs .MuiTab-root:hover {
+  color: var(--primary-blue) !important;
+}
+
+.dashboard-tabs .MuiTab-root.Mui-selected {
+  color: var(--primary-blue) !important;
+}
+
+/* ===== FORZAR COLORES EN SVG SOLO DEL DASHBOARD ===== */
+.dashboard-ultra-container svg text {
+  fill: var(--text-primary) !important;
+}
+
+.dashboard-ultra-container svg line {
+  stroke: var(--border-light) !important;
+}
+
+.dashboard-ultra-container svg path {
+  stroke: var(--primary-blue) !important;
+}
+
+/* ===== FORZAR COLORES SOLO EN COMPONENTES DEL DASHBOARD ===== */
+.dashboard-ultra-container .MuiTypography-root {
+  color: var(--text-primary) !important;
+}
+
+.dashboard-ultra-container .MuiTypography-h1,
+.dashboard-ultra-container .MuiTypography-h2,
+.dashboard-ultra-container .MuiTypography-h3,
+.dashboard-ultra-container .MuiTypography-h4,
+.dashboard-ultra-container .MuiTypography-h5,
+.dashboard-ultra-container .MuiTypography-h6 {
+  color: var(--text-primary) !important;
+}
+
+.dashboard-ultra-container .MuiTypography-body1,
+.dashboard-ultra-container .MuiTypography-body2,
+.dashboard-ultra-container .MuiTypography-caption {
+  color: var(--text-primary) !important;
+}
+
+.dashboard-ultra-container .MuiTabs-root .MuiTab-root {
+  color: var(--text-secondary) !important;
+}
+
+.dashboard-ultra-container .MuiTabs-root .MuiTab-root.Mui-selected {
+  color: var(--primary-blue) !important;
+}
+
+.dashboard-ultra-container .MuiTabs-root .MuiTab-root:hover {
+  color: var(--primary-blue) !important;
+}
+
+.dashboard-ultra-container .MuiIconButton-root {
+  color: var(--text-primary) !important;
+}
+
+.dashboard-ultra-container .MuiIconButton-root:hover {
+  color: var(--primary-blue) !important;
+}
+
+.dashboard-ultra-container .MuiSwitch-root .MuiSwitch-switchBase {
+  color: var(--text-secondary) !important;
+}
+
+.dashboard-ultra-container .MuiSwitch-root .MuiSwitch-switchBase.Mui-checked {
+  color: var(--success-green) !important;
+}
+
+.dashboard-ultra-container .MuiFormControlLabel-root .MuiFormControlLabel-label {
+  color: var(--text-primary) !important;
+}
+
+.dashboard-ultra-container .MuiTooltip-tooltip {
+  color: white !important;
+  background-color: var(--text-primary) !important;
+}
+
+/* ===== COMPONENTES ESPECÍFICOS ===== */
+.control-button {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark)) !important;
+  color: white !important;
+  width: 56px !important;
+  height: 56px !important;
+  box-shadow: 0 4px 20px var(--primary-blue-soft) !important;
+  transition: var(--transition-normal) !important;
+}
+
+.control-button:hover {
+  background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue)) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px var(--primary-blue-soft) !important;
+}
+
+/* ===== GRÁFICAS SVG PERFECTAS SOLO DEL DASHBOARD ===== */
+.dashboard-ultra-container svg text {
+  fill: var(--text-primary) !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.dashboard-ultra-container svg line {
+  stroke: var(--border-light) !important;
+  opacity: 0.6 !important;
+}
+
+.dashboard-ultra-container svg path {
+  stroke: var(--primary-blue) !important;
+}
+
+/* ===== LEGENDAS PERFECTAS ===== */
+.legend-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-md) !important;
+  padding: var(--spacing-md) !important;
+  border-radius: var(--radius-lg) !important;
+  background: #ffffff !important;
+  border: 2px solid var(--border-light) !important;
+  transition: var(--transition-normal) !important;
+  cursor: pointer !important;
+}
+
+.legend-item:hover {
+  background: var(--primary-blue-soft) !important;
+  border-color: var(--primary-blue) !important;
+  transform: translateX(6px) scale(1.02) !important;
+  box-shadow: 0 4px 12px var(--primary-blue-soft) !important;
+}
+
+.legend-label {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+  margin-bottom: var(--spacing-xs) !important;
+}
+
+.legend-percentage {
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.2 !important;
+}
+
+/* ===== BARRAS DE GRÁFICAS PERFECTAS ===== */
+.bar {
+  width: 100% !important;
+  border-radius: 8px 8px 0 0 !important;
+  transition: var(--transition-normal) !important;
+  cursor: pointer !important;
+  min-height: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  position: relative !important;
+  border: 2px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+.bar:hover {
+  transform: scale(1.05) translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+  border-color: var(--primary-blue) !important;
+}
+
+.bar-label {
+  color: var(--text-secondary) !important;
+  margin-top: var(--spacing-sm) !important;
+  font-size: 0.7rem !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 2px !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+.bar-value {
+  color: var(--primary-blue) !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+  margin-top: var(--spacing-xs) !important;
+  text-align: center !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  min-width: 40px !important;
+}

@@ -11,7 +11,19 @@ const useUsersData = () => {
     const fetchUsersData = async () => {
       try {
         const response = await axios.get('/api/usuarios');
-        const users = response.data;
+        const responseData = response.data;
+        
+        // Verificar la estructura de la respuesta
+        let users;
+        if (responseData && responseData.success && Array.isArray(responseData.data)) {
+          users = responseData.data;
+        } else if (Array.isArray(responseData)) {
+          users = responseData;
+        } else {
+          console.warn("Estructura de usuarios inesperada:", responseData);
+          users = [];
+        }
+        
         setTotalUsers(users.length);
 
         // Agrupar por rol
@@ -22,6 +34,8 @@ const useUsersData = () => {
         setUsersByRole(rolesCount);
       } catch (error) {
         console.error('Error al obtener datos de usuarios:', error);
+        setTotalUsers(0);
+        setUsersByRole({});
       } finally {
         setIsLoading(false);
       }

@@ -1,0 +1,37 @@
+# =====================================================
+# CONFIGURACIÓN DE EMAIL - RUNSOLUTIONS
+# =====================================================
+
+# Configuración para Gmail (Desarrollo Local)
+GMAIL_USER=tu-email@gmail.com
+GMAIL_APP_PASSWORD=tu-app-password-de-gmail
+
+# Configuración para SMTP (Producción)
+SMTP_HOST=smtp.tuservidor.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=tu-usuario-smtp
+SMTP_PASS=tu-password-smtp
+
+# Configuración general de email
+EMAIL_FROM=RunSolutions <noreply@runsolutions-services.com>
+FRONTEND_URL=http://localhost:3000
+
+# =====================================================
+# INSTRUCCIONES DE CONFIGURACIÓN
+# =====================================================
+
+# 1. PARA GMAIL (DESARROLLO LOCAL):
+#    - Ve a tu cuenta de Gmail
+#    - Activa la verificación en 2 pasos
+#    - Ve a "Contraseñas de aplicación"
+#    - Genera una contraseña para "Correo"
+#    - Usa esa contraseña en GMAIL_APP_PASSWORD
+
+# 2. PARA PRODUCCIÓN:
+#    - Configura las variables SMTP_* con tu servidor
+#    - O usa servicios como SendGrid, AWS SES, etc.
+
+# 3. COPIA ESTE ARCHIVO:
+#    cp email-config-example.txt .env
+#    Y edita las variables con tus valores reales

@@ -17,7 +17,10 @@ const AccessDeniedMessage = () => {
             Acceso no permitido
           </Typography>
           <Typography variant="body1" align="center">
-            Este módulo no está habilitado para el Administrador en este momento.
+            Este módulo no está habilitado para tu rol en este momento.
+          </Typography>
+          <Typography variant="body2" align="center" sx={{ mt: 2, color: 'text.secondary' }}>
+            Contacta al administrador del sistema si consideras que deberías tener acceso.
           </Typography>
         </CardContent>
       </Card>

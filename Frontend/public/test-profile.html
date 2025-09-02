@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Profile Loading</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Carga de Perfil</h1>
+    
+    <div class="test-section info">
+        <h3>Información del Test</h3>
+        <p>Esta página prueba la conectividad entre el frontend y el backend para la carga de perfiles.</p>
+        <p><strong>Backend:</strong> <span id="backend-url">http://localhost:5001</span></p>
+        <p><strong>Frontend:</strong> <span id="frontend-url">http://localhost:3000</span></p>
+    </div>
+
+    <div class="test-section">
+        <h3>1️⃣ Test de Health Check</h3>
+        <button onclick="testHealthCheck()">Probar Health Check</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2️⃣ Test de API de Usuarios</h3>
+        <button onclick="testUsersAPI()">Probar API de Usuarios</button>
+        <div id="users-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3️⃣ Test de Usuario Específico</h3>
+        <input type="text" id="firebase-uid" placeholder="Firebase UID" value="5QxiYiipoUeCEY0n46CKk9QOIUk2" style="width: 300px; padding: 5px;">
+        <button onclick="testSpecificUser()">Probar Usuario Específico</button>
+        <div id="specific-user-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4️⃣ Test de CORS</h3>
+        <button onclick="testCORS()">Probar CORS</button>
+        <div id="cors-result"></div>
+    </div>
+
+    <script src="debug-profile.js"></script>
+    <script src="auto-debug.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:5001/api';
+        
+        function showResult(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        }
+
+        function showInfo(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="info">${message}</div>`;
+        }
+
+        async function testHealthCheck() {
+            showInfo('health-result', '🔄 Probando...');
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('health-result', `
+                        ✅ <strong>Health Check Exitoso</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `);
+                } else {
+                    showResult('health-result', `
+                        ❌ <strong>Health Check Falló</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, false);
+                }
+            } catch (error) {
+                showResult('health-result', `
+                    ❌ <strong>Error de Conexión</strong><br>
+                    Error: ${error.message}<br>
+                    Tipo: ${error.name}
+                `, false);
+            }
+        }
+
+        async function testUsersAPI() {
+            showInfo('users-result', '🔄 Probando...');
+            try {
+                const response = await fetch(`${API_BASE_URL}/usuarios`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('users-result', `
+                        ✅ <strong>API de Usuarios Exitoso</strong><br>
+                        Status: ${response.status}<br>
+                        Total de usuarios: ${data.total || 'N/A'}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `);
+                } else {
+                    showResult('users-result', `
+                        ❌ <strong>API de Usuarios Falló</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, false);
+                }
+            } catch (error) {
+                showResult('users-result', `
+                    ❌ <strong>Error de Conexión</strong><br>
+                    Error: ${error.message}<br>
+                    Tipo: ${error.name}
+                `, false);
+            }
+        }
+
+        async function testSpecificUser() {
+            const firebaseUid = document.getElementById('firebase-uid').value;
+            if (!firebaseUid) {
+                showResult('specific-user-result', '❌ Por favor ingresa un Firebase UID', false);
+                return;
+            }
+
+            showInfo('specific-user-result', '🔄 Probando...');
+            try {
+                const response = await fetch(`${API_BASE_URL}/usuarios/firebase/${firebaseUid}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('specific-user-result', `
+                        ✅ <strong>Usuario Específico Exitoso</strong><br>
+                        Status: ${response.status}<br>
+                        Usuario: ${data.data?.name || 'N/A'}<br>
+                        Email: ${data.data?.email || 'N/A'}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `);
+                } else {
+                    showResult('specific-user-result', `
+                        ❌ <strong>Usuario Específico Falló</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, false);
+                }
+            } catch (error) {
+                showResult('specific-user-result', `
+                    ❌ <strong>Error de Conexión</strong><br>
+                    Error: ${error.message}<br>
+                    Tipo: ${error.name}
+                `, false);
+            }
+        }
+
+        async function testCORS() {
+            showInfo('cors-result', '🔄 Probando...');
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:3000',
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+                
+                showResult('cors-result', `
+                    ✅ <strong>Test de CORS Completado</strong><br>
+                    Status: ${response.status}<br>
+                    Headers CORS: <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                `);
+            } catch (error) {
+                showResult('cors-result', `
+                    ❌ <strong>Error en Test de CORS</strong><br>
+                    Error: ${error.message}<br>
+                    Tipo: ${error.name}
+                `, false);
+            }
+        }
+
+        // Auto-ejecutar health check al cargar la página
+        window.onload = function() {
+            testHealthCheck();
+        };
+    </script>
+</body>
+</html>

@@ -13,6 +13,7 @@ import LoadingScreen from './components/LoadingScreen';
 import AuthForm from './modules/Usuarios/AuthForm';
 import ProfileSetup from './modules/Usuarios/ProfileSetup';
 import Home from './modules/Home/Home';
+import DashboardUltra from './modules/Dashboard/DashboardUltra';
 
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -22,32 +23,69 @@ import ProyectosForm from './modules/Proyectos/ProyectosForm';
 import ProveedoresForm from './modules/Proveedores/ProveedoresForm';
 import CuentasPagarForm from './modules/CuentasPorPagar/CuentasPagarForm';
 import CuentasCobrarForm from './modules/CuentasPorCobrar/CuentasCobrarForm';
+import ImpuestosIMSSModule from './modules/ImpuestosIMSS/ImpuestosIMSSModule';
 import ContabilidadForm from './modules/Contabilidad/ContabilidadForm';
 import CategoriasForm from './modules/Categorias/CategoriasForm';
 import RecuperacionForm from './modules/Recuperacion/RecuperacionForm';
-import RealtimeGraph from './modules/RealtimeGraph/RealtimeGraph';
-import UsersList from './modules/Usuarios/UsersList';
+
+import UsersManagementMain from './modules/Usuarios/UsersManagementMain';
 import MyProfile from './modules/Usuarios/MyProfile';
 import HorasExtra from './modules/HorasExtra/HorasExtra';
 import PhasesModule from './modules/Fases/PhasesModule';
 import CostosFijos from './modules/CostosFijos/CostosFijos';
-import PermisosModule from './modules/Permisos/PermisosModule';
-import EmitidasForms from './modules/Emitidas/EmitidasForms';
+
+import EmitidasForms from './modules/FacturasEmitidas/EmitidasFormsV2';
 import CotizacionesForm from './modules/Cotizaciones/CotizacionesForm';
 import FlowRecoveryV2Form from './modules/FlowRecoveryV2/FlowRecoveryV2Form';
+import MoneyFlowRecoveryForm from './modules/MoneyFlowRecovery/MoneyFlowRecoveryForm';
 import PrivateRoute from './components/PrivateRoute';
+import CompleteProfile from './modules/Profile/CompleteProfile';
 
-function App() {
+// Componente completamente aislado para usuarios invitados
+const InvitationProfile = () => {
+  console.log('🚀 COMPONENTE INVITATION PROFILE RENDERIZADO');
+  console.log('🚀 URL actual:', window.location.pathname);
+  console.log('🚀 Timestamp:', new Date().toISOString());
+  console.log('🚀 User Agent:', navigator.userAgent);
+  return <CompleteProfile />;
+};
+
+// Componente interno que maneja la lógica de invitación
+function AppContent() {
   const { currentUser, profileComplete, sidebarCollapsed, profileData, authLoading } = useContext(GlobalContext);
+  
+  // Detectar si es un usuario invitado basado en la URL - DETECCIÓN AGRESIVA
+  const isInvitedUser = window.location.pathname.includes('/complete-profile/');
+  
+  // Debug: Log para verificar la detección
+  console.log('🔍 DEBUG - AppContent RENDERIZADO');
+  console.log('🔍 DEBUG - URL actual:', window.location.pathname);
+  console.log('🔍 DEBUG - ¿Es usuario invitado?', isInvitedUser);
+  console.log('🔍 DEBUG - currentUser:', currentUser);
+  console.log('🔍 DEBUG - profileComplete:', profileComplete);
+  console.log('🔍 DEBUG - authLoading:', authLoading);
+  console.log('🔍 DEBUG - Timestamp:', new Date().toISOString());
 
-  const mainMarginLeft = sidebarCollapsed ? '60px' : '220px';
+  const mainMarginLeft = sidebarCollapsed ? '70px' : '280px';
 
   if (authLoading) {
     return <LoadingScreen />;
   }
 
+  // DETECCIÓN AGRESIVA: Si es un usuario invitado, mostrar CompleteProfile directamente
+  if (isInvitedUser) {
+    console.log('🎯 RENDERIZANDO CompleteProfile para usuario invitado - DETECCIÓN AGRESIVA');
+    return <InvitationProfile />;
+  }
+
+  // PREVENCIÓN ADICIONAL: Si la URL contiene complete-profile, NO mostrar nada más
+  if (window.location.pathname.includes('/complete-profile/')) {
+    console.log('🚫 PREVENCIÓN ADICIONAL: URL contiene complete-profile, bloqueando AppContent');
+    return <InvitationProfile />;
+  }
+
   return (
-    <Router>
+    <>
       {currentUser ? (
         !profileComplete ? (
           <ProfileSetup />
@@ -59,11 +97,13 @@ function App() {
               style={{
                 marginLeft: mainMarginLeft,
                 padding: '1rem',
-                marginTop: '72px'
+                marginTop: '80px'
               }}
             >
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/dashboard-ultra" element={<DashboardUltra />} />
+
                 <Route path="/clientes" element={<ClientModule />} />
                 <Route path="/horas-extra" element={<HorasExtra />} />
                 <Route path="/fases" element={<PhasesModule />} />
@@ -72,7 +112,7 @@ function App() {
                 <Route
                   path="/proyectos"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="proyectos">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="proyectos">
                       <ProyectosForm />
                     </PrivateRoute>
                   }
@@ -80,7 +120,7 @@ function App() {
                 <Route
                   path="/proveedores"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="proveedores">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="proveedores">
                       <ProveedoresForm />
                     </PrivateRoute>
                   }
@@ -88,15 +128,23 @@ function App() {
                 <Route
                   path="/cuentas-pagar"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="cuentas_pagar">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="cuentas_pagar">
                       <CuentasPagarForm />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/impuestos-imss"
+                  element={
+                    <PrivateRoute allowedRoles={['super administrador', 'gerente', 'administrador']} moduleName="impuestos_imss">
+                      <ImpuestosIMSSModule />
                     </PrivateRoute>
                   }
                 />
                 <Route
                   path="/costos-fijos"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="costos_fijos">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="costos_fijos">
                       <CostosFijos />
                     </PrivateRoute>
                   }
@@ -104,7 +152,7 @@ function App() {
                 <Route
                   path="/cuentas-cobrar"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="cuentas_cobrar">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="cuentas_cobrar">
                       <CuentasCobrarForm />
                     </PrivateRoute>
                   }
@@ -112,7 +160,7 @@ function App() {
                 <Route
                   path="/contabilidad"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="contabilidad">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="contabilidad">
                       <ContabilidadForm />
                     </PrivateRoute>
                   }
@@ -120,7 +168,7 @@ function App() {
                 <Route
                   path="/categorias"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="categorias">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="categorias">
                       <CategoriasForm />
                     </PrivateRoute>
                   }
@@ -128,7 +176,7 @@ function App() {
                 <Route
                   path="/recuperacion"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="recuperacion">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="recuperacion">
                       <RecuperacionForm />
                     </PrivateRoute>
                   }
@@ -136,31 +184,17 @@ function App() {
                 <Route
                   path="/usuarios"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="usuarios">
-                      <UsersList />
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="usuarios">
+                      <UsersManagementMain />
                     </PrivateRoute>
                   }
                 />
-                <Route
-                  path="/permisos"
-                  element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="permisos">
-                      <PermisosModule />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/realtime-graph"
-                  element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="realtime_graph">
-                      <RealtimeGraph />
-                    </PrivateRoute>
-                  }
-                />
+
+
                 <Route
                   path="/emitidas"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="emitidas">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="emitidas">
                       <EmitidasForms />
                     </PrivateRoute>
                   }
@@ -168,7 +202,7 @@ function App() {
                 <Route
                   path="/cotizaciones"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="cotizaciones">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="cotizaciones">
                       <CotizacionesForm />
                     </PrivateRoute>
                   }
@@ -176,8 +210,16 @@ function App() {
                 <Route
                   path="/flow-recovery-v2"
                   element={
-                    <PrivateRoute allowedRoles={['juan carlos', 'administrador']} moduleName="flow_recovery_v2">
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="flow_recovery_v2">
                       <FlowRecoveryV2Form />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/money-flow-recovery"
+                  element={
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="flow_recovery_v2">
+                      <MoneyFlowRecoveryForm />
                     </PrivateRoute>
                   }
                 />
@@ -189,9 +231,31 @@ function App() {
         )
       ) : (
         <Routes>
+          <Route path="/complete-profile/:token" element={<CompleteProfile />} />
           <Route path="*" element={<AuthForm />} />
         </Routes>
       )}
+      
+
+    </>
+  );
+}
+
+function App() {
+  console.log('🚀 APP COMPONENT RENDERIZADO');
+  console.log('🚀 URL actual:', window.location.pathname);
+  console.log('🚀 Timestamp:', new Date().toISOString());
+  console.log('🚀 ===========================================');
+  console.log('🚀 SISTEMA DE INVITACIONES ACTIVADO');
+  console.log('🚀 ===========================================');
+  
+  return (
+    <Router>
+      <Routes>
+        {/* RUTA PRIORITARIA para usuarios invitados - SIEMPRE PRIMERA */}
+        <Route path="/complete-profile/:token" element={<InvitationProfile />} />
+        <Route path="*" element={<AppContent />} />
+      </Routes>
     </Router>
   );
 }
