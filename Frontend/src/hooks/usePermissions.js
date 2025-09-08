@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { GlobalContext } from '../context/GlobalState';
 import axios from 'axios';
 
-const API_URL = 'process.env.REACT_APP_API_URL || "http://localhost:8765"';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5001";
 
 export const usePermissions = () => {
   const { currentUser, profileData } = useContext(GlobalContext);

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 // Obtener la URL de la API desde las variables de entorno
-const API_BASE = 'process.env.REACT_APP_API_URL || "http://localhost:8765"';
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5001";
 
 export const useCuentasPagar = () => {
   const [cuentas, setCuentas] = useState([]);
