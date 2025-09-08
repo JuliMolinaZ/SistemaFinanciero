@@ -148,10 +148,10 @@ const main = async () => {
   
   log('\n📋 PRÓXIMOS PASOS:', 'bright');
   logInfo('1. Inicia tu servidor: npm start');
-  logInfo('2. Prueba la API en: http://localhost:5001/api/test-db');
-  logInfo('3. Verifica los usuarios en: http://localhost:5001/api/usuarios');
-  logInfo('4. Verifica los roles en: http://localhost:5001/api/roles');
-  logInfo('5. Verifica los permisos en: http://localhost:5001/api/permisos');
+  logInfo('2. Prueba la API en: http://localhost:8765/api/test-db');
+  logInfo('3. Verifica los usuarios en: http://localhost:8765/api/usuarios');
+  logInfo('4. Verifica los roles en: http://localhost:8765/api/roles');
+  logInfo('5. Verifica los permisos en: http://localhost:8765/api/permisos');
   
   log('\n🔧 COMANDOS ÚTILES:', 'bright');
   logInfo('npx prisma studio - Abrir interfaz visual de la base de datos');

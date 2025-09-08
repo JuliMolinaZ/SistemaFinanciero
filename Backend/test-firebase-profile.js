@@ -10,7 +10,7 @@ const testFirebaseProfileDetection = async () => {
     // Test 1: Llamada normal con firebase_uid (debería pasar)
     console.log('\n🔍 Test 1: Llamada normal con firebase_uid');
     try {
-      const response1 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response1 = await axios.post('http://localhost:8765/api/usuarios', {
         firebase_uid: 'test123',
         email: 'test@example.com',
         name: 'Test User'
@@ -33,7 +33,7 @@ const testFirebaseProfileDetection = async () => {
     // Test 2: Llamada SIN firebase_uid pero CON email (debería ser bloqueada)
     console.log('\n🔍 Test 2: Llamada SIN firebase_uid pero CON email');
     try {
-      const response2 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response2 = await axios.post('http://localhost:8765/api/usuarios', {
         email: 'invited@example.com',
         name: 'Invited User'
         // NO hay firebase_uid
@@ -57,7 +57,7 @@ const testFirebaseProfileDetection = async () => {
     // Test 3: Llamada con token de invitación (debería ser bloqueada)
     console.log('\n🔍 Test 3: Llamada con token de invitación');
     try {
-      const response3 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response3 = await axios.post('http://localhost:8765/api/usuarios', {
         email: 'invited@example.com',
         token: 'abc123',
         name: 'Invited User'
@@ -81,7 +81,7 @@ const testFirebaseProfileDetection = async () => {
     // Test 4: Llamada con solo email (debería ser bloqueada)
     console.log('\n🔍 Test 4: Llamada con solo email');
     try {
-      const response4 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response4 = await axios.post('http://localhost:8765/api/usuarios', {
         email: 'invited@example.com'
         // Solo email, nada más
       }, {

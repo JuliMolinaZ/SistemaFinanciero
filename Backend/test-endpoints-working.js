@@ -7,7 +7,7 @@
 const axios = require('axios');
 
 // Configuración
-const BASE_URL = 'http://localhost:5001';
+const BASE_URL = 'http://localhost:8765';
 const ENDPOINTS = {
   clients: `${BASE_URL}/api/clients`,
   usuarios: `${BASE_URL}/api/usuarios`,

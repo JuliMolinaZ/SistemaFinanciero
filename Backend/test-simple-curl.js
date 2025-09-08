@@ -4,7 +4,7 @@ console.log('🧪 Probando API de usuarios...\n');
 
 const options = {
   hostname: 'localhost',
-  port: 5001,
+  port: 8765,
   path: '/api/usuarios',
   method: 'GET'
 };

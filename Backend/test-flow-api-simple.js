@@ -1,7 +1,7 @@
 // test-flow-api-simple.js
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = 'http://localhost:8765/api';
 
 async function testFlowAPI() {
   try {

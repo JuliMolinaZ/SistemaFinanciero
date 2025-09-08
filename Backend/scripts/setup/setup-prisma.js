@@ -60,7 +60,7 @@ BACKUP_ENCRYPTION_KEY=clave_encriptacion_backup
 # CONFIGURACIÓN DEL SERVIDOR
 # =====================================================
 
-PORT=5001
+PORT=8765
 NODE_ENV=development
 `;
     

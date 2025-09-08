@@ -1,7 +1,7 @@
 // Script de prueba para el sistema de validación
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = 'http://localhost:8765/api';
 
 // Datos de prueba válidos
 const validUser = {

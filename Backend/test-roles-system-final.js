@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_URL = 'http://localhost:5001';
+const API_URL = 'http://localhost:8765';
 
 async function testRolesSystem() {
   console.log('🧪 PROBANDO SISTEMA DE ROLES Y USUARIOS...\n');

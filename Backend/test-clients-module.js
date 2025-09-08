@@ -38,7 +38,7 @@ function logSection(title) {
 }
 
 async function testClientsModule() {
-  const API_BASE = 'http://localhost:5001/api';
+  const API_BASE = 'http://localhost:8765/api';
   const API_URL = `${API_BASE}/clients`;
   
   try {
@@ -47,7 +47,7 @@ async function testClientsModule() {
     log('\n📡 CONFIGURACIÓN DE PRUEBA:', 'cyan');
     log(`📍 Backend URL: ${API_BASE}`, 'white');
     log(`📍 Clientes API: ${API_URL}`, 'white');
-    log(`📍 Puerto Backend: ${process.env.PORT || 5001}`, 'white');
+    log(`📍 Puerto Backend: ${process.env.PORT || 8765}`, 'white');
     
     // 1. Verificar que el backend esté corriendo
     logSection('VERIFICANDO CONECTIVIDAD DEL BACKEND');

@@ -10,7 +10,7 @@ const testInvitationBlock = async () => {
     // Test 1: Llamada normal a /api/usuarios (debería pasar)
     console.log('\n🔍 Test 1: Llamada normal a /api/usuarios');
     try {
-      const response1 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response1 = await axios.post('http://localhost:8765/api/usuarios', {
         firebase_uid: 'test123',
         email: 'test@example.com',
         name: 'Test User'
@@ -32,7 +32,7 @@ const testInvitationBlock = async () => {
     // Test 2: Llamada desde página de invitación (debería ser bloqueada)
     console.log('\n🔍 Test 2: Llamada desde página de invitación');
     try {
-      const response2 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response2 = await axios.post('http://localhost:8765/api/usuarios', {
         test: 'data'
       }, {
         headers: {
@@ -53,7 +53,7 @@ const testInvitationBlock = async () => {
     // Test 3: Llamada con datos de invitación en el body (debería ser bloqueada)
     console.log('\n🔍 Test 3: Llamada con datos de invitación en body');
     try {
-      const response3 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response3 = await axios.post('http://localhost:8765/api/usuarios', {
         email: 'invited@example.com',
         token: 'abc123',
         is_invited_user: true
@@ -77,7 +77,7 @@ const testInvitationBlock = async () => {
     // Test 4: Llamada con header personalizado de invitación (debería ser bloqueada)
     console.log('\n🔍 Test 4: Llamada con header de invitación');
     try {
-      const response4 = await axios.post('http://localhost:5001/api/usuarios', {
+      const response4 = await axios.post('http://localhost:8765/api/usuarios', {
         test: 'data'
       }, {
         headers: {

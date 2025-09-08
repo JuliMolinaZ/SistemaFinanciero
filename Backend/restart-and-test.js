@@ -1,7 +1,7 @@
 const { spawn } = require('child_process');
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = 'http://localhost:8765/api';
 
 async function testAPI() {
   console.log('🧪 Probando API después de reinicio...\n');
@@ -12,7 +12,7 @@ async function testAPI() {
 
     // 1. Probar endpoint de salud
     console.log('1️⃣ Probando GET /health...');
-    const healthResponse = await axios.get('http://localhost:5001/health');
+    const healthResponse = await axios.get('http://localhost:8765/health');
     console.log('✅ Salud del sistema:', healthResponse.data);
 
     // 2. Probar endpoint de usuarios

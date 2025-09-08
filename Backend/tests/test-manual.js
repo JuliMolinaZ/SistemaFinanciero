@@ -3,7 +3,7 @@ const axios = require('axios');
 async function testValidation() {
   console.log('🧪 Probando Sistema de Validación Manualmente...\n');
 
-  const baseURL = 'http://localhost:5001/api';
+  const baseURL = 'http://localhost:8765/api';
 
   // Test 1: Usuario inválido
   console.log('📋 Test 1: Crear usuario con datos inválidos');

@@ -6,7 +6,7 @@ async function testProveedoresAPI() {
     console.log('🧪 Probando API de proveedores...');
     
     // Probar endpoint local
-    const localResponse = await axios.get('http://localhost:5001/api/proveedores');
+    const localResponse = await axios.get('http://localhost:8765/api/proveedores');
     console.log('✅ Respuesta local exitosa');
     console.log('📊 Tipo de respuesta:', typeof localResponse.data);
     console.log('📊 Es array:', Array.isArray(localResponse.data));
@@ -20,7 +20,7 @@ async function testProveedoresAPI() {
     // Probar con diferentes headers
     console.log('\n🧪 Probando con diferentes headers...');
     
-    const responseWithHeaders = await axios.get('http://localhost:5001/api/proveedores', {
+    const responseWithHeaders = await axios.get('http://localhost:8765/api/proveedores', {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -35,7 +35,7 @@ async function testProveedoresAPI() {
     console.log('\n🧪 Probando endpoint de estadísticas...');
     
     try {
-      const statsResponse = await axios.get('http://localhost:5001/api/proveedores/stats');
+      const statsResponse = await axios.get('http://localhost:8765/api/proveedores/stats');
       console.log('✅ Estadísticas exitosas');
       console.log('📊 Datos:', statsResponse.data);
     } catch (statsError) {

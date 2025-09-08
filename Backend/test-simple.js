@@ -7,9 +7,9 @@ console.log('=============================');
 
 const testClients = async () => {
   try {
-    console.log('📍 Probando endpoint: http://localhost:5001/api/clients');
+    console.log('📍 Probando endpoint: http://localhost:8765/api/clients');
     
-    const response = await axios.get('http://localhost:5001/api/clients');
+    const response = await axios.get('http://localhost:8765/api/clients');
     
     console.log('✅ Status:', response.status);
     console.log('📊 Estructura de respuesta:', {

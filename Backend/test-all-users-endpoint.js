@@ -10,7 +10,7 @@ const testAllUsersEndpoint = async () => {
     // Test 1: Obtener todos los usuarios
     console.log('\n🔍 Test 1: Obtener todos los usuarios');
     try {
-      const response1 = await axios.get('http://localhost:5001/api/user-registration/all-users');
+      const response1 = await axios.get('http://localhost:8765/api/user-registration/all-users');
       console.log('✅ Test 1 PASÓ - Todos los usuarios obtenidos');
       console.log('📝 Usuarios encontrados:', response1.data.data?.length || 0);
       
@@ -34,7 +34,7 @@ const testAllUsersEndpoint = async () => {
           
           console.log('📝 Datos a actualizar:', updateData);
           
-          const response2 = await axios.put(`http://localhost:5001/api/user-registration/update-user/${firstUser.id}`, updateData);
+          const response2 = await axios.put(`http://localhost:8765/api/user-registration/update-user/${firstUser.id}`, updateData);
           console.log('✅ Test 2 PASÓ - Usuario actualizado exitosamente');
           console.log('📝 Respuesta:', response2.data.message);
           console.log('📝 Usuario actualizado:', {
@@ -57,7 +57,7 @@ const testAllUsersEndpoint = async () => {
             console.log('⚠️ Usuario es Super Admin - Verificando si se puede eliminar...');
             
             // Contar Super Admins
-            const allUsers = await axios.get('http://localhost:5001/api/user-registration/all-users');
+            const allUsers = await axios.get('http://localhost:8765/api/user-registration/all-users');
             const superAdminCount = allUsers.data.data.filter(u => u.roles?.name === 'Super Administrador').length;
             
             if (superAdminCount <= 1) {

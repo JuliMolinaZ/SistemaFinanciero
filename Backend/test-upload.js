@@ -19,7 +19,7 @@ async function testUpload() {
       console.log('✅ Archivo existe en el sistema de archivos');
       
       // Verificar que se puede acceder a través de la API
-      const response = await fetch(`http://localhost:5001/api/contabilidad/files/test_upload.txt`);
+      const response = await fetch(`http://localhost:8765/api/contabilidad/files/test_upload.txt`);
       if (response.ok) {
         console.log('✅ Archivo accesible a través de la API');
       } else {

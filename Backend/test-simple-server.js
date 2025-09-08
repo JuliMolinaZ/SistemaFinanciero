@@ -6,7 +6,7 @@ const cors = require('cors');
 console.log('🚀 Iniciando servidor de prueba...\n');
 
 const app = express();
-const PORT = 5001;
+const PORT = 8765;
 
 // Middlewares básicos
 app.use(cors());

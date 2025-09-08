@@ -10,7 +10,7 @@ const testDeleteUser = async () => {
     // Test 1: Obtener usuarios pendientes
     console.log('\n🔍 Test 1: Obtener usuarios pendientes');
     try {
-      const response1 = await axios.get('http://localhost:5001/api/user-registration/pending-profiles');
+      const response1 = await axios.get('http://localhost:8765/api/user-registration/pending-profiles');
       console.log('✅ Test 1 PASÓ - Usuarios pendientes obtenidos');
       console.log('📝 Usuarios encontrados:', response1.data.data?.length || 0);
       
@@ -26,14 +26,14 @@ const testDeleteUser = async () => {
         // Test 2: Intentar eliminar el primer usuario
         console.log('\n🔍 Test 2: Intentar eliminar usuario');
         try {
-          const response2 = await axios.delete(`http://localhost:5001/api/user-registration/delete-user/${firstUser.id}`);
+          const response2 = await axios.delete(`http://localhost:8765/api/user-registration/delete-user/${firstUser.id}`);
           console.log('✅ Test 2 PASÓ - Usuario eliminado exitosamente');
           console.log('📝 Respuesta:', response2.data.message);
           
           // Test 3: Verificar que el usuario fue eliminado
           console.log('\n🔍 Test 3: Verificar eliminación');
           try {
-            const response3 = await axios.get('http://localhost:5001/api/user-registration/pending-profiles');
+            const response3 = await axios.get('http://localhost:8765/api/user-registration/pending-profiles');
             const remainingUsers = response3.data.data?.length || 0;
             console.log('✅ Test 3 PASÓ - Verificación completada');
             console.log('📝 Usuarios restantes:', remainingUsers);
