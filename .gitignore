@@ -40,3 +40,9 @@ salida_completa.txt
 
 # Ignorar archivos de configuración con credenciales
 **/config.env
+
+# Ignorar archivos de Claude AI
+**/.claude/
+**/.claude/**
+**/claude-*
+**/.claude/settings.local.json
