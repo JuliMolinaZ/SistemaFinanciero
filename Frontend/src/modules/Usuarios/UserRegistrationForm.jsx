@@ -40,7 +40,7 @@ import {
 import { styled } from '@mui/material/styles';
 import CoolAvatar from '../../components/CoolAvatar';
 
-const API_URL = 'http://localhost:5001';
+const API_URL = process.env.REACT_APP_API_URL || 'https://sigma.runsolutions-services.com';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(3),

@@ -113,7 +113,7 @@ const ImpuestosIMSSModule = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   // Configuración de axios
-  const API_BASE = 'http://localhost:5001';
+  const API_BASE = process.env.REACT_APP_API_URL || 'https://sigma.runsolutions-services.com';
   
   // Estados
   const [impuestos, setImpuestos] = useState([]);

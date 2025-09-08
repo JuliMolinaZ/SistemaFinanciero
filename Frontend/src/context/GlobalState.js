@@ -6,7 +6,7 @@ import AuthErrorModal from '../components/AuthErrorModal';
 import { authGet } from '../utils/authAxios';
 
 // Configuración global de Axios
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8765";
 axios.defaults.baseURL = API_BASE_URL;
 
 console.log('🌐 Configuración de Axios:');

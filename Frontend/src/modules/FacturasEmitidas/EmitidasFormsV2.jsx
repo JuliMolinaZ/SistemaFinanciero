@@ -721,7 +721,7 @@ const EmitidasFormsV2 = () => {
   };
 
   const getFileUrl = (filename) => {
-    const baseURL = window.location.hostname === 'localhost' ? 'http://localhost:5001' : 'https://sigma.runsolutions-services.com';
+    const baseURL = process.env.REACT_APP_API_URL || 'https://sigma.runsolutions-services.com';
     return `${baseURL}/uploads/${filename}`;
   };
 

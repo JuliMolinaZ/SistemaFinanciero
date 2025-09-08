@@ -317,7 +317,7 @@ const UsersList = () => {
   const { getCachedData, setCachedData } = useDataCache();
 
   // Usar la configuración global de axios
-  const API_URL = axios.defaults.baseURL || 'http://localhost:5001';
+  const API_URL = axios.defaults.baseURL || 'process.env.REACT_APP_API_URL || "http://localhost:8765"';
 
   // Datos de ejemplo optimizados
   const mockUsers = useMemo(() => [

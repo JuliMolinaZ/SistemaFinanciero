@@ -1,5 +1,5 @@
 // server.js
-const express = require('express');
+const express = require('express')
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -16,7 +16,8 @@ const corsOptions = {
     // Lista de orígenes permitidos
     const allowedOrigins = [
       'https://sigma.runsolutions-services.com', 
-      'http://localhost:3000'                     
+      'http://localhost:3000',
+      'http://localhost:3005'                     
     ];
 
     if (allowedOrigins.includes(origin)) {
@@ -34,30 +35,29 @@ app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Importar rutas
-const authRoutes = require('./routes/auth');
-const permisosRoutes = require('./routes/permisos');
-const usuariosRoutes = require('./routes/usuarios');
-const clientsRoutes = require('./routes/clients');
-const projectsRoutes = require('./routes/projects');
-const proveedoresRoutes = require('./routes/proveedores');
-const cuentasPagarRoutes = require('./routes/cuentasPagar');
-const cuentasCobrarRoutes = require('./routes/cuentasCobrar');
-const contabilidadRoutes = require('./routes/contabilidad');
-const categoriasRoutes = require('./routes/categorias');
-const recuperacionRoutes = require('./routes/recuperacion');
-const rolesRoutes = require('./routes/roles');
-const assetsRoutes = require('./routes/assets');
-const phasesRoutes = require('./routes/phases');
-const costosFijosRoutes = require('./routes/costosFijos');
-const graphRoutes = require('./routes/realtimeGraph');
-const projectCostsRoutes = require('./routes/projectCosts');
-const emitidasRoutes = require('./routes/emitidas');
-const flowRecoveryV2Routes = require('./routes/flowRecoveryV2');
-const complementosPagoRoutes = require('./routes/complementosPago');
+const authRoutes = require('./src/routes/auth');
+const permisosRoutes = require('./src/routes/permisos');
+const usuariosRoutes = require('./src/routes/usuarios');
+const clientsRoutes = require('./src/routes/clients');
+const projectsRoutes = require('./src/routes/projects');
+const proveedoresRoutes = require('./src/routes/proveedores');
+const cuentasPagarRoutes = require('./src/routes/cuentasPagar');
+const cuentasCobrarRoutes = require('./src/routes/cuentasCobrar');
+const contabilidadRoutes = require('./src/routes/contabilidad');
+const categoriasRoutes = require('./src/routes/categorias');
+const recuperacionRoutes = require('./src/routes/recuperacion');
+const rolesRoutes = require('./src/routes/roles');
+const assetsRoutes = require('./src/routes/assets');
+const phasesRoutes = require('./src/routes/phases');
+const costosFijosRoutes = require('./src/routes/costosFijos');
+const projectCostsRoutes = require('./src/routes/projectCosts');
+const emitidasRoutes = require('./src/routes/emitidas');
+const flowRecoveryV2Routes = require('./src/routes/flowRecoveryV2');
+const complementosPagoRoutes = require('./src/routes/complementosPago');
 const requisicionesRoutes = require('./routes/requisiciones');
 
 // Nueva ruta para Cotizaciones
-const cotizacionesRoutes = require('./routes/cotizaciones');
+const cotizacionesRoutes = require('./src/routes/cotizaciones');
 
 // Middleware para loggear cada solicitud (opcional)
 app.use((req, res, next) => {
@@ -81,7 +81,7 @@ app.use('/api/roles', rolesRoutes);
 app.use('/api/assets', assetsRoutes);
 app.use('/api/phases', phasesRoutes);
 app.use('/api/costos-fijos', costosFijosRoutes);
-app.use('/api/graph', graphRoutes);
+// app.use('/api/graph', graphRoutes); // Ruta no disponible
 app.use('/api/project-costs', projectCostsRoutes);
 app.use('/api/emitidas', emitidasRoutes);
 app.use('/api/flowRecoveryV2', flowRecoveryV2Routes);

@@ -32,7 +32,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faClose, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 // Configuración de la URL base para la API
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
 console.log(">>> API_URL =", API_URL);
 
 // Formateador de moneda MXN

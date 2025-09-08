@@ -597,7 +597,7 @@ const ContabilidadFormV2 = () => {
     
     // Detectar si estamos en desarrollo local o producción
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const baseURL = isLocalhost ? 'http://localhost:5001' : 'https://sigma.runsolutions-services.com';
+    const baseURL = isLocalhost ? 'process.env.REACT_APP_API_URL || "http://localhost:8765"' : 'https://sigma.runsolutions-services.com';
     
     const url = `${baseURL}/api/contabilidad/${type}/${filename}`;
     return url;

@@ -35,9 +35,15 @@
     },
     "scripts": {
         "start": "react-scripts start",
+        "start:dev": "REACT_APP_API_URL=http://localhost:8765 react-scripts start",
+        "start:prod": "REACT_APP_API_URL=https://sigma.runsolutions-services.com react-scripts start",
         "build": "react-scripts build",
+        "build:dev": "REACT_APP_API_URL=http://localhost:8765 react-scripts build",
+        "build:prod": "REACT_APP_API_URL=https://sigma.runsolutions-services.com react-scripts build",
+        "build:force": "REACT_APP_VERSION=$(date +%s) react-scripts build",
         "test": "react-scripts test",
-        "eject": "react-scripts eject"
+        "eject": "react-scripts eject",
+        "deploy": "./deploy.sh"
     },
     "browserslist": {
         "production": [

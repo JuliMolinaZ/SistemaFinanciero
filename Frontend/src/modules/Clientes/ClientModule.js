@@ -325,7 +325,7 @@ const ClientModule = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { getCachedData, setCachedData } = useDataCache();
 
-      const API_URL = `http://localhost:5001/api/clients`;
+      const API_URL = `${process.env.REACT_APP_API_URL || 'https://sigma.runsolutions-services.com'}/api/clients`;
   
   
 

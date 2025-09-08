@@ -28,7 +28,7 @@ const LinkBehavior = forwardRef((props, ref) => {
 const Sidebar = () => {
   const { sidebarCollapsed, setSidebarCollapsed, profileData } = useContext(GlobalContext);
   const [permisos, setPermisos] = useState([]);
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
 
   useEffect(() => {
     const fetchPermisos = async () => {
