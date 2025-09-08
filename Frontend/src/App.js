@@ -42,6 +42,7 @@ import MoneyFlowRecoveryForm from './modules/MoneyFlowRecovery/MoneyFlowRecovery
 import PrivateRoute from './components/PrivateRoute';
 import CompleteProfile from './modules/Profile/CompleteProfile';
 import ErrorTestPanel from './components/ErrorTestPanel';
+import RequisicionesForm from './modules/Requisiciones/RequisicionesForm';
 
 // Componente completamente aislado para usuarios invitados
 const InvitationProfile = () => {
@@ -192,6 +193,14 @@ function AppContent() {
                   element={
                     <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="categorias">
                       <CategoriasForm />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/requisiciones"
+                  element={
+                    <PrivateRoute allowedRoles={['administrador', 'juan carlos']} moduleName="requisiciones">
+                      <RequisicionesForm />
                     </PrivateRoute>
                   }
                 />

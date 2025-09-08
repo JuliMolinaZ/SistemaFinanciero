@@ -1,6 +1,7 @@
 // src/modules/Emitidas/EmitidasForms.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import {
   Container,
   Box,
@@ -344,9 +345,9 @@ const CfdiFormDialog = ({
 
 // ==================================================
 // COMPONENTE: CfdiTable
-// (Tabla para mostrar los CFDIs registrados)
+// (Tabla para mostrar los CFDIs registrados con opción de selección)
 // ==================================================
-const CfdiTable = ({ cfdiList, onEdit, onDelete }) => {
+const CfdiTable = ({ cfdiList, onEdit, onDelete, selectedCfdis, onSelect }) => {
   // Función auxiliar para formatear la fecha
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -379,6 +380,7 @@ const CfdiTable = ({ cfdiList, onEdit, onDelete }) => {
       <Table>
         <TableHead sx={{ backgroundColor: 'var(--color-titulo, #e63946)' }}>
           <TableRow>
+            <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Seleccionar</TableCell>
             <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>RFC Receptor</TableCell>
             <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Razón Social</TableCell>
             <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha Emisión</TableCell>
@@ -393,6 +395,12 @@ const CfdiTable = ({ cfdiList, onEdit, onDelete }) => {
           {Array.isArray(cfdiList) && cfdiList.length > 0 ? (
             cfdiList.map((cfdi) => (
             <TableRow key={cfdi.id} sx={{ '&:hover': { backgroundColor: '#fefefe' } }}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedCfdis.includes(cfdi.id)}
+                  onChange={(e) => onSelect(cfdi.id, e.target.checked)}
+                />
+              </TableCell>
               <TableCell>{cfdi.rfcReceptor}</TableCell>
               <TableCell>{cfdi.razonSocial}</TableCell>
               <TableCell>{formatDate(cfdi.fechaEmision)}</TableCell>
@@ -502,12 +510,14 @@ const EmitidasForms = () => {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  // Estado para notificaciones (Snackbar)
+  // Estados para notificaciones, filtro y selección de movimientos
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success',
   });
+  const [filterMonth, setFilterMonth] = useState('');
+  const [selectedCfdis, setSelectedCfdis] = useState([]);
 
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
@@ -620,6 +630,7 @@ const EmitidasForms = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
       const formData = new FormData();
       formData.append('rfcReceptor', cfdiData.rfcReceptor);
@@ -635,7 +646,7 @@ const EmitidasForms = () => {
       formData.append('ppd', cfdiData.ppd);
       // Guardamos los pagos como string JSON
       formData.append('pagos', JSON.stringify(cfdiData.pagos));
-      // Archivos
+      // Archivos (se envían si se cargaron, de lo contrario se envía vacío)
       cfdiData.facturasPDF.forEach((file) => {
         formData.append('facturasPDF', file);
       });
@@ -744,6 +755,41 @@ const EmitidasForms = () => {
     }
   };
 
+  // Función para manejar la selección de CFDIs para exportar
+  const handleSelectCfdi = (id, checked) => {
+    if (checked) {
+      setSelectedCfdis((prev) => [...prev, id]);
+    } else {
+      setSelectedCfdis((prev) => prev.filter((item) => item !== id));
+    }
+  };
+
+  // Función para exportar a XLS los CFDIs seleccionados
+  const handleExportToXLS = () => {
+    const dataToExport = cfdiList.filter((cfdi) => selectedCfdis.includes(cfdi.id));
+    if (dataToExport.length === 0) {
+      setSnackbar({
+        open: true,
+        message: 'Seleccione al menos un movimiento para exportar.',
+        severity: 'error',
+      });
+      return;
+    }
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'CFDIs');
+    XLSX.writeFile(workbook, 'CFDIs_export.xlsx');
+  };
+
+  // Filtrado de CFDIs por mes (formato YYYY-MM)
+  const filteredCfdiList = filterMonth
+    ? cfdiList.filter((cfdi) => {
+        const date = new Date(cfdi.fechaEmision);
+        const [year, month] = filterMonth.split('-');
+        return date.getFullYear() === parseInt(year) && date.getMonth() + 1 === parseInt(month);
+      })
+    : cfdiList;
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -781,6 +827,30 @@ const EmitidasForms = () => {
         >
           {showForm ? 'Cerrar formulario' : 'Registrar CFDI'}
         </Button>
+        <TextField
+          label="Filtrar por mes"
+          type="month"
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ backgroundColor: '#fff', borderRadius: 1 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleExportToXLS}
+          sx={{
+            backgroundColor: '#1976d2',
+            color: '#fff',
+            fontWeight: 600,
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            transition: 'background 0.3s, transform 0.3s',
+            '&:hover': { backgroundColor: '#115293', transform: 'scale(1.05)' },
+          }}
+        >
+          Exportar a XLS
+        </Button>
       </Box>
       {showForm && (
         <CfdiFormDialog
@@ -795,13 +865,13 @@ const EmitidasForms = () => {
           onPagoChange={handlePagoChange}
         />
       )}
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <CfdiTable cfdiList={cfdiList} onEdit={handleEdit} onDelete={handleDelete} />
-      )}
+      <CfdiTable
+        cfdiList={filteredCfdiList}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        selectedCfdis={selectedCfdis}
+        onSelect={handleSelectCfdi}
+      />
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
