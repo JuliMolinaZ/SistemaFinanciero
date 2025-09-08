@@ -182,7 +182,7 @@ const BackendError = ({
               {config.actions}
               <br /><br />
               <strong>🔧 Para desarrolladores:</strong><br />
-              • Verifica que el servidor backend esté ejecutándose en el puerto 5001<br />
+              • Verifica que el servidor backend esté ejecutándose en el puerto 8765<br />
               • Revisa los logs del servidor para errores<br />
               • Asegúrate de que la base de datos esté conectada
             </Typography>
