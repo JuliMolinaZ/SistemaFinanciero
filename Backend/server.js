@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const app = express();
 
-// Configuración de CORS para permitir solicitudes desde producción y desde localhost:3000
+// Configuración de CORS para permitir solicitudes desde producción y desde localhost:2103
 const corsOptions = {
   origin: (origin, callback) => {
     // Permite solicitudes sin origen (por ejemplo, desde Postman) o cuando no se especifica origen
@@ -26,10 +26,25 @@ const corsOptions = {
     } else {
       callback(new Error('Origen no permitido por CORS'));
     }
-  }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
+
+// Middleware de logging para debug CORS
+app.use((req, res, next) => {
+  console.log(`🔍 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'No origin'}`);
+  if (req.method === 'OPTIONS') {
+    console.log('🔍 OPTIONS request detected - CORS preflight');
+  }
+  next();
+});
+
 app.use(bodyParser.json());
 
 // Servir archivos estáticos desde la carpeta "uploads"
