@@ -17,6 +17,7 @@ const corsOptions = {
     const allowedOrigins = [
       'https://sigma.runsolutions-services.com', 
       'http://localhost:3000',
+      'http://localhost:2103',
       'http://localhost:3005'                     
     ];
 

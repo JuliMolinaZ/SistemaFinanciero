@@ -53,7 +53,7 @@ module.exports = {
 
   // Configuración de CORS
   cors: {
-    origin: process.env.CORS_ORIGIN || 'https://sigma.runsolutions-services.com',
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['https://sigma.runsolutions-services.com'],
     credentials: true
   }
 }; 
