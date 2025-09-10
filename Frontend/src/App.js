@@ -17,13 +17,13 @@ import Home from './modules/Home/Home';
 import DashboardUltra from './modules/Dashboard/DashboardUltra';
 
 import Header from './components/Header';
-import Sidebar from './components/Sidebar';
+import SidebarNew from './components/SidebarNew';
 
 import ClientModule from './modules/Clientes/ClientModule';
 import ProyectosForm from './modules/Proyectos/ProyectosForm';
 import ProveedoresForm from './modules/Proveedores/ProveedoresForm';
-import CuentasPagarForm from './modules/CuentasPorPagar/CuentasPagarForm';
-import CuentasCobrarForm from './modules/CuentasPorCobrar/CuentasCobrarForm';
+import CuentasPagarMain from './modules/CuentasPorPagar/CuentasPagarMain';
+import CuentasCobrarMain from './modules/CuentasPorCobrar/CuentasCobrarMain';
 import ImpuestosIMSSModule from './modules/ImpuestosIMSS/ImpuestosIMSSModule';
 import ContabilidadForm from './modules/Contabilidad/ContabilidadForm';
 import CategoriasForm from './modules/Categorias/CategoriasForm';
@@ -31,6 +31,7 @@ import RecuperacionForm from './modules/Recuperacion/RecuperacionForm';
 
 import UsersManagementMain from './modules/Usuarios/UsersManagementMain';
 import MyProfile from './modules/Usuarios/MyProfile';
+import ProfileCompletionForm from './modules/Usuarios/ProfileCompletionForm';
 import HorasExtra from './modules/HorasExtra/HorasExtra';
 import PhasesModule from './modules/Fases/PhasesModule';
 import CostosFijos from './modules/CostosFijos/CostosFijos';
@@ -59,6 +60,7 @@ function AppContent() {
     currentUser, 
     profileComplete, 
     sidebarCollapsed, 
+    sidebarFullyMinimized,
     profileData, 
     authLoading,
     backendConnected,
@@ -78,7 +80,16 @@ function AppContent() {
   console.log('🔍 DEBUG - authLoading:', authLoading);
   console.log('🔍 DEBUG - Timestamp:', new Date().toISOString());
 
-  const mainMarginLeft = sidebarCollapsed ? '70px' : '280px';
+  // Margen dinámico basado en el estado del sidebar con transiciones suaves
+  const mainMarginLeft = sidebarFullyMinimized ? '0px' : (sidebarCollapsed ? '80px' : '300px');
+  
+  // Estilos para el contenido principal con transiciones
+  const mainContentStyle = {
+    marginLeft: mainMarginLeft,
+    transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    width: sidebarFullyMinimized ? '100%' : `calc(100% - ${mainMarginLeft})`,
+    minHeight: '100vh',
+  };
 
   if (authLoading) {
     return <LoadingScreen />;
@@ -115,10 +126,10 @@ function AppContent() {
         ) : (
           <>
             <Header />
-            <Sidebar />
+            <SidebarNew />
             <main
               style={{
-                marginLeft: mainMarginLeft,
+                ...mainContentStyle,
                 padding: '1rem',
                 marginTop: '80px'
               }}
@@ -127,6 +138,7 @@ function AppContent() {
                 <Route path="/" element={<Home />} />
                 <Route path="/dashboard-ultra" element={<DashboardUltra />} />
 
+                <Route path="/usuarios" element={<UsersManagementMain />} />
                 <Route path="/clientes" element={<ClientModule />} />
                 <Route path="/horas-extra" element={<HorasExtra />} />
                 <Route path="/fases" element={<PhasesModule />} />
@@ -152,7 +164,7 @@ function AppContent() {
                   path="/cuentas-pagar"
                   element={
                     <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="cuentas_pagar">
-                      <CuentasPagarForm />
+                      <CuentasPagarMain />
                     </PrivateRoute>
                   }
                 />
@@ -176,7 +188,7 @@ function AppContent() {
                   path="/cuentas-cobrar"
                   element={
                     <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="cuentas_cobrar">
-                      <CuentasCobrarForm />
+                      <CuentasCobrarMain />
                     </PrivateRoute>
                   }
                 />
@@ -292,7 +304,7 @@ function App() {
     <Router>
       <Routes>
         {/* RUTA PRIORITARIA para usuarios invitados - SIEMPRE PRIMERA */}
-        <Route path="/complete-profile/:token" element={<InvitationProfile />} />
+        <Route path="/complete-profile/:token" element={<ProfileCompletionForm />} />
         <Route path="*" element={<AppContent />} />
       </Routes>
     </Router>

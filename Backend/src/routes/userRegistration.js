@@ -29,8 +29,11 @@ router.get('/verify-token/:token', userRegistrationController.verifyAccessToken)
 // Verificar estado de perfil de usuario
 router.get('/profile-status/:email', userRegistrationController.checkUserProfileStatus);
 
-// Completar perfil de usuario (primera vez)
-router.post('/complete-profile', userRegistrationController.upload.single('avatar'), userRegistrationController.completeUserProfile);
+// Completar perfil de usuario (primera vez) - Ruta de prueba
+router.post('/complete-profile-test/:token', userRegistrationController.completeUserProfile);
+
+// Completar perfil de usuario (primera vez) - Con avatar
+router.post('/complete-profile/:token', userRegistrationController.upload.single('avatar'), userRegistrationController.completeUserProfile);
 
 // Actualizar Firebase UID del usuario (cuando se registra en Firebase)
 router.put('/update-firebase-uid/:email', userRegistrationController.updateUserFirebaseUID);

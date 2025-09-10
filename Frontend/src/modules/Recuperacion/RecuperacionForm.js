@@ -320,7 +320,7 @@ const RecuperacionForm = () => {
   const fetchRecuperaciones = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/recuperacion');
+      const response = await axios.get('/api/recuperacion');
       setRecuperaciones(response.data);
     } catch (error) {
       console.error('Error al obtener recuperaciones:', error);
@@ -332,7 +332,7 @@ const RecuperacionForm = () => {
 
   const fetchClientes = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/clients');
+      const response = await axios.get('/api/clients');
       setClientes(response.data);
     } catch (error) {
       console.error('Error al obtener clientes:', error);
@@ -341,7 +341,7 @@ const RecuperacionForm = () => {
 
   const fetchProyectos = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/projects');
+      const response = await axios.get('/api/projects');
       setProyectos(response.data);
     } catch (error) {
       console.error('Error al obtener proyectos:', error);
@@ -370,10 +370,10 @@ const RecuperacionForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`https://sigma.runsolutions-services.com/api/recuperacion/${editingId}`, formData);
+        await axios.put(`/api/recuperacion/${editingId}`, formData);
         setSnackbar({ open: true, message: 'Recuperación actualizada correctamente', severity: 'success' });
       } else {
-        await axios.post('https://sigma.runsolutions-services.com/api/recuperacion', formData);
+        await axios.post('/api/recuperacion', formData);
         setSnackbar({ open: true, message: 'Recuperación registrada correctamente', severity: 'success' });
       }
       fetchRecuperaciones();
@@ -400,7 +400,7 @@ const RecuperacionForm = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta recuperación?')) return;
     try {
-      await axios.delete(`https://sigma.runsolutions-services.com/api/recuperacion/${id}`);
+      await axios.delete(`/api/recuperacion/${id}`);
       setSnackbar({ open: true, message: 'Recuperación eliminada', severity: 'success' });
       fetchRecuperaciones();
     } catch (error) {
@@ -411,7 +411,7 @@ const RecuperacionForm = () => {
 
   const handleToggleRecuperado = async (id) => {
     try {
-      await axios.put(`https://sigma.runsolutions-services.com/api/recuperacion/${id}/toggle`);
+      await axios.put(`/api/recuperacion/${id}/toggle`);
       setSnackbar({ open: true, message: 'Estado de recuperación alternado', severity: 'success' });
       fetchRecuperaciones();
     } catch (error) {

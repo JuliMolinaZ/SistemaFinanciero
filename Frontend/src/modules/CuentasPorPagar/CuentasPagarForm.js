@@ -3,6 +3,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileCsv } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { useCuentasPagar } from '../../hooks/useCuentasPagar';
+
+// Crear una instancia de axios separada para evitar interceptores
+const apiClient = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:8765",
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
 import Filtros from './components/Filtros';
 import TablaCuentas from './components/TablaCuentas';
 import ModalRegistro from './components/ModalRegistro';
@@ -18,6 +27,7 @@ import {
   CircularProgress,
   Slide
 } from '@mui/material';
+import { AccountBalance } from '@mui/icons-material';
 import { calcularTotalesRecuperacion } from '../../utils/cuentas';
 
 // Función de transición para Snackbar
@@ -85,24 +95,39 @@ const CuentasPagarForm = () => {
   };
 
   useEffect(() => {
+    console.log('🔄 CuentasPagarForm: Iniciando fetchCuentas...');
     fetchCuentas();
   }, [fetchCuentas]);
+
+  // Log cuando cambian las cuentas
+  useEffect(() => {
+    console.log('📊 CuentasPagarForm: cuentas actualizadas:', cuentas);
+    console.log('📊 CuentasPagarForm: número de cuentas:', cuentas.length);
+  }, [cuentas]);
 
   useEffect(() => {
     const fetchProveedores = async () => {
       try {
-        const res = await axios.get('https://sigma.runsolutions-services.com/api/proveedores');
-        setProveedores(res.data);
+        const res = await apiClient.get('/api/proveedores');
+        console.log('Respuesta de proveedores:', res.data);
+        // La API devuelve {success: true, data: [...]}
+        const proveedoresData = Array.isArray(res.data?.data) ? res.data.data : [];
+        setProveedores(proveedoresData);
       } catch (err) {
         console.error('Error al obtener proveedores:', err);
+        setProveedores([]);
       }
     };
     const fetchCategorias = async () => {
       try {
-        const res = await axios.get('https://sigma.runsolutions-services.com/api/categorias');
-        setCategorias(res.data);
+        const res = await apiClient.get('/api/categorias');
+        console.log('Respuesta de categorías:', res.data);
+        // La API devuelve {success: true, data: [...]}
+        const categoriasData = Array.isArray(res.data?.data) ? res.data.data : [];
+        setCategorias(categoriasData);
       } catch (err) {
         console.error('Error al obtener categorías:', err);
+        setCategorias([]);
       }
     };
     fetchProveedores();
@@ -117,6 +142,9 @@ const CuentasPagarForm = () => {
   }, []);
 
   const filtrarCuentas = useCallback(() => {
+    console.log('🔍 filtrarCuentas: cuentas recibidas:', cuentas.length);
+    console.log('🔍 filtrarCuentas: cuentas data:', cuentas);
+    
     let filtradas = cuentas;
     // Si filtroMes tiene valor y NO es "all", se filtra por mes
     if (filtroMes && filtroMes !== 'all') {
@@ -140,6 +168,7 @@ const CuentasPagarForm = () => {
         filtradas = filtradas.filter((c) => !c.pagado);
       }
     }
+    console.log('🔍 filtrarCuentas: cuentas filtradas:', filtradas.length);
     setCuentasFiltradas(filtradas);
     // Al cambiar el filtro se limpia la selección
     setSelectedCuentas([]);
@@ -285,7 +314,7 @@ const CuentasPagarForm = () => {
 
   const handleTogglePagado = async (id) => {
     try {
-      await axios.put(`/api/cuentas-pagar/${id}/pagado`);
+      await apiClient.put(`/api/cuentas-pagar/${id}/pagado`);
       fetchCuentas();
     } catch (err) {
       console.error('Error al alternar pagado:', err);
@@ -317,7 +346,7 @@ const CuentasPagarForm = () => {
     const totalConIVA = parseFloat(selectedCuenta.monto_con_iva || 0);
     const pagado = nuevoTotalPagos >= totalConIVA ? 1 : 0;
     try {
-      await axios.put(`/api/cuentas-pagar/${selectedCuenta.id}`, {
+      await apiClient.put(`/api/cuentas-pagar/${selectedCuenta.id}`, {
         ...selectedCuenta,
         pagos_parciales: nuevoTotalPagos,
         pagado,
@@ -413,7 +442,7 @@ const CuentasPagarForm = () => {
         }
         if (estadoFiltro) params.estadoFiltro = estadoFiltro;
         const response = await axios.get(
-          'https://sigma.runsolutions-services.com/api/cuentas-pagar/export',
+          '/api/cuentas-pagar/export',
           { params, responseType: 'blob' }
         );
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -443,20 +472,20 @@ const CuentasPagarForm = () => {
   }
 
   return (
-    <Container sx={{ py: 4, backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+    <Box>
       <Typography
-        variant="h3"
-        align="center"
+        variant="h4"
         sx={{
           mb: 4,
-          color: '#e63946',
-          fontWeight: 'bold',
-          borderBottom: '2px solid #e63946',
-          pb: 1,
-          textTransform: 'uppercase',
+          color: '#2c3e50',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
         }}
       >
-        Cuentas por Pagar
+        <AccountBalance sx={{ fontSize: '2rem', color: '#e74c3c' }} />
+        Lista de Cuentas por Pagar
       </Typography>
       <Box
         sx={{
@@ -618,7 +647,7 @@ const CuentasPagarForm = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

@@ -440,7 +440,7 @@ const CotizacionesFormV2 = () => {
   };
 
   const getFileUrl = (filename) => {
-    const baseURL = window.location.hostname === 'localhost' ? 'process.env.REACT_APP_API_URL || "http://localhost:8765"' : 'https://sigma.runsolutions-services.com';
+    const baseURL = window.location.hostname === 'localhost' ? (process.env.REACT_APP_API_URL || "http://localhost:8765") : 'https://sigma.runsolutions-services.com';
     return `${baseURL}/uploads/${filename}`;
   };
 

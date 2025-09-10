@@ -4,12 +4,12 @@ exports.getAllRecuperaciones = async (req, res) => {
   try {
     const recuperaciones = await prisma.recuperacion.findMany({
       include: {
-        cliente: {
+        clients: {
           select: {
             nombre: true
           }
         },
-        proyecto: {
+        projects: {
           select: {
             nombre: true
           }
@@ -27,8 +27,8 @@ exports.getAllRecuperaciones = async (req, res) => {
       monto: r.monto,
       fecha: r.fecha,
       recuperado: r.recuperado,
-      cliente_nombre: r.cliente?.nombre || null,
-      proyecto_nombre: r.proyecto?.nombre || null
+      cliente_nombre: r.clients?.nombre || null,
+      proyecto_nombre: r.projects?.nombre || null
     }));
 
     res.json(transformedData);
@@ -44,12 +44,12 @@ exports.getRecuperacionById = async (req, res) => {
     const recuperacion = await prisma.recuperacion.findUnique({
       where: { id: parseInt(id) },
       include: {
-        cliente: {
+        clients: {
           select: {
             nombre: true
           }
         },
-        proyecto: {
+        projects: {
           select: {
             nombre: true
           }
@@ -64,8 +64,8 @@ exports.getRecuperacionById = async (req, res) => {
     // Transformar los datos para mantener la estructura esperada
     const transformedData = {
       ...recuperacion,
-      cliente_nombre: recuperacion.cliente?.nombre || null,
-      proyecto_nombre: recuperacion.proyecto?.nombre || null
+      cliente_nombre: recuperacion.clients?.nombre || null,
+      proyecto_nombre: recuperacion.projects?.nombre || null
     };
 
     res.json(transformedData);

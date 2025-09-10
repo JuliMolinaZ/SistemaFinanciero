@@ -2,8 +2,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-// Obtener la URL de la API desde las variables de entorno
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8765";
+// Crear una instancia de axios separada para evitar interceptores
+const apiClient = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:8765",
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
 
 export const useCuentasPagar = () => {
   const [cuentas, setCuentas] = useState([]);
@@ -14,24 +20,34 @@ export const useCuentasPagar = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('🔍 Fetching cuentas desde:', `${API_BASE}/api/cuentas-pagar`);
-      const response = await axios.get(`${API_BASE}/api/cuentas-pagar`);
-      console.log('✅ Cuentas obtenidas:', response.data.length, 'registros');
-      console.log('📊 Primera cuenta:', response.data[0]);
-      console.log('🔍 Campos disponibles:', Object.keys(response.data[0] || {}));
-      console.log('🏷️ Estructura completa de la primera cuenta:', JSON.stringify(response.data[0], null, 2));
-      setCuentas(response.data);
+      console.log('🔍 Fetching cuentas desde: /api/cuentas-pagar');
+      console.log('🔍 apiClient.defaults.baseURL:', apiClient.defaults.baseURL);
+      console.log('🔍 apiClient.defaults.headers:', apiClient.defaults.headers);
+      
+      const response = await apiClient.get('/api/cuentas-pagar');
+      console.log('✅ Respuesta completa:', response.data);
+      
+      // La API devuelve directamente un array de cuentas
+      const cuentasData = Array.isArray(response.data) ? response.data : [];
+      console.log('✅ Cuentas obtenidas:', cuentasData.length, 'registros');
+      console.log('📊 Primera cuenta:', cuentasData[0]);
+      console.log('🔍 Campos disponibles:', Object.keys(cuentasData[0] || {}));
+      console.log('🏷️ Estructura completa de la primera cuenta:', JSON.stringify(cuentasData[0], null, 2));
+      setCuentas(cuentasData);
     } catch (err) {
       console.error('❌ Error al obtener cuentas:', err);
       console.error('❌ Detalles del error:', {
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
-        config: err.config
+        config: err.config,
+        code: err.code,
+        name: err.name
       });
       // Extraer solo el mensaje de error
       const errorMessage = err.response?.data?.error || err.message || 'Error desconocido al obtener cuentas';
       setError(errorMessage);
+      setCuentas([]);
     } finally {
       setLoading(false);
     }
@@ -41,7 +57,7 @@ export const useCuentasPagar = () => {
     async (id, data) => {
       try {
         console.log('🔄 Actualizando cuenta:', id, data);
-        await axios.put(`${API_BASE}/api/cuentas-pagar/${id}`, data);
+        await apiClient.put(`/api/cuentas-pagar/${id}`, data);
         await fetchCuentas();
         console.log('✅ Cuenta actualizada exitosamente');
       } catch (err) {
@@ -57,7 +73,7 @@ export const useCuentasPagar = () => {
     async (data) => {
       try {
         console.log('➕ Creando nueva cuenta:', data);
-        await axios.post(`${API_BASE}/api/cuentas-pagar`, data);
+        await apiClient.post('/api/cuentas-pagar', data);
         await fetchCuentas();
         console.log('✅ Cuenta creada exitosamente');
       } catch (err) {
@@ -73,7 +89,7 @@ export const useCuentasPagar = () => {
     async (id) => {
       try {
         console.log('🗑️ Eliminando cuenta:', id);
-        await axios.delete(`${API_BASE}/api/cuentas-pagar/${id}`);
+        await apiClient.delete(`/api/cuentas-pagar/${id}`);
         await fetchCuentas();
         console.log('✅ Cuenta eliminada exitosamente');
       } catch (err) {
@@ -91,7 +107,7 @@ export const useCuentasPagar = () => {
   }, []);
 
   useEffect(() => {
-    console.log('🚀 Hook useCuentasPagar inicializado, API_BASE:', API_BASE);
+    console.log('🚀 Hook useCuentasPagar inicializado');
     fetchCuentas();
   }, [fetchCuentas]);
 

@@ -39,7 +39,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // URL base (variable de entorno)
-const API_URL = 'process.env.REACT_APP_API_URL || "http://localhost:8765"';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8765";
 
 // Componente de transición para el Snackbar
 function SlideTransition(props) {

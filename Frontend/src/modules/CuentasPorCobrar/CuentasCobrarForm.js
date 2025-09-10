@@ -63,7 +63,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const API_BASE = 'https://sigma.runsolutions-services.com/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8765';
 
 const CuentasCobrarForm = () => {
   const [cuentas, setCuentas] = useState([]);
@@ -114,7 +114,7 @@ const CuentasCobrarForm = () => {
   // Obtener cuentas por cobrar y además precargar los complementos para cada cuenta
   const fetchCuentas = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/cuentas-cobrar`);
+      const response = await axios.get('/api/cuentas-cobrar');
       setCuentas(response.data);
       // Prefetch: para cada cuenta, cargar sus complementos
       response.data.forEach(cuenta => {
@@ -133,7 +133,7 @@ const CuentasCobrarForm = () => {
   // Obtener proyectos
   const fetchProyectos = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/projects`);
+      const response = await axios.get('/api/projects');
       setProyectos(response.data);
     } catch (error) {
       console.error('Error al obtener proyectos:', error.response?.data || error.message);
@@ -148,7 +148,7 @@ const CuentasCobrarForm = () => {
   // Obtener los complementos de pago de una cuenta
   const fetchComplementos = async (cuentaId) => {
     try {
-      const response = await axios.get(`${API_BASE}/complementos-pago/${cuentaId}`);
+      const response = await axios.get(`/api/complementos-pago/${cuentaId}`);
       setComplementosByCuenta((prev) => ({
         ...prev,
         [cuentaId]: response.data,
@@ -230,14 +230,14 @@ const CuentasCobrarForm = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`${API_BASE}/cuentas-cobrar/${editingId}`, cuenta);
+        await axios.put(`/api/cuentas-cobrar/${editingId}`, cuenta);
         setSnackbar({
           open: true,
           message: 'Cuenta actualizada exitosamente.',
           severity: 'success',
         });
       } else {
-        await axios.post(`${API_BASE}/cuentas-cobrar`, cuenta);
+        await axios.post('/api/cuentas-cobrar', cuenta);
         setSnackbar({
           open: true,
           message: 'Cuenta registrada exitosamente.',
@@ -269,7 +269,7 @@ const CuentasCobrarForm = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta cuenta por cobrar?')) return;
     try {
-      await axios.delete(`${API_BASE}/cuentas-cobrar/${id}`);
+      await axios.delete(`/api/cuentas-cobrar/${id}`);
       setCuentas(cuentas.filter((c) => c.id !== id));
       setSnackbar({
         open: true,
@@ -361,14 +361,14 @@ const CuentasCobrarForm = () => {
     e.preventDefault();
     try {
       if (isEditingComplement) {
-        await axios.put(`${API_BASE}/complementos-pago/${editingComplementId}`, complemento);
+        await axios.put(`/api/complementos-pago/${editingComplementId}`, complemento);
         setSnackbar({
           open: true,
           message: 'Complemento actualizado exitosamente.',
           severity: 'success',
         });
       } else {
-        await axios.post(`${API_BASE}/complementos-pago/${selectedCuentaId}`, complemento);
+        await axios.post(`/api/complementos-pago/${selectedCuentaId}`, complemento);
         setSnackbar({
           open: true,
           message: 'Complemento agregado exitosamente.',
@@ -391,7 +391,7 @@ const CuentasCobrarForm = () => {
   const handleDeleteComplemento = async (complementoId, cuentaId) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este complemento?')) return;
     try {
-      await axios.delete(`${API_BASE}/complementos-pago/${complementoId}`);
+      await axios.delete(`/api/complementos-pago/${complementoId}`);
       setSnackbar({
         open: true,
         message: 'Complemento eliminado exitosamente.',

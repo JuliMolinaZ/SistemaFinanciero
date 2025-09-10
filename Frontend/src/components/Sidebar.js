@@ -151,6 +151,14 @@ const Sidebar = () => {
       >
         <List>
           {/* Módulos fijos */}
+          <ListItemButton component={LinkBehavior} to="/dashboard-ultra" sx={listItemSx}>
+            <ListItemIcon sx={listItemIconSx}>
+              <span role="img" aria-label="dashboard">📊</span>
+            </ListItemIcon>
+            {!sidebarCollapsed && <ListItemText primary="Dashboard" />}
+          </ListItemButton>
+
+          {/* Enlace a página Home original */}
           <ListItemButton component={LinkBehavior} to="/" sx={listItemSx}>
             <ListItemIcon sx={listItemIconSx}>
               <span role="img" aria-label="inicio">🏠</span>

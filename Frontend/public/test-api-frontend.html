@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 300px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.loading { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de APIs desde Frontend</h1>
+        <p><strong>Frontend:</strong> http://localhost:2103</p>
+        <p><strong>Backend:</strong> http://localhost:8765</p>
+        <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+    </div>
+
+    <div class="container">
+        <h2>🔧 APIs a Probar</h2>
+        <div class="test-section">
+            <h3>Cuentas por Pagar</h3>
+            <button onclick="testCuentasPagar()">Probar API Cuentas por Pagar</button>
+            <span id="cuentas-status" class="status loading">Pendiente</span>
+            <pre id="cuentas-result"></pre>
+        </div>
+
+        <div class="test-section">
+            <h3>Proveedores</h3>
+            <button onclick="testProveedores()">Probar API Proveedores</button>
+            <span id="proveedores-status" class="status loading">Pendiente</span>
+            <pre id="proveedores-result"></pre>
+        </div>
+
+        <div class="test-section">
+            <h3>Categorías</h3>
+            <button onclick="testCategorias()">Probar API Categorías</button>
+            <span id="categorias-status" class="status loading">Pendiente</span>
+            <pre id="categorias-result"></pre>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Completo</h3>
+            <button onclick="testAll()">Probar Todas las APIs</button>
+            <span id="all-status" class="status loading">Pendiente</span>
+            <pre id="all-result"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Configuración
+        const API_BASE = 'http://localhost:8765';
+        
+        // Actualizar timestamp
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+        // Función para hacer requests
+        async function makeRequest(url, resultId, statusId) {
+            const resultElement = document.getElementById(resultId);
+            const statusElement = document.getElementById(statusId);
+            
+            try {
+                statusElement.textContent = 'Cargando...';
+                statusElement.className = 'status loading';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusElement.textContent = '✅ Exitoso';
+                    statusElement.className = 'status success';
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusElement.textContent = `❌ Error ${response.status}`;
+                    statusElement.className = 'status error';
+                    resultElement.textContent = `Error ${response.status}: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                statusElement.textContent = '❌ Error de conexión';
+                statusElement.className = 'status error';
+                resultElement.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Tests individuales
+        async function testCuentasPagar() {
+            await makeRequest(`${API_BASE}/api/cuentas-pagar`, 'cuentas-result', 'cuentas-status');
+        }
+
+        async function testProveedores() {
+            await makeRequest(`${API_BASE}/api/proveedores`, 'proveedores-result', 'proveedores-status');
+        }
+
+        async function testCategorias() {
+            await makeRequest(`${API_BASE}/api/categorias`, 'categorias-result', 'categorias-status');
+        }
+
+        // Test completo
+        async function testAll() {
+            const allResult = document.getElementById('all-result');
+            const allStatus = document.getElementById('all-status');
+            
+            allStatus.textContent = 'Ejecutando...';
+            allStatus.className = 'status loading';
+            
+            const results = {};
+            
+            try {
+                // Test cuentas por pagar
+                const cuentasResponse = await fetch(`${API_BASE}/api/cuentas-pagar`);
+                results.cuentas = {
+                    status: cuentasResponse.status,
+                    ok: cuentasResponse.ok,
+                    data: cuentasResponse.ok ? await cuentasResponse.json() : await cuentasResponse.text()
+                };
+                
+                // Test proveedores
+                const proveedoresResponse = await fetch(`${API_BASE}/api/proveedores`);
+                results.proveedores = {
+                    status: proveedoresResponse.status,
+                    ok: proveedoresResponse.ok,
+                    data: proveedoresResponse.ok ? await proveedoresResponse.json() : await proveedoresResponse.text()
+                };
+                
+                // Test categorías
+                const categoriasResponse = await fetch(`${API_BASE}/api/categorias`);
+                results.categorias = {
+                    status: categoriasResponse.status,
+                    ok: categoriasResponse.ok,
+                    data: categoriasResponse.ok ? await categoriasResponse.json() : await categoriasResponse.text()
+                };
+                
+                const allOk = results.cuentas.ok && results.proveedores.ok && results.categorias.ok;
+                
+                allStatus.textContent = allOk ? '✅ Todas exitosas' : '❌ Algunas fallaron';
+                allStatus.className = allOk ? 'status success' : 'status error';
+                
+                allResult.textContent = JSON.stringify(results, null, 2);
+                
+            } catch (error) {
+                allStatus.textContent = '❌ Error general';
+                allStatus.className = 'status error';
+                allResult.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Auto-ejecutar test completo al cargar
+        window.onload = function() {
+            setTimeout(testAll, 1000);
+        };
+    </script>
+</body>
+</html>

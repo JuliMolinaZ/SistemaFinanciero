@@ -361,8 +361,9 @@ exports.completeUserProfile = async (req, res) => {
     console.log('🔍 Iniciando completado de perfil de usuario...');
     console.log('📝 Datos recibidos:', req.body);
     console.log('📁 Archivos recibidos:', req.files);
+    console.log('🔑 Token de URL:', req.params.token);
     
-    const { token } = req.body;
+    const { token } = req.params;
     const { 
       name, 
       password, 

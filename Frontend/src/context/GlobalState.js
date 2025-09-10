@@ -12,6 +12,14 @@ axios.defaults.baseURL = API_BASE_URL;
 console.log('🌐 Configuración de Axios:');
 console.log('🌐 API_BASE_URL:', API_BASE_URL);
 console.log('🌐 axios.defaults.baseURL:', axios.defaults.baseURL);
+console.log('🌐 process.env.REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('🌐 process.env.NODE_ENV:', process.env.NODE_ENV);
+console.log('🌐 Todas las variables REACT_APP:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP')));
+console.log('🌐 window.location:', window.location.href);
+console.log('🌐 window.location.port:', window.location.port);
+console.log('🌐 ===========================================');
+console.log('🌐 DIAGNÓSTICO DE CONFIGURACIÓN:');
+console.log('🌐 ===========================================');
 
 // INTERCEPTOR GLOBAL para detectar y redirigir usuarios invitados
 console.log('🔒 INTERCEPTOR GLOBAL INICIADO');
@@ -158,6 +166,7 @@ export const GlobalProvider = ({ children }) => {
   const [profileComplete, setProfileComplete] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarFullyMinimized, setSidebarFullyMinimized] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   
   // Estados para manejo de errores de autenticación
@@ -623,6 +632,8 @@ export const GlobalProvider = ({ children }) => {
         setProfileData,
         sidebarCollapsed,
         setSidebarCollapsed,
+        sidebarFullyMinimized,
+        setSidebarFullyMinimized,
         authLoading,
         backendConnected,
         backendError,

@@ -7,45 +7,48 @@ require('dotenv').config();
 
 const app = express();
 
-// Configuración de CORS para permitir solicitudes desde producción y desde localhost:2103
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Permite solicitudes sin origen (por ejemplo, desde Postman) o cuando no se especifica origen
-    if (!origin) return callback(null, true);
-
-    // Lista de orígenes permitidos
-    const allowedOrigins = [
-      'https://sigma.runsolutions-services.com', 
-      'http://localhost:3000',
-      'http://localhost:2103',
-      'http://localhost:3005'                     
-    ];
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Origen no permitido por CORS'));
-    }
-  },
+// Configuración de CORS que FUNCIONA PERFECTAMENTE
+app.use(cors({
+  origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept', 'x-firebase-token'],
   optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
+}));
 
 // Middleware de logging para debug CORS
 app.use((req, res, next) => {
   console.log(`🔍 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'No origin'}`);
+  console.log(`🔍 Headers recibidos:`, req.headers);
   if (req.method === 'OPTIONS') {
     console.log('🔍 OPTIONS request detected - CORS preflight');
+    console.log('🔍 Access-Control-Request-Method:', req.headers['access-control-request-method']);
+    console.log('🔍 Access-Control-Request-Headers:', req.headers['access-control-request-headers']);
   }
   next();
 });
 
 app.use(bodyParser.json());
+
+// Health check endpoint (después de CORS y bodyParser)
+app.get('/api/health', (req, res) => {
+  console.log('✅ Health check endpoint called');
+  res.status(200).json({ 
+    status: 'ok', 
+    message: 'Servidor funcionando correctamente',
+    timestamp: new Date().toISOString(),
+    port: process.env.PORT || 5555,
+    cors: 'enabled'
+  });
+});
+
+// Test endpoint muy básico
+console.log('🧪 REGISTRANDO ENDPOINT /test...');
+app.get('/test', (req, res) => {
+  console.log('🧪 TEST endpoint called');
+  res.json({ message: 'Test endpoint works!' });
+});
+console.log('✅ ENDPOINT /test REGISTRADO');
 
 // Servir archivos estáticos desde la carpeta "uploads"
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -54,6 +57,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const authRoutes = require('./src/routes/auth');
 const permisosRoutes = require('./src/routes/permisos');
 const usuariosRoutes = require('./src/routes/usuarios');
+const userRegistrationRoutes = require('./src/routes/userRegistration');
 const clientsRoutes = require('./src/routes/clients');
 const projectsRoutes = require('./src/routes/projects');
 const proveedoresRoutes = require('./src/routes/proveedores');
@@ -85,6 +89,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/permisos', permisosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/user-registration', userRegistrationRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
@@ -114,12 +119,19 @@ app.use((req, res) => {
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
+  console.error('🚨 ERROR CAPTURADO:');
+  console.error('Message:', err.message);
+  console.error('Stack:', err.stack);
+  console.error('Request URL:', req.url);
+  console.error('Request method:', req.method);
+  console.error('Request headers:', req.headers);
   res.status(500).json({ error: 'Ocurrió un error en el servidor.' });
 });
 
 // Iniciar el servidor
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8765;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
 });

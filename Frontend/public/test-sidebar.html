@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sidebar Ultra - SIGMA</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .feature-description {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        
+        .demo-section {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .demo-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .demo-description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .demo-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .floating-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .floating-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .sidebar-demo {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: left 0.3s ease;
+            z-index: 999;
+            padding: 20px;
+            color: white;
+        }
+        
+        .sidebar-demo.open {
+            left: 0;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .sidebar-logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .close-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón flotante -->
+    <button class="floating-button" onclick="toggleSidebar()">
+        ☰
+    </button>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+    
+    <!-- Sidebar demo -->
+    <div class="sidebar-demo" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">💎</div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.2rem;">SIGMA</h3>
+                    <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">Sistema Integral</p>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeSidebar()">×</button>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li><a href="#"><span>📊</span> Dashboard</a></li>
+            <li><a href="#"><span>👥</span> Usuarios</a></li>
+            <li><a href="#"><span>🏢</span> Clientes</a></li>
+            <li><a href="#"><span>📁</span> Proyectos</a></li>
+            <li><a href="#"><span>💳</span> Cuentas por Pagar</a></li>
+            <li><a href="#"><span>💰</span> Cuentas por Cobrar</a></li>
+            <li><a href="#"><span>📈</span> Contabilidad</a></li>
+            <li><a href="#"><span>🏷️</span> Categorías</a></li>
+            <li><a href="#"><span>👥</span> Proveedores</a></li>
+            <li><a href="#"><span>📄</span> Facturas Emitidas</a></li>
+            <li><a href="#"><span>📋</span> Cotizaciones</a></li>
+            <li><a href="#"><span>📝</span> Requisiciones</a></li>
+            <li><a href="#"><span>📈</span> Recuperación</a></li>
+            <li><a href="#"><span>💵</span> Costos Fijos</a></li>
+            <li><a href="#"><span>⏱️</span> Fases</a></li>
+            <li><a href="#"><span>🔄</span> Flow Recovery V2</a></li>
+        </ul>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Sidebar Ultra - SIGMA</h1>
+            <p>Nuevo sistema de sidebar con minimización completa y botón flotante</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-title">Minimización Completa</div>
+                <div class="feature-description">
+                    El sidebar se desvanece completamente cuando se minimiza, liberando todo el espacio de la pantalla para el contenido principal.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <div class="feature-title">Botón Flotante Elegante</div>
+                <div class="feature-description">
+                    Un botón flotante súper bonito con gradientes y animaciones suaves para abrir el sidebar cuando esté minimizado.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <div class="feature-title">Responsive Design</div>
+                <div class="feature-description">
+                    Funciona perfectamente en desktop y móvil, adaptándose automáticamente al tamaño de la pantalla.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">UI Ultra Moderna</div>
+                <div class="feature-description">
+                    Diseño con gradientes, efectos de blur, animaciones fluidas y una experiencia visual espectacular.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Animaciones Suaves</div>
+                <div class="feature-description">
+                    Transiciones fluidas con Framer Motion para una experiencia de usuario excepcional.
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Sistema de Permisos</div>
+                <div class="feature-description">
+                    Integrado con el sistema de permisos existente, mostrando solo los módulos disponibles para cada usuario.
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">🎉 ¡Pruébalo Ahora!</div>
+            <div class="demo-description">
+                Haz clic en el botón flotante en la esquina superior izquierda para ver el sidebar en acción.
+                <br>También puedes probar la versión completa en la aplicación principal.
+            </div>
+            <a href="http://localhost:2103" class="demo-button">
+                🚀 Ir a la Aplicación Principal
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const button = document.querySelector('.floating-button');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+            
+            // Cambiar el icono del botón
+            if (sidebar.classList.contains('open')) {
+                button.innerHTML = '×';
+            } else {
+                button.innerHTML = '☰';
+            }
+        }
+        
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const button = document.querySelector('.floating-button');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+            button.innerHTML = '☰';
+        }
+        
+        // Cerrar sidebar con tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+    </script>
+</body>
+</html>

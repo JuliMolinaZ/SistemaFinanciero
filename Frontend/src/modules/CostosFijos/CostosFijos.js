@@ -430,7 +430,7 @@ const CostosFijos = () => {
   const fetchCostosFijos = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/costos-fijos', {
+      const response = await axios.get('/api/costos-fijos', {
         params: { mes: mesFiltro },
       });
       const costos = response.data.map((costo) => ({
@@ -476,7 +476,7 @@ const CostosFijos = () => {
     const impuestos_imss = monto_mxn * 0.35;
     try {
       if (isEditing) {
-        await axios.put(`https://sigma.runsolutions-services.com/api/costos-fijos/${editingCostoId}`, {
+        await axios.put(`/api/costos-fijos/${editingCostoId}`, {
           ...formData,
           monto_usd,
           monto_mxn,
@@ -484,7 +484,7 @@ const CostosFijos = () => {
         });
         setSnackbar({ open: true, message: 'Costo fijo actualizado exitosamente.', severity: 'success' });
       } else {
-        await axios.post('https://sigma.runsolutions-services.com/api/costos-fijos', {
+        await axios.post('/api/costos-fijos', {
           ...formData,
           monto_usd,
           monto_mxn,
@@ -504,7 +504,7 @@ const CostosFijos = () => {
     const confirmDelete = window.confirm('¿Estás seguro de que quieres eliminar este costo fijo?');
     if (!confirmDelete) return;
     try {
-      await axios.delete(`https://sigma.runsolutions-services.com/api/costos-fijos/${id}`);
+      await axios.delete(`/api/costos-fijos/${id}`);
       setCostosFijos(prev => prev.filter(costo => costo.id !== id));
       setSnackbar({ open: true, message: 'Costo fijo eliminado exitosamente.', severity: 'success' });
     } catch (error) {
@@ -528,7 +528,7 @@ const CostosFijos = () => {
 
   const handleEnviarACuenta = async (costo) => {
     try {
-      const response = await axios.post(`https://sigma.runsolutions-services.com/api/costos-fijos/${costo.id}/enviar`);
+      const response = await axios.post(`/api/costos-fijos/${costo.id}/enviar`);
       setSnackbar({ open: true, message: response.data.message, severity: 'success' });
       // Actualizar el estado local para marcar este costo como enviado (para información visual)
       setCostosFijos(costosFijos.map(item => item.id === costo.id ? { ...item, cuenta_creada: 1 } : item));

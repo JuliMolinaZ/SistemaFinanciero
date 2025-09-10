@@ -11,7 +11,7 @@ const PhasesModule = () => {
 
   const fetchPhases = async () => {
     try {
-      const response = await axios.get('https://sigma.runsolutions-services.com/api/phases');
+      const response = await axios.get('/api/phases');
       setPhases(response.data);
     } catch (error) {
       console.error('Error al obtener fases:', error);

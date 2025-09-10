@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import axios from 'axios';
 
-const API_URL = 'process.env.REACT_APP_API_URL || "http://localhost:8765"';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8765";
 
 export const useProfileCompletion = (userEmail) => {
   const [userData, setUserData] = useState(null);

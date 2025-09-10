@@ -208,30 +208,70 @@ exports.getCuentaPagarById = async (req, res) => {
 // Crear una nueva cuenta por pagar
 exports.createCuentaPagar = async (req, res) => {
   try {
+    console.log("🔍 createCuentaPagar: Datos recibidos:", req.body);
+    
     const {
+      // Información básica
       concepto,
+      descripcion,
       monto_neto,
       monto_con_iva,
       requiere_iva,
       categoria,
+      subcategoria,
+      
+      // Información de proveedor
       proveedor_id,
+      
+      // Fechas
       fecha,
+      fecha_vencimiento,
+      fecha_pago_esperado,
+      
+      // Estado y pagos
       pagado,
-      pagos_parciales,
       autorizado,
+      prioridad,
+      estado,
+      
+      // Montos de pago
       monto_transferencia,
-      monto_efectivo
+      monto_efectivo,
+      pagos_parciales,
+      
+      // Documentos
+      factura_numero,
+      factura_fecha,
+      orden_compra,
+      cotizacion_numero,
+      
+      // Notas y observaciones
+      notas,
+      observaciones,
+      tags
     } = req.body;
+
+    // Validaciones básicas
+    if (!concepto || !monto_con_iva || !fecha) {
+      return res.status(400).json({ 
+        error: 'Los campos concepto, monto_con_iva y fecha son obligatorios' 
+      });
+    }
 
     const cuentaPagar = await prisma.cuentaPagar.create({
       data: {
+        // Información básica
         concepto: concepto?.trim(),
         monto_neto: parseFloat(monto_neto) || 0,
         monto_con_iva: parseFloat(monto_con_iva) || 0,
         requiere_iva: requiere_iva || false,
         categoria: categoria?.trim(),
         proveedor_id: proveedor_id ? parseInt(proveedor_id) : null,
+        
+        // Fechas
         fecha: fecha ? new Date(fecha) : new Date(),
+        
+        // Estado y pagos
         pagado: pagado || false,
         pagos_parciales: parseFloat(pagos_parciales) || 0,
         autorizado: autorizado || false,
@@ -241,10 +281,36 @@ exports.createCuentaPagar = async (req, res) => {
     });
 
     console.log("✅ createCuentaPagar: Cuenta creada con ID:", cuentaPagar.id);
-    res.status(201).json(cuentaPagar);
+    
+    // Incluir información del proveedor en la respuesta
+    const cuentaConProveedor = await prisma.cuentaPagar.findUnique({
+      where: { id: cuentaPagar.id },
+      include: {
+        provider: {
+          select: {
+            id: true,
+            nombre: true,
+            run_proveedor: true,
+            direccion: true,
+            elemento: true,
+            datos_bancarios: true,
+            contacto: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Cuenta por pagar creada exitosamente',
+      data: cuentaConProveedor
+    });
   } catch (error) {
     console.error("❌ Error al crear cuenta por pagar:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 };
 

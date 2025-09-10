@@ -1,9 +1,9 @@
 // controllers/phaseController.js
-const prisma = require('../config/database');
+const { prisma } = require('../config/database');
 
 exports.getAllPhases = async (req, res) => {
   try {
-    const phases = await prisma.phase.findMany({
+    const phases = await prisma.Phase.findMany({
       orderBy: { created_at: 'desc' }
     });
     res.json(phases);
@@ -15,7 +15,7 @@ exports.getAllPhases = async (req, res) => {
 exports.createPhase = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
-    const phase = await prisma.phase.create({
+    const phase = await prisma.Phase.create({
       data: {
         nombre,
         descripcion
@@ -32,7 +32,7 @@ exports.updatePhase = async (req, res) => {
     const { id } = req.params;
     const { nombre, descripcion } = req.body;
     
-    const phase = await prisma.phase.update({
+    const phase = await prisma.Phase.update({
       where: { id: parseInt(id) },
       data: {
         nombre,
@@ -48,7 +48,7 @@ exports.updatePhase = async (req, res) => {
 exports.deletePhase = async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.phase.delete({
+    await prisma.Phase.delete({
       where: { id: parseInt(id) }
     });
     res.json({ message: 'Fase eliminada exitosamente' });

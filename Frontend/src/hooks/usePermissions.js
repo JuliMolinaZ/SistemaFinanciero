@@ -27,40 +27,18 @@ export const usePermissions = () => {
       
       // Usar el nuevo endpoint que funciona con Firebase UID
       if (profileData && profileData.firebase_uid) {
-        try {
-          const response = await axios.get(`${API_URL}/api/role-management/user/firebase/${profileData.firebase_uid}/permissions`);
-          
-          if (response.data.success) {
-            console.log('✅ Permisos cargados desde role-management por Firebase UID');
-            console.log('🔍 Datos recibidos:', response.data.data);
-            
-            // Los permisos del backend ya vienen como objeto, los usamos directamente
-            const backendPermissions = response.data.data.permissions;
-            
-            setPermissions(backendPermissions);
-            setIsSuperAdmin(response.data.data.isSuperAdmin);
-            console.log('✅ Permisos cargados correctamente:', Object.keys(backendPermissions).length, 'módulos');
-            return;
-          }
-        } catch (roleError) {
-          console.log('⚠️ No se pudieron cargar permisos desde role-management por Firebase UID:', roleError.message);
-        }
+        // Usar permisos por defecto basados en el rol del usuario
+        // El endpoint de role-management no está implementado aún
       }
       
-      // Fallback: usar permisos por defecto basados en el rol del usuario
+      // Usar permisos por defecto basados en el rol del usuario
       if (profileData && profileData.role) {
-        console.log('🔍 Usuario actual:', profileData);
-        console.log('🔍 Rol del usuario:', profileData.role);
-        console.log('🔍 Tipo de rol:', typeof profileData.role);
-        
         const defaultPermissions = getDefaultPermissionsByRole(profileData.role);
-        console.log('🔍 Permisos obtenidos:', defaultPermissions);
-        
         setPermissions(defaultPermissions);
         setIsSuperAdmin(profileData.role === 'Super Administrador');
-        console.log('✅ Permisos por defecto cargados para rol:', profileData.role);
+        console.log('✅ Permisos cargados para rol:', profileData.role);
       } else {
-        console.log('⚠️ No se pudo obtener rol del usuario:', profileData);
+        console.log('⚠️ No se pudo obtener rol del usuario');
       }
       
     } catch (error) {
