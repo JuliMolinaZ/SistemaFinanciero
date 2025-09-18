@@ -1,0 +1,77 @@
+/* 🎛️ BUTTON GROUP - ESTILOS COMPACTOS */
+/* ==================================== */
+
+/* Base del grupo */
+.button-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* Espaciado */
+.button-group--spacing-xs {
+  gap: 4px;
+}
+
+.button-group--spacing-sm {
+  gap: 6px;
+}
+
+.button-group--spacing-md {
+  gap: 8px;
+}
+
+/* Alineación */
+.button-group--align-start {
+  justify-content: flex-start;
+}
+
+.button-group--align-center {
+  justify-content: center;
+}
+
+.button-group--align-end {
+  justify-content: flex-end;
+}
+
+/* Especializado para tablas */
+.table-button-group {
+  min-width: 140px; /* Espacio fijo para 4 botones */
+  padding: 4px 0;
+}
+
+/* Ajustes para botones dentro del grupo */
+.button-group .button-base {
+  flex-shrink: 0;
+}
+
+/* Estados de focus en grupo */
+.button-group .button-base:focus-visible {
+  z-index: 2;
+}
+
+/* Botón de eliminar menos prominente */
+.table-action-delete {
+  color: var(--enterprise-text-secondary) !important;
+}
+
+.table-action-delete:hover:not(.button-disabled) {
+  color: var(--enterprise-danger) !important;
+  background-color: var(--enterprise-danger-bg) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table-button-group {
+    min-width: 120px;
+    gap: 2px;
+  }
+  
+  .button-group--spacing-xs {
+    gap: 2px;
+  }
+  
+  .button-group--spacing-sm {
+    gap: 4px;
+  }
+}

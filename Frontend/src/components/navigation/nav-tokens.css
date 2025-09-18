@@ -1,0 +1,291 @@
+/* 🎨 TOKENS PROFESIONALES - PALETA ENTERPRISE */
+/* ============================================= */
+
+:root[data-theme="light"] {
+  /* Superficie y fondo */
+  --nav-bg: hsl(0 0% 100%);
+  --nav-surface: hsl(210 20% 98%);
+  
+  /* Tipografía - jerarquía clara */
+  --nav-text-primary: hsl(222 47% 11%);     /* Contraste 15.8:1 */
+  --nav-text-muted: hsl(220 14% 46%);      /* Contraste 7.1:1 */
+  
+  /* Iconografía - un solo acento primario */
+  --nav-icon-active: hsl(221 83% 53%);     /* #3B82F6 - Azul profesional */
+  --nav-icon-muted: hsl(220 14% 46%);      /* Consistente con texto */
+  
+  /* Badges - contraste AA garantizado */
+  --nav-badge-bg: hsl(221 83% 53%);        /* Mismo azul primario */
+  --nav-badge-text: hsl(0 0% 100%);        /* Blanco puro */
+  
+  /* Estados e indicadores */
+  --nav-indicator: hsl(221 83% 53%);       /* Consistente con primario */
+  --nav-ring: hsl(221 83% 64%);            /* Focus ring más suave */
+  --nav-hover-bg: hsl(210 20% 96%);        /* Hover sutil */
+}
+
+:root[data-theme="dark"] {
+  /* Superficie y fondo */
+  --nav-bg: hsl(222 47% 7%);
+  --nav-surface: hsl(222 47% 9%);
+  
+  /* Tipografía - jerarquía clara */
+  --nav-text-primary: hsl(210 40% 98%);    /* Contraste 14.8:1 */
+  --nav-text-muted: hsl(215 20% 65%);      /* Contraste 5.2:1 */
+  
+  /* Iconografía - un solo acento primario */
+  --nav-icon-active: hsl(221 83% 64%);     /* #60A5FA - Más claro para tema oscuro */
+  --nav-icon-muted: hsl(215 20% 65%);      /* Consistente con texto */
+  
+  /* Badges - contraste AA garantizado */
+  --nav-badge-bg: hsl(221 83% 53%);        /* Mismo azul primario */
+  --nav-badge-text: hsl(0 0% 100%);        /* Blanco puro */
+  
+  /* Estados e indicadores */
+  --nav-indicator: hsl(221 83% 64%);       /* Consistente con icono activo */
+  --nav-ring: hsl(221 83% 64%);            /* Focus ring */
+  --nav-hover-bg: hsl(222 47% 9%);         /* Hover sutil */
+}
+
+/* 🎯 GRID SYSTEM 8PT - ESPACIADO CONSISTENTE */
+:root {
+  --nav-spacing-1: 8px;    /* 1 unidad */
+  --nav-spacing-2: 16px;   /* 2 unidades */
+  --nav-spacing-3: 24px;   /* 3 unidades */
+  --nav-spacing-4: 32px;   /* 4 unidades */
+  --nav-spacing-6: 48px;   /* 6 unidades */
+}
+
+/* 🔤 TIPOGRAFÍA PROFESIONAL */
+:root {
+  --nav-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --nav-font-size-label: 14px;
+  --nav-font-size-badge: 12px;
+  --nav-font-weight-medium: 500;
+  --nav-font-weight-semibold: 600;
+  --nav-letter-spacing: -0.01em;
+  --nav-line-height: 1.2;
+}
+
+/* 🎭 MICRO-INTERACCIONES */
+:root {
+  --nav-transition-fast: 150ms ease-out;
+  --nav-transition-medium: 200ms ease-out;
+  --nav-transition-slow: 250ms ease-out;
+}
+
+/* 📐 DIMENSIONES PROFESIONALES */
+:root {
+  --nav-icon-size: 20px;
+  --nav-icon-container: 24px;
+  --nav-badge-min-size: 20px;
+  --nav-badge-padding: 6px;
+  --nav-indicator-height: 2px;
+  --nav-hit-target-min: 40px;
+  --nav-border-radius-sm: 6px;
+  --nav-border-radius-full: 9999px;
+}
+
+/* 🎨 COMPONENTES PROFESIONALES */
+/* ============================= */
+
+/* Contenedor principal */
+.nav-container {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--nav-spacing-3); /* 24px - grid 8pt */
+  font-family: var(--nav-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tab individual - Base */
+.nav-tab {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--nav-spacing-1); /* 8px - grid 8pt */
+  
+  /* Espaciado profesional */
+  padding: var(--nav-spacing-2) var(--nav-spacing-2); /* 16px - grid 8pt */
+  min-height: var(--nav-hit-target-min);
+  min-width: var(--nav-hit-target-min);
+  
+  /* Tipografía */
+  font-family: var(--nav-font-family);
+  text-decoration: none;
+  letter-spacing: var(--nav-letter-spacing);
+  
+  /* Estados base */
+  color: var(--nav-text-muted);
+  border-radius: var(--nav-border-radius-sm);
+  
+  /* Transiciones profesionales */
+  transition: 
+    color var(--nav-transition-fast),
+    background-color var(--nav-transition-fast),
+    transform var(--nav-transition-fast);
+  
+  /* Focus profesional */
+  outline: none;
+}
+
+/* Estados de interacción */
+.nav-tab:hover:not(.nav-tab--disabled) {
+  color: var(--nav-text-primary);
+  background-color: var(--nav-hover-bg);
+  transform: translateY(-1px);
+}
+
+.nav-tab:focus-visible {
+  outline: 2px solid var(--nav-ring);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+/* Estado activo */
+.nav-tab--active {
+  color: var(--nav-text-primary);
+}
+
+/* Estado deshabilitado */
+.nav-tab--disabled {
+  color: var(--nav-text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Contenedor de icono con espacio fijo */
+.nav-tab__icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--nav-icon-container);
+  height: var(--nav-icon-container);
+  flex-shrink: 0; /* Evita colapso con/sin badge */
+}
+
+/* Icono profesional */
+.nav-tab__icon {
+  color: var(--nav-icon-muted);
+  transition: color var(--nav-transition-fast);
+}
+
+.nav-tab--active .nav-tab__icon {
+  color: var(--nav-icon-active);
+}
+
+.nav-tab:hover:not(.nav-tab--disabled) .nav-tab__icon {
+  color: var(--nav-icon-active);
+}
+
+/* Badge pill profesional */
+.nav-tab__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  
+  /* Dimensiones profesionales */
+  min-width: var(--nav-badge-min-size);
+  height: var(--nav-badge-min-size);
+  padding: 0 var(--nav-badge-padding);
+  
+  /* Tipografía */
+  font-size: var(--nav-font-size-badge);
+  font-weight: var(--nav-font-weight-semibold);
+  line-height: var(--nav-line-height);
+  
+  /* Colores profesionales */
+  background-color: var(--nav-badge-bg);
+  color: var(--nav-badge-text);
+  
+  /* Forma y posicionamiento */
+  border-radius: var(--nav-border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Micro-interacción */
+  transform: translate(2px, -2px);
+  transition: transform var(--nav-transition-fast);
+  
+  /* Evita interferir con el icono */
+  pointer-events: none;
+}
+
+/* Label profesional */
+.nav-tab__label {
+  font-size: var(--nav-font-size-label);
+  font-weight: var(--nav-font-weight-medium);
+  line-height: var(--nav-line-height);
+  white-space: nowrap;
+  transition: font-weight var(--nav-transition-fast);
+}
+
+.nav-tab--active .nav-tab__label {
+  font-weight: var(--nav-font-weight-semibold);
+}
+
+/* Indicador activo profesional */
+.nav-tab__indicator {
+  position: absolute;
+  bottom: 0;
+  left: var(--nav-spacing-2);
+  right: var(--nav-spacing-2);
+  height: var(--nav-indicator-height);
+  background-color: var(--nav-indicator);
+  border-radius: var(--nav-border-radius-full);
+  
+  /* Animación de entrada */
+  animation: nav-indicator-enter var(--nav-transition-medium) ease-out;
+}
+
+@keyframes nav-indicator-enter {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* 📱 RESPONSIVE PROFESIONAL */
+@media (max-width: 768px) {
+  .nav-container {
+    gap: var(--nav-spacing-2); /* 16px en móvil */
+  }
+  
+  .nav-tab {
+    padding: var(--nav-spacing-1) var(--nav-spacing-1); /* 8px en móvil */
+  }
+  
+  .nav-tab__label {
+    font-size: 13px; /* Ligeramente más pequeño en móvil */
+  }
+}
+
+/* ♿ ACCESIBILIDAD PROFESIONAL */
+@media (prefers-reduced-motion: reduce) {
+  .nav-tab,
+  .nav-tab__icon,
+  .nav-tab__badge,
+  .nav-tab__label {
+    transition: none;
+  }
+  
+  .nav-tab__indicator {
+    animation: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .nav-tab--active {
+    outline: 2px solid var(--nav-icon-active);
+    outline-offset: -2px;
+  }
+}

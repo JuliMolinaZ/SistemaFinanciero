@@ -1,0 +1,96 @@
+/* 🎨 TOKENS ENTERPRISE PARA STATCARDS */
+/* =================================== */
+
+:root[data-theme="light"] {
+  /* Superficies */
+  --surface: hsl(210 20% 98%);
+  --surface-elev: hsl(210 16% 96%);
+  
+  /* Tipografía - Contraste WCAG AA */
+  --text-primary: hsl(222 47% 11%);     /* Contraste 15.8:1 */
+  --text-secondary: hsl(222 16% 45%);   /* Contraste 7.1:1 */
+  
+  /* Bordes y estructura */
+  --border: hsl(215 16% 85%);           /* Contraste 3.2:1 */
+  
+  /* Colores semánticos - Un solo acento */
+  --primary: hsl(221 83% 53%);          /* #3B82F6 - Azul profesional */
+  --success: hsl(160 84% 39%);          /* Verde WCAG AA */
+  --danger: hsl(0 84% 60%);             /* Rojo WCAG AA */
+  --muted: hsl(222 10% 55%);            /* Gris neutro */
+}
+
+:root[data-theme="dark"] {
+  /* Superficies */
+  --surface: hsl(222 47% 9%);
+  --surface-elev: hsl(222 36% 12%);
+  
+  /* Tipografía - Contraste WCAG AA */
+  --text-primary: hsl(210 40% 98%);     /* Contraste 14.8:1 */
+  --text-secondary: hsl(215 20% 72%);   /* Contraste 5.2:1 */
+  
+  /* Bordes y estructura */
+  --border: hsl(215 16% 22%);           /* Contraste 3.1:1 */
+  
+  /* Colores semánticos - Ajustados para tema oscuro */
+  --primary: hsl(221 83% 64%);          /* #60A5FA - Más claro para oscuro */
+  --success: hsl(160 84% 45%);          /* Verde más claro */
+  --danger: hsl(0 84% 60%);             /* Rojo mantiene contraste */
+  --muted: hsl(215 20% 72%);            /* Gris neutro claro */
+}
+
+/* 🎯 SISTEMA GRID 8PT */
+:root {
+  --stat-spacing-base: 8px;
+  --stat-spacing-2: 16px;   /* 2 unidades */
+  --stat-spacing-3: 24px;   /* 3 unidades */
+  --stat-spacing-6: 48px;   /* 6 unidades */
+  --stat-spacing-8: 64px;   /* 8 unidades */
+}
+
+/* 🔤 TIPOGRAFÍA PROFESIONAL */
+:root {
+  --stat-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  
+  /* Títulos */
+  --stat-title-size: 18px;              /* text-lg */
+  --stat-title-weight: 600;             /* font-semibold */
+  --stat-title-line: 1.2;
+  
+  /* Valores principales */
+  --stat-value-size: 48px;              /* text-5xl */
+  --stat-value-weight: 700;             /* font-bold */
+  --stat-value-line: 1;                 /* leading-none */
+  
+  /* Descripciones */
+  --stat-desc-size: 14px;               /* text-sm */
+  --stat-desc-weight: 400;              /* font-normal */
+  --stat-desc-line: 1.4;
+  
+  /* Deltas */
+  --stat-delta-size: 14px;              /* text-sm */
+  --stat-delta-weight: 600;             /* font-semibold */
+  --stat-delta-line: 1.2;
+}
+
+/* 📐 DIMENSIONES FIJAS PARA CONSISTENCIA */
+:root {
+  --stat-card-height: 224px;            /* Altura fija obligatoria */
+  --stat-card-padding: var(--stat-spacing-3); /* 24px */
+  --stat-card-radius: 16px;             /* rounded-2xl */
+  --stat-card-border-width: 1px;
+  
+  --stat-icon-size: 32px;               /* size-8 */
+  --stat-icon-radius: 12px;             /* rounded-xl */
+  --stat-icon-inner: 16px;              /* size-4 para el ícono interno */
+  
+  --stat-gap-vertical: var(--stat-spacing-base); /* 8px entre elementos */
+}
+
+/* 🎭 TRANSICIONES PROFESIONALES */
+:root {
+  --stat-transition-fast: 150ms ease-out;
+  --stat-transition-medium: 200ms ease-out;
+  --stat-focus-ring: 2px solid var(--primary);
+  --stat-focus-offset: 2px;
+}

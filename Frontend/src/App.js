@@ -21,6 +21,7 @@ import SidebarNew from './components/SidebarNew';
 
 import ClientModule from './modules/Clientes/ClientModule';
 import ProyectosForm from './modules/Proyectos/ProyectosForm';
+import ProjectManagementMain from './modules/ProjectManagement/ProjectManagementMain';
 import ProveedoresForm from './modules/Proveedores/ProveedoresForm';
 import CuentasPagarMain from './modules/CuentasPorPagar/CuentasPagarMain';
 import CuentasCobrarMain from './modules/CuentasPorCobrar/CuentasCobrarMain';
@@ -149,6 +150,22 @@ function AppContent() {
                   element={
                     <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="proyectos">
                       <ProyectosForm />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/project-management"
+                  element={
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm', 'dev']} moduleName="project_management">
+                      <ProjectManagementMain />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/projects/new"
+                  element={
+                    <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm', 'dev']} moduleName="project_management">
+                      <ProjectManagementMain />
                     </PrivateRoute>
                   }
                 />

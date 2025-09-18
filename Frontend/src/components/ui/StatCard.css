@@ -1,0 +1,305 @@
+/* 📊 STATCARD ENTERPRISE - ESTILOS PROFESIONALES */
+/* =============================================== */
+
+/* 🎨 TOKENS CSS INTEGRADOS */
+:root[data-theme="light"] {
+  --stat-surface: hsl(210 20% 98%);
+  --stat-surface-elev: hsl(210 16% 96%);
+  --stat-text-primary: hsl(222 47% 11%);
+  --stat-text-secondary: hsl(222 16% 45%);
+  --stat-border: hsl(215 16% 85%);
+  --stat-primary: hsl(221 83% 53%);
+  --stat-success: hsl(160 84% 39%);
+  --stat-danger: hsl(0 84% 60%);
+  --stat-muted: hsl(222 10% 55%);
+}
+
+:root[data-theme="dark"] {
+  --stat-surface: hsl(222 47% 9%);
+  --stat-surface-elev: hsl(222 36% 12%);
+  --stat-text-primary: hsl(210 40% 98%);
+  --stat-text-secondary: hsl(215 20% 72%);
+  --stat-border: hsl(215 16% 22%);
+  --stat-primary: hsl(221 83% 64%);
+  --stat-success: hsl(160 84% 45%);
+  --stat-danger: hsl(0 84% 60%);
+  --stat-muted: hsl(215 20% 72%);
+}
+
+/* 🏗️ COMPONENTE PRINCIPAL */
+.stat-card-enterprise {
+  /* Estructura y tamaño */
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 224px;
+  min-height: 224px;
+  
+  /* Apariencia */
+  background: var(--stat-surface);
+  border: 1px solid var(--stat-border);
+  border-radius: 16px;
+  padding: 24px;
+  
+  /* Tipografía */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Transiciones */
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.stat-card-enterprise:focus-visible {
+  outline: 2px solid var(--stat-primary);
+  outline-offset: 2px;
+}
+
+/* 📋 HEADER */
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.stat-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--stat-text-primary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.stat-card-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--stat-surface-elev);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.stat-card-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--stat-muted);
+}
+
+/* 📊 BODY */
+.stat-card-body {
+  display: flex;
+  align-items: flex-end;
+  flex: 1;
+}
+
+.stat-card-value {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--stat-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 🔗 FOOTER */
+.stat-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.stat-card-delta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.stat-card-delta--up {
+  color: var(--stat-success);
+}
+
+.stat-card-delta--down {
+  color: var(--stat-danger);
+}
+
+.stat-card-delta--flat {
+  color: var(--stat-text-secondary);
+}
+
+.stat-card-delta-text {
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card-note {
+  color: var(--stat-text-secondary);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.stat-card-footer-label {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--stat-text-secondary);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 768px) {
+  .stat-card-enterprise {
+    padding: 20px;
+    height: 200px;
+    min-height: 200px;
+  }
+  
+  .stat-card-value {
+    font-size: 40px;
+  }
+  
+  .stat-card-title {
+    font-size: 16px;
+  }
+}
+
+/* ♿ ACCESIBILIDAD */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card-enterprise {
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .stat-card-enterprise {
+    border-width: 2px;
+  }
+}
+
+.stat-card__delta.text-danger {
+  color: var(--danger);
+}
+
+.stat-card__delta.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+/* 💀 ESTADO DE LOADING */
+.stat-card--loading {
+  cursor: default;
+  pointer-events: none;
+}
+
+.stat-card__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stat-card__skeleton-title {
+  height: 14px;
+  width: 60%;
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+.stat-card__skeleton-value {
+  height: 32px;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+.stat-card__skeleton-delta {
+  height: 12px;
+  width: 80%;
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 640px) {
+  .stat-card {
+    padding: var(--space-4);
+  }
+  
+  .stat-card__value {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .stat-card__header {
+    margin-bottom: var(--space-3);
+  }
+}
+
+/* 🎯 ESTADOS DE FOCUS MEJORADOS */
+.stat-card--clickable:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-color: var(--ring);
+}
+
+/* 🌙 TEMA OSCURO - AJUSTES ADICIONALES */
+[data-theme="dark"] .stat-card {
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .stat-card--clickable:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+/* ♿ ACCESIBILIDAD */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card {
+    transition: none;
+  }
+  
+  .stat-card--clickable:hover {
+    transform: none;
+  }
+  
+  .stat-card__skeleton-title,
+  .stat-card__skeleton-value,
+  .stat-card__skeleton-delta {
+    animation: none;
+    background: var(--surface-2);
+  }
+}

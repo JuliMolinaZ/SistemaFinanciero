@@ -64,46 +64,37 @@ const StyledContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(3),
   paddingBottom: theme.spacing(3),
   minHeight: '100vh',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  position: 'relative',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-    pointerEvents: 'none'
-  }
+  background: 'var(--surface)',
+  position: 'relative'
 }));
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  background: 'rgba(255,255,255,0.95)',
-  backdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.3)',
+  background: 'var(--surface-2)',
+  border: '1px solid var(--border)',
   borderRadius: 16,
-  boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-  transition: 'all 0.3s ease',
+  boxShadow: 'var(--shadow-md)',
+  color: 'var(--text-primary)',
+  transition: 'var(--transition-fast)',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(0,0,0,0.15)'
+    transform: 'translateY(-2px)',
+    boxShadow: 'var(--shadow-lg)'
   }
 }));
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   borderRadius: 16,
   overflow: 'hidden',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-  background: 'rgba(255,255,255,0.98)',
-  backdropFilter: 'blur(20px)'
+  boxShadow: 'var(--shadow-md)',
+  background: 'var(--surface-2)',
+  border: '1px solid var(--border)'
 }));
 
 const StyledTable = styled(Table)(({ theme }) => ({
   '& .MuiTableHead-root': {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'var(--surface-3)',
+    borderBottom: '1px solid var(--border)',
     '& .MuiTableCell-head': {
-      color: '#fff',
+      color: 'var(--text-primary)',
       fontWeight: 700,
       fontSize: '0.875rem',
       textTransform: 'uppercase',
@@ -114,19 +105,21 @@ const StyledTable = styled(Table)(({ theme }) => ({
   },
   '& .MuiTableBody-root': {
     '& .MuiTableRow-root': {
-      transition: 'all 0.2s ease',
+      transition: 'var(--transition-fast)',
+      color: 'var(--text-primary)',
       '&:hover': {
-        background: 'rgba(102, 126, 234, 0.05)',
+        background: 'var(--surface-3)',
         transform: 'scale(1.01)'
       },
       '&:nth-of-type(even)': {
-        background: 'rgba(0,0,0,0.02)'
+        background: 'var(--surface)'
       }
     },
     '& .MuiTableCell-body': {
-      borderBottom: '1px solid rgba(0,0,0,0.05)',
+      borderBottom: '1px solid var(--divider)',
       padding: theme.spacing(2),
-      fontSize: '0.875rem'
+      fontSize: '0.875rem',
+      color: 'var(--text-primary)'
     }
   }
 }));
@@ -134,18 +127,19 @@ const StyledTable = styled(Table)(({ theme }) => ({
 const StyledSearchField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: 12,
-    background: 'rgba(255,255,255,0.9)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.3)',
-    transition: 'all 0.3s ease',
+    background: 'var(--surface-3)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
+    transition: 'var(--transition-fast)',
+    '& input::placeholder': {
+      color: 'var(--text-secondary)'
+    },
     '&:hover': {
-      background: 'rgba(255,255,255,0.95)',
-      borderColor: 'rgba(102, 126, 234, 0.5)'
+      borderColor: 'var(--primary)'
     },
     '&.Mui-focused': {
-      background: 'rgba(255,255,255,1)',
-      borderColor: '#667eea',
-      boxShadow: '0 0 0 3px rgba(102, 126, 234, 0.1)'
+      borderColor: 'var(--primary)',
+      boxShadow: '0 0 0 2px var(--primary), 0 0 0 4px var(--surface)'
     }
   }
 }));
@@ -153,45 +147,44 @@ const StyledSearchField = styled(TextField)(({ theme }) => ({
 const StyledSelect = styled(FormControl)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: 12,
-    background: 'rgba(255,255,255,0.9)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.3)',
-    transition: 'all 0.3s ease',
+    background: 'var(--surface-3)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
+    transition: 'var(--transition-fast)',
     '&:hover': {
-      background: 'rgba(255,255,255,0.95)',
-      borderColor: 'rgba(102, 126, 234, 0.5)'
+      borderColor: 'var(--primary)'
     },
     '&.Mui-focused': {
-      background: 'rgba(255,255,255,1)',
-      borderColor: '#667eea',
-      boxShadow: '0 0 0 3px rgba(102, 126, 234, 0.1)'
+      borderColor: 'var(--primary)',
+      boxShadow: '0 0 0 2px var(--primary), 0 0 0 4px var(--surface)'
     }
   }
 }));
 
 const StyledChip = styled(Chip)(({ theme, status }) => ({
-  borderRadius: 8,
-  fontWeight: 600,
+  borderRadius: 20,
+  fontWeight: 500,
   fontSize: '0.75rem',
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-  background: status === 'active' 
-    ? 'linear-gradient(135deg, #27ae60, #2ecc71)' 
-    : 'linear-gradient(135deg, #e74c3c, #c0392b)',
-  color: '#fff',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+  height: '1.5rem',
+  background: 'var(--surface-3)',
+  border: '1px solid var(--border)',
+  color: status === 'active' ? 'var(--success)' : 'var(--danger)',
+  boxShadow: 'none',
   '&:hover': {
-    transform: 'translateY(-1px)',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+    background: 'var(--surface-2)'
+  },
+  '& .MuiChip-label': {
+    color: 'inherit'
   }
 }));
 
 const StyledAvatar = styled(Avatar)(({ theme }) => ({
   width: 48,
   height: 48,
-  border: '2px solid #fff',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-  background: 'linear-gradient(135deg, #667eea, #764ba2)',
+  border: '2px solid var(--border)',
+  boxShadow: 'var(--shadow-sm)',
+  background: 'var(--primary)',
+  color: 'white',
   fontSize: '1.25rem',
   fontWeight: 700
 }));
@@ -200,13 +193,15 @@ const ActionButton = styled(IconButton)(({ color }) => ({
   width: 36,
   height: 36,
   margin: '0 2px',
-  background: color,
-  color: '#fff',
-  transition: 'all 0.15s ease',
+  background: color || 'var(--surface-3)',
+  color: color ? 'white' : 'var(--text-primary)',
+  border: '1px solid var(--border)',
+  transition: 'var(--transition-fast)',
   '&:hover': {
-    background: color,
+    background: color ? color : 'var(--surface-2)',
+    filter: color ? 'brightness(1.1)' : 'none',
     transform: 'translateY(-1px)',
-    boxShadow: '0 3px 8px rgba(0,0,0,0.15)'
+    boxShadow: 'var(--shadow-sm)'
   }
 }));
 

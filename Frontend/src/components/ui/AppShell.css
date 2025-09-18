@@ -1,0 +1,397 @@
+/* 🏗️ ESTILOS APPSHELL - LAYOUT PRINCIPAL */
+/* ======================================= */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+/* 🎯 TOPBAR */
+.app-shell__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(16px);
+}
+
+.app-shell__topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.app-shell__topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 🔍 SEARCH */
+.app-shell__search {
+  position: relative;
+  max-width: 400px;
+  width: 100%;
+}
+
+.app-shell__search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.app-shell__search-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-normal);
+}
+
+.app-shell__search-input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px hsl(221 83% 53% / 0.1);
+}
+
+.app-shell__search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* 🎯 MAIN LAYOUT */
+.app-shell__main {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+/* 📱 SIDEBAR */
+.app-shell__sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border-subtle);
+  z-index: 40;
+  overflow-y: auto;
+  backdrop-filter: blur(16px);
+}
+
+.app-shell__sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 35;
+}
+
+.app-shell__sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-6);
+}
+
+.app-shell__sidebar-header {
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.app-shell__sidebar-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* 🧭 NAVIGATION */
+.app-shell__sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.app-shell__nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.app-shell__nav-section-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.app-shell__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.app-shell__nav-link {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.app-shell__nav-link:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+.app-shell__nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.app-shell__nav-link.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* 👤 USER INFO */
+.app-shell__sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.app-shell__user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.app-shell__user-avatar-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+}
+
+.app-shell__user-details {
+  flex: 1;
+}
+
+.app-shell__user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.app-shell__user-role {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  line-height: var(--line-height-tight);
+}
+
+/* 📄 MAIN CONTENT */
+.app-shell__content {
+  flex: 1;
+  padding: var(--space-6);
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.app-shell__content--with-sidebar {
+  margin-left: 280px;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 1024px) {
+  .app-shell__sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .app-shell__sidebar--open {
+    transform: translateX(0);
+  }
+  
+  .app-shell__content--with-sidebar {
+    margin-left: 0;
+  }
+  
+  .app-shell__search {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell__topbar {
+    padding: var(--space-3) var(--space-4);
+  }
+  
+  .app-shell__topbar-left {
+    gap: var(--space-2);
+  }
+  
+  .app-shell__search {
+    max-width: 200px;
+  }
+  
+  .app-shell__content {
+    padding: var(--space-4);
+  }
+  
+  .app-shell__sidebar {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell__topbar-right {
+    gap: var(--space-1);
+  }
+  
+  .app-shell__search {
+    display: none;
+  }
+  
+  .app-shell__sidebar {
+    max-width: 280px;
+  }
+}
+
+/* 🎯 BOTONES DE TOPBAR */
+.app-shell__menu-toggle,
+.app-shell__notification,
+.app-shell__theme-toggle,
+.app-shell__settings,
+.app-shell__user-avatar {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.app-shell__logout {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* 🌙 TEMA OSCURO - AJUSTES */
+[data-theme="dark"] .app-shell__topbar {
+  background: var(--surface-1);
+  border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .app-shell__sidebar {
+  background: var(--surface-1);
+  border-right-color: var(--border);
+}
+
+[data-theme="dark"] .app-shell__search-input {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+/* ♿ ACCESIBILIDAD */
+.app-shell__nav-link:focus-visible,
+.app-shell__search-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ♿ REDUCIR MOVIMIENTO */
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__sidebar {
+    transition: none;
+  }
+  
+  .app-shell__nav-link {
+    transition: none;
+  }
+  
+  .app-shell__search-input {
+    transition: none;
+  }
+}
+
+/* 🎨 ESTADOS DE CARGA */
+.app-shell__topbar--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.app-shell__sidebar--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* 🎯 INDICADORES DE ESTADO */
+.app-shell__notification--has-notifications::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--danger);
+  border-radius: 50%;
+  border: 2px solid var(--surface-1);
+}
+
+/* 📊 BREADCRUMBS (OPCIONAL) */
+.app-shell__breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.app-shell__breadcrumb-item {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.app-shell__breadcrumb-item:hover {
+  color: var(--text-primary);
+}
+
+.app-shell__breadcrumb-item:last-child {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}

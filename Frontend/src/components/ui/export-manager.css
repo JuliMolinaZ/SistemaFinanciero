@@ -1,0 +1,170 @@
+/* 📊 EXPORT MANAGER - MODERN DROPDOWN STYLES */
+/* =========================================== */
+
+/* 📊 EXPORT MANAGER */
+.export-manager {
+  position: relative;
+}
+
+.export-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--ptm-surface-3);
+  border: 1px solid var(--ptm-border);
+  border-radius: var(--ptm-radius-lg);
+  color: var(--ptm-text-secondary);
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.export-trigger:hover {
+  background: var(--ptm-surface-4);
+  border-color: var(--ptm-border-hover);
+  color: var(--ptm-text);
+  box-shadow: var(--ptm-shadow);
+}
+
+.export-trigger-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* 📊 EXPORT OVERLAY */
+.export-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+}
+
+/* 📊 EXPORT DROPDOWN */
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 280px;
+  background: var(--ptm-surface-2);
+  border: 1px solid var(--ptm-border);
+  border-radius: var(--ptm-radius-lg);
+  box-shadow: var(--ptm-shadow-hover);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.export-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ptm-space-4);
+  background: var(--ptm-surface-3);
+  border-bottom: 1px solid var(--ptm-border);
+}
+
+.export-dropdown-title {
+  font-size: var(--ptm-text-sm);
+  font-weight: 600;
+  color: var(--ptm-text);
+  margin: 0;
+}
+
+.export-dropdown-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: none;
+  border: none;
+  border-radius: var(--ptm-radius);
+  color: var(--ptm-text-muted);
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.export-dropdown-close:hover {
+  background: var(--ptm-surface-4);
+  color: var(--ptm-text);
+}
+
+.export-dropdown-content {
+  padding: var(--ptm-space-2);
+}
+
+/* 📊 EXPORT OPTIONS */
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: var(--ptm-space-3);
+  width: 100%;
+  padding: var(--ptm-space-3);
+  background: none;
+  border: none;
+  border-radius: var(--ptm-radius);
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+.export-option:hover {
+  background: var(--ptm-surface-3);
+}
+
+.export-option-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ptm-text-secondary);
+  flex-shrink: 0;
+}
+
+.export-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ptm-space-1);
+  flex: 1;
+}
+
+.export-option-title {
+  font-size: var(--ptm-text-sm);
+  font-weight: 600;
+  color: var(--ptm-text);
+}
+
+.export-option-description {
+  font-size: var(--ptm-text-xs);
+  color: var(--ptm-text-secondary);
+  line-height: 1.4;
+}
+
+.export-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 768px) {
+  .export-dropdown {
+    width: 250px;
+    right: -1rem;
+  }
+}
+
+/* 🎨 FOCUS STYLES */
+.export-trigger:focus-visible,
+.export-option:focus-visible,
+.export-dropdown-close:focus-visible {
+  outline: 2px solid var(--ptm-primary);
+  outline-offset: 2px;
+}
+
+/* 🌐 REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .export-trigger,
+  .export-option,
+  .export-dropdown-close {
+    transition: none;
+  }
+}

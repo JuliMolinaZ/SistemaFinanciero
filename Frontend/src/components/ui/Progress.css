@@ -1,0 +1,249 @@
+/* 📊 ESTILOS PROGRESS - BARRAS DE PROGRESO ACCESIBLES */
+/* =================================================== */
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.progress__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  line-height: var(--line-height-tight);
+}
+
+.progress__percentage {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.progress__track {
+  position: relative;
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.progress__bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 📏 TAMAÑOS */
+.progress--sm .progress__track {
+  height: 4px;
+}
+
+.progress--md .progress__track {
+  height: 8px;
+}
+
+.progress--lg .progress__track {
+  height: 12px;
+}
+
+/* 🎨 VARIANTES DE COLOR */
+.progress--primary .progress__bar {
+  background: linear-gradient(90deg, var(--primary), hsl(221 83% 63%));
+}
+
+.progress--success .progress__bar {
+  background: linear-gradient(90deg, var(--success), hsl(160 84% 49%));
+}
+
+.progress--warning .progress__bar {
+  background: linear-gradient(90deg, var(--warning), hsl(38 92% 60%));
+}
+
+.progress--danger .progress__bar {
+  background: linear-gradient(90deg, var(--danger), hsl(0 84% 70%));
+}
+
+/* 🎭 EFECTOS VISUALES */
+.progress__bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 🎯 ESTADOS DE INTERACCIÓN */
+.progress__track:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 640px) {
+  .progress__label,
+  .progress__percentage {
+    font-size: var(--font-size-xs);
+  }
+  
+  .progress--lg .progress__track {
+    height: 10px;
+  }
+}
+
+/* 🌙 TEMA OSCURO - AJUSTES */
+[data-theme="dark"] .progress__track {
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .progress__bar::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+}
+
+/* ♿ ACCESIBILIDAD */
+.progress__track[aria-valuenow="0"] .progress__bar {
+  background: var(--surface-3);
+}
+
+.progress__track[aria-valuenow="100"] .progress__bar {
+  box-shadow: 0 0 8px hsl(221 83% 53% / 0.3);
+}
+
+/* 🎨 VARIANTES ESPECIALES */
+.progress--striped .progress__bar {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+  animation: progress-stripes 1s linear infinite;
+}
+
+@keyframes progress-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.progress--indeterminate .progress__bar {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--primary),
+    transparent
+  );
+  animation: progress-indeterminate 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ♿ REDUCIR MOVIMIENTO */
+@media (prefers-reduced-motion: reduce) {
+  .progress__bar {
+    animation: none;
+    transition: none;
+  }
+  
+  .progress__bar::after {
+    animation: none;
+  }
+  
+  .progress--striped .progress__bar {
+    animation: none;
+  }
+  
+  .progress--indeterminate .progress__bar {
+    animation: none;
+    background: var(--primary);
+  }
+}
+
+/* 🎯 ESTADOS DE COMPLETADO */
+.progress--completed .progress__bar {
+  background: var(--success);
+  box-shadow: 0 0 8px hsl(160 84% 39% / 0.3);
+}
+
+.progress--error .progress__bar {
+  background: var(--danger);
+  box-shadow: 0 0 8px hsl(0 84% 60% / 0.3);
+}
+
+/* 📊 PROGRESS CIRCULAR (OPCIONAL) */
+.progress--circular {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.progress--circular .progress__track {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--primary) 0deg,
+    var(--primary) calc(var(--progress-value, 0) * 3.6deg),
+    var(--surface-2) calc(var(--progress-value, 0) * 3.6deg),
+    var(--surface-2) 360deg
+  );
+  border: 4px solid var(--surface-2);
+}
+
+.progress--circular .progress__percentage {
+  position: absolute;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}

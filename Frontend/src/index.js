@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { GlobalProvider } from './context/GlobalState';
+import { NotificationProvider } from './components/providers/NotificationProvider';
 import './styles/global.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
@@ -17,7 +18,9 @@ root.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <GlobalProvider>
-        <App />
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
       </GlobalProvider>
     </ThemeProvider>
   </React.StrictMode>

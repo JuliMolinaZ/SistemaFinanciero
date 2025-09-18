@@ -1,0 +1,186 @@
+/* 🏷️ ESTILOS BADGE - ETIQUETAS SEMÁNTICAS */
+/* ========================================= */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 📏 TAMAÑOS */
+.badge--sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+  min-height: 20px;
+}
+
+.badge--md {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-snug);
+  min-height: 24px;
+}
+
+.badge--lg {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  min-height: 32px;
+}
+
+/* 🎨 VARIANTES SEMÁNTICAS */
+.badge--success {
+  background: hsl(160 84% 39% / 0.1);
+  color: var(--success);
+  border-color: hsl(160 84% 39% / 0.2);
+}
+
+.badge--warning {
+  background: hsl(38 92% 50% / 0.1);
+  color: var(--warning);
+  border-color: hsl(38 92% 50% / 0.2);
+}
+
+.badge--danger {
+  background: hsl(0 84% 60% / 0.1);
+  color: var(--danger);
+  border-color: hsl(0 84% 60% / 0.2);
+}
+
+.badge--neutral {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+
+.badge--primary {
+  background: hsl(221 83% 53% / 0.1);
+  color: var(--primary);
+  border-color: hsl(221 83% 53% / 0.2);
+}
+
+/* 🎯 ESTADOS DE INTERACCIÓN */
+.badge:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ♿ ACCESIBILIDAD */
+.badge:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 640px) {
+  .badge--lg {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-size-sm);
+    min-height: 24px;
+  }
+}
+
+/* 🌙 TEMA OSCURO - AJUSTES */
+[data-theme="dark"] .badge--success {
+  background: hsl(160 84% 39% / 0.15);
+  border-color: hsl(160 84% 39% / 0.3);
+}
+
+[data-theme="dark"] .badge--warning {
+  background: hsl(38 92% 50% / 0.15);
+  border-color: hsl(38 92% 50% / 0.3);
+}
+
+[data-theme="dark"] .badge--danger {
+  background: hsl(0 84% 60% / 0.15);
+  border-color: hsl(0 84% 60% / 0.3);
+}
+
+[data-theme="dark"] .badge--primary {
+  background: hsl(221 83% 53% / 0.15);
+  border-color: hsl(221 83% 53% / 0.3);
+}
+
+[data-theme="dark"] .badge--neutral {
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+
+/* ♿ REDUCIR MOVIMIENTO */
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    transition: none;
+  }
+  
+  .badge:hover {
+    transform: none;
+  }
+}
+
+/* 🎨 VARIANTES ESPECIALES */
+.badge--outline {
+  background: transparent;
+}
+
+.badge--solid {
+  color: white;
+  border: none;
+}
+
+.badge--solid.badge--success {
+  background: var(--success);
+}
+
+.badge--solid.badge--warning {
+  background: var(--warning);
+}
+
+.badge--solid.badge--danger {
+  background: var(--danger);
+}
+
+.badge--solid.badge--primary {
+  background: var(--primary);
+}
+
+.badge--solid.badge--neutral {
+  background: var(--text-secondary);
+}
+
+/* 📊 BADGES DE ESTADO */
+.badge--status-active {
+  background: hsl(160 84% 39% / 0.1);
+  color: var(--success);
+  border-color: hsl(160 84% 39% / 0.2);
+}
+
+.badge--status-pending {
+  background: hsl(38 92% 50% / 0.1);
+  color: var(--warning);
+  border-color: hsl(38 92% 50% / 0.2);
+}
+
+.badge--status-completed {
+  background: hsl(221 83% 53% / 0.1);
+  color: var(--primary);
+  border-color: hsl(221 83% 53% / 0.2);
+}
+
+.badge--status-cancelled {
+  background: hsl(0 84% 60% / 0.1);
+  color: var(--danger);
+  border-color: hsl(0 84% 60% / 0.2);
+}

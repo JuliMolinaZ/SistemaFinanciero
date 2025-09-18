@@ -1,0 +1,276 @@
+// Esquema extendido para el módulo de gestión de proyectos
+// Este archivo contiene las tablas adicionales necesarias para el sistema de gestión de proyectos
+
+// Tabla de metodologías de proyecto
+model ProjectMethodology {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(100)
+  description String?   @db.Text
+  is_active   Boolean   @default(true) @map("is_active")
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  projects    Project[]
+  
+  @@map("project_methodologies")
+}
+
+// Tabla de roles en proyectos
+model ProjectRole {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(100)
+  description String?   @db.Text
+  level       Int       @default(1) // 1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Manager
+  is_active   Boolean   @default(true) @map("is_active")
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  members     ProjectMember[]
+  
+  @@map("project_roles")
+}
+
+// Tabla de miembros del proyecto
+model ProjectMember {
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  user_id     Int       @map("user_id")
+  role_id     Int       @map("role_id")
+  joined_at   DateTime? @default(now()) @map("joined_at") @db.Timestamp(0)
+  left_at     DateTime? @map("left_at") @db.Timestamp(0)
+  is_active   Boolean   @default(true) @map("is_active")
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role        ProjectRole @relation(fields: [role_id], references: [id])
+  
+  @@unique([project_id, user_id])
+  @@index([project_id])
+  @@index([user_id])
+  @@index([role_id])
+  @@map("project_members")
+}
+
+// Tabla de sprints
+model Sprint {
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  start_date  DateTime? @map("start_date") @db.Date
+  end_date    DateTime? @map("end_date") @db.Date
+  status      String    @default("planning") @db.VarChar(50) // planning, active, completed, cancelled
+  goal        String?   @db.Text
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  dailies     DailyStandup[]
+  retrospectives Retrospective[]
+  
+  @@index([project_id])
+  @@index([status])
+  @@index([start_date])
+  @@index([end_date])
+  @@map("sprints")
+}
+
+// Tabla de tareas
+model Task {
+  id              Int       @id @default(autoincrement())
+  project_id      Int       @map("project_id")
+  sprint_id       Int?      @map("sprint_id")
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  status          String    @default("todo") @db.VarChar(50) // todo, in_progress, review, done, cancelled
+  priority        String    @default("medium") @db.VarChar(20) // low, medium, high, critical
+  story_points    Int?      @map("story_points")
+  assignee_id     Int?      @map("assignee_id")
+  reporter_id     Int?      @map("reporter_id")
+  due_date        DateTime? @map("due_date") @db.Date
+  estimated_hours Decimal?  @map("estimated_hours") @db.Decimal(5, 2)
+  actual_hours    Decimal?  @map("actual_hours") @db.Decimal(5, 2)
+  created_at      DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at      DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project         Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  sprint          Sprint?     @relation(fields: [sprint_id], references: [id], onDelete: SetNull)
+  assignee        User?       @relation("TaskAssignee", fields: [assignee_id], references: [id], onDelete: SetNull)
+  reporter        User?       @relation("TaskReporter", fields: [reporter_id], references: [id], onDelete: SetNull)
+  comments        TaskComment[]
+  attachments     TaskAttachment[]
+  timeEntries     TimeEntry[]
+  
+  @@index([project_id])
+  @@index([sprint_id])
+  @@index([assignee_id])
+  @@index([status])
+  @@index([priority])
+  @@index([due_date])
+  @@map("tasks")
+}
+
+// Tabla de comentarios en tareas
+model TaskComment {
+  id         Int       @id @default(autoincrement())
+  task_id    Int       @map("task_id")
+  user_id    Int       @map("user_id")
+  comment    String    @db.Text
+  created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  task       Task      @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([task_id])
+  @@index([user_id])
+  @@map("task_comments")
+}
+
+// Tabla de archivos adjuntos
+model TaskAttachment {
+  id          Int       @id @default(autoincrement())
+  task_id     Int       @map("task_id")
+  user_id     Int       @map("user_id")
+  filename    String    @db.VarChar(255)
+  original_name String  @map("original_name") @db.VarChar(255)
+  file_path   String    @map("file_path") @db.VarChar(500)
+  file_size   BigInt?   @map("file_size")
+  mime_type   String?   @map("mime_type") @db.VarChar(100)
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  
+  task        Task      @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([task_id])
+  @@index([user_id])
+  @@map("task_attachments")
+}
+
+// Tabla de daily standups
+model DailyStandup {
+  id          Int       @id @default(autoincrement())
+  sprint_id   Int       @map("sprint_id")
+  user_id     Int       @map("user_id")
+  date        DateTime  @db.Date
+  yesterday   String?   @db.Text
+  today       String?   @db.Text
+  blockers    String?   @db.Text
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  sprint      Sprint    @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([sprint_id, user_id, date])
+  @@index([sprint_id])
+  @@index([user_id])
+  @@index([date])
+  @@map("daily_standups")
+}
+
+// Tabla de retrospectivas
+model Retrospective {
+  id          Int       @id @default(autoincrement())
+  sprint_id   Int       @map("sprint_id")
+  user_id     Int       @map("user_id")
+  what_went_well String? @map("what_went_well") @db.Text
+  what_could_improve String? @map("what_could_improve") @db.Text
+  action_items String?  @map("action_items") @db.Text
+  rating      Int?      // 1-5 scale
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  sprint      Sprint    @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@unique([sprint_id, user_id])
+  @@index([sprint_id])
+  @@index([user_id])
+  @@map("retrospectives")
+}
+
+// Tabla de entradas de tiempo
+model TimeEntry {
+  id          Int       @id @default(autoincrement())
+  task_id     Int       @map("task_id")
+  user_id     Int       @map("user_id")
+  description String?   @db.Text
+  hours       Decimal   @db.Decimal(5, 2)
+  date        DateTime  @db.Date
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  task        Task      @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([task_id])
+  @@index([user_id])
+  @@index([date])
+  @@map("time_entries")
+}
+
+// Tabla de documentación del proyecto
+model ProjectDocument {
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  user_id     Int       @map("user_id")
+  title       String    @db.VarChar(255)
+  content     String?   @db.Text
+  file_path   String?   @map("file_path") @db.VarChar(500)
+  file_type   String?   @map("file_type") @db.VarChar(50)
+  category    String?   @db.VarChar(100)
+  is_public   Boolean   @default(false) @map("is_public")
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([project_id])
+  @@index([user_id])
+  @@index([category])
+  @@map("project_documents")
+}
+
+// Tabla de notificaciones del proyecto
+model ProjectNotification {
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  user_id     Int       @map("user_id")
+  type        String    @db.VarChar(50) // task_assigned, task_completed, sprint_started, etc.
+  title       String    @db.VarChar(255)
+  message     String    @db.Text
+  is_read     Boolean   @default(false) @map("is_read")
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  
+  project     Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  @@index([project_id])
+  @@index([user_id])
+  @@index([is_read])
+  @@index([created_at])
+  @@map("project_notifications")
+}
+
+// Tabla de milestones
+model Milestone {
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  due_date    DateTime? @map("due_date") @db.Date
+  completed_at DateTime? @map("completed_at") @db.Timestamp(0)
+  status      String    @default("pending") @db.VarChar(50) // pending, completed, overdue
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  
+  @@index([project_id])
+  @@index([status])
+  @@index([due_date])
+  @@map("milestones")
+}

@@ -38,12 +38,91 @@ salida_completa.txt
 **/*service-account*.json
 **/firebase-*.json
 
-# Ignorar archivos de configuración con credenciales
-**/config.env
+# =====================================================
+# ARCHIVOS SENSIBLES Y CREDENCIALES
+# =====================================================
 
-# Ignorar archivos de Claude AI
+# Archivos de configuración con credenciales
+**/config.env
+**/.env
+**/.env.*
+**/env.*
+**/.env.local
+**/.env.production
+**/.env.development
+
+# Credenciales y tokens
+**/credentials/
+**/secrets/
+**/*service-account*.json
+**/firebase-*.json
+**/*-key.json
+**/*-credentials.json
+
+# =====================================================
+# ARCHIVOS DE DESARROLLO Y TESTING
+# =====================================================
+
+# Archivos de test temporales
+**/test-*.js
+**/debug-*.js
+**/diagnose-*.js
+**/check-*.js
+**/fix-*.js
+**/setup-*.js
+**/migrate-*.js
+**/configure-*.js
+**/install-*.sh
+**/restart-*.js
+**/verify-*.js
+
+# Archivos de backup y SQL
+*.sql
+**/*.backup
+**/backup*
+**/runite_backup*
+**/backup_before_*
+
+# =====================================================
+# ARCHIVOS DE CLAUDE AI Y HERRAMIENTAS
+# =====================================================
+
+# Archivos de Claude AI
 **/.claude/
 **/.claude/**
 **/claude-*
 **/.claude/settings.local.json
+**/CLAUDE_PROMPT_*.md
+
+# =====================================================
+# ARCHIVOS TEMPORALES Y LOGS
+# =====================================================
+
+# Logs del sistema
+*.log
+logs/
+**/logs/
+**/backend.log
+**/server.log
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# =====================================================
+# DIRECTORIOS DE DESARROLLO
+# =====================================================
+
+# Archivos de desarrollo y testing
+**/development/
+**/development-files/
+**/tools/
+**/debug/
+**/tests/
+
+# =====================================================
+# ARCHIVOS DE BUILD Y DISTRIBUCIÓN
+# =====================================================
 

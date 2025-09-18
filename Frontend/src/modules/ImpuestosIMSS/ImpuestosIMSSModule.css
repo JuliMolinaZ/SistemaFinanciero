@@ -2,7 +2,7 @@
 
 /* Estilos generales del módulo */
 .impuestos-imss-module {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--surface);
   min-height: 100vh;
   padding: 20px 0;
 }
@@ -15,43 +15,30 @@
 
 .module-title {
   font-weight: 700 !important;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary) !important;
   margin-bottom: 0.5rem !important;
 }
 
 .module-subtitle {
-  color: #6c757d !important;
+  color: var(--text-secondary) !important;
   font-weight: 400;
 }
 
 /* Tarjetas de KPIs */
 .kpi-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: var(--transition-fast);
 }
 
 .kpi-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
-
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
-  z-index: 1;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .kpi-card .MuiCardContent-root {
@@ -63,11 +50,12 @@
   font-size: 2.5rem !important;
   font-weight: 700 !important;
   margin-bottom: 0.5rem !important;
+  color: var(--text-primary) !important;
 }
 
 .kpi-label {
   font-size: 0.875rem !important;
-  opacity: 0.9;
+  color: var(--text-secondary) !important;
   font-weight: 500;
 }
 
@@ -78,19 +66,32 @@
   opacity: 0.3;
   font-size: 40px;
   z-index: 2;
+  color: var(--text-secondary) !important;
 }
 
-/* Variantes de colores para KPIs */
+/* Variantes de colores para KPIs - Usando sistema unificado */
 .kpi-card.success {
-  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  border-left: 4px solid var(--success);
+}
+
+.kpi-card.success .kpi-value {
+  color: var(--success) !important;
 }
 
 .kpi-card.warning {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  border-left: 4px solid var(--warning);
+}
+
+.kpi-card.warning .kpi-value {
+  color: var(--warning) !important;
 }
 
 .kpi-card.error {
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  border-left: 4px solid var(--danger);
+}
+
+.kpi-card.error .kpi-value {
+  color: var(--danger) !important;
 }
 
 /* Botones de acción */

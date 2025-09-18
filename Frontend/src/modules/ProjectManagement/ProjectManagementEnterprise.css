@@ -1,0 +1,85 @@
+/* 🏢 PROJECT MANAGEMENT ENTERPRISE - ESTILOS GLOBALES */
+/* ===================================================== */
+
+/* 🎨 Asegurar que las variables CSS estén disponibles */
+.project-management-enterprise {
+  /* Importar tokens globales */
+  --surface: var(--surface-1, hsl(222 47% 9%));
+  --surface-2: var(--surface-2, hsl(222 36% 12%));
+  --text-primary: var(--text-primary, hsl(210 40% 98%));
+  --text-secondary: var(--text-secondary, hsl(215 20% 70%));
+  --border: var(--border, hsl(215 16% 22%));
+  --primary: var(--primary, hsl(221 83% 53%));
+  --success: var(--success, hsl(160 84% 39%));
+  --warning: var(--warning, hsl(38 92% 50%));
+  --danger: var(--danger, hsl(0 84% 60%));
+  
+  /* Aplicar tipografía consistente */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Asegurar contraste AA */
+  color: var(--text-primary);
+  background: var(--bg, hsl(222 47% 7%));
+}
+
+/* 🎯 UTILIDADES PARA CONTRASTE AA */
+.project-management-enterprise .text-contrast-aa {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.project-management-enterprise .bg-contrast-aa {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* 📱 RESPONSIVE UTILITIES */
+@media (max-width: 768px) {
+  .project-management-enterprise {
+    padding: 1rem;
+  }
+}
+
+/* ♿ ACCESIBILIDAD */
+.project-management-enterprise *:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 🎨 OVERRIDES PARA ASEGURAR CONSISTENCIA */
+.project-management-enterprise .MuiPaper-root {
+  background-color: var(--surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.project-management-enterprise .MuiTab-root {
+  color: var(--text-secondary) !important;
+}
+
+.project-management-enterprise .MuiTab-root.Mui-selected {
+  color: var(--primary) !important;
+}
+
+/* 🔧 UTILITY CLASSES */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 🌐 REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .project-management-enterprise * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

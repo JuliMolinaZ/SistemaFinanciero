@@ -1,0 +1,307 @@
+/* 💀 ESTILOS SKELETON - ESTADOS DE CARGA */
+/* ====================================== */
+
+.skeleton {
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 🎭 ANIMACIONES */
+.skeleton--pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton--wave {
+  animation: skeleton-wave 1.6s linear infinite;
+}
+
+.skeleton--shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+/* 🎨 VARIANTES */
+.skeleton--text {
+  border-radius: var(--radius-sm);
+  width: 100%;
+  height: 1em;
+}
+
+.skeleton--rectangular {
+  border-radius: var(--radius-lg);
+}
+
+.skeleton--circular {
+  border-radius: 50%;
+}
+
+/* 🎬 ANIMACIONES KEYFRAMES */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes skeleton-wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton--wave::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: skeleton-wave 1.6s linear infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 🎯 COMPONENTES COMPUESTOS */
+.skeleton-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeleton-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 📊 SKELETON TABLE */
+.skeleton-table {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.skeleton-table__header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.skeleton-table__body {
+  padding: var(--space-4);
+}
+
+.skeleton-table__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.skeleton-table__row:last-child {
+  border-bottom: none;
+}
+
+/* 📋 SKELETON LIST */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeleton-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.skeleton-list__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 640px) {
+  .skeleton-table__header,
+  .skeleton-table__row {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  
+  .skeleton-list__item {
+    padding: var(--space-2);
+  }
+}
+
+/* 🌙 TEMA OSCURO - AJUSTES */
+[data-theme="dark"] .skeleton {
+  background: var(--surface-3);
+}
+
+[data-theme="dark"] .skeleton--shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-3) 25%,
+    var(--surface-4) 50%,
+    var(--surface-3) 75%
+  );
+  background-size: 200% 100%;
+}
+
+[data-theme="dark"] .skeleton--wave::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+}
+
+/* ♿ ACCESIBILIDAD */
+.skeleton[aria-label] {
+  position: relative;
+}
+
+.skeleton[aria-label]::before {
+  content: attr(aria-label);
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ♿ REDUCIR MOVIMIENTO */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--pulse,
+  .skeleton--wave,
+  .skeleton--shimmer {
+    animation: none;
+  }
+  
+  .skeleton {
+    opacity: 0.7;
+  }
+  
+  .skeleton--wave::after {
+    display: none;
+  }
+}
+
+/* 🎨 VARIANTES ESPECIALES */
+.skeleton--glow {
+  box-shadow: 0 0 10px var(--surface-2);
+}
+
+.skeleton--bordered {
+  border: 1px solid var(--border-subtle);
+}
+
+.skeleton--rounded {
+  border-radius: var(--radius-xl);
+}
+
+.skeleton--square {
+  border-radius: 0;
+}
+
+/* 🎯 ESTADOS DE CARGA ESPECÍFICOS */
+.skeleton--loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton--loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: skeleton-loading 2s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* 📊 SKELETON PARA MÉTRICAS */
+.skeleton-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.skeleton-metric__title {
+  width: 60%;
+  height: 14px;
+}
+
+.skeleton-metric__value {
+  width: 40%;
+  height: 24px;
+}
+
+.skeleton-metric__delta {
+  width: 80%;
+  height: 12px;
+}

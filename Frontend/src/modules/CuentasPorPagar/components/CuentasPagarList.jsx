@@ -81,6 +81,8 @@ import {
 import { styled, alpha } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCuentasPagar } from '../../../hooks/useCuentasPagar';
+import { useNotify } from '../../../hooks/useNotify.js';
+import axios from 'axios';
 
 // ========================================
 // COMPONENTES ESTILIZADOS MEJORADOS
@@ -304,7 +306,8 @@ const ActionButton = styled(IconButton)(({ theme, variant }) => ({
 const CuentasPagarList = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+  const notify = useNotify();
+
   const { cuentas, loading, error, fetchCuentas, updateCuenta, deleteCuenta } = useCuentasPagar();
   
   // Estados para proveedores
@@ -552,7 +555,10 @@ const CuentasPagarList = () => {
 
   const handleBulkAction = (action) => {
     if (selectedCuentas.length === 0) {
-      alert('Por favor selecciona al menos una cuenta');
+      notify.warning({
+        title: 'Selección requerida',
+        description: 'Por favor selecciona al menos una cuenta para continuar'
+      });
       return;
     }
     setBulkAction(action);

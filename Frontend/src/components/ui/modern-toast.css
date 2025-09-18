@@ -1,0 +1,365 @@
+/* 🔔 MODERN TOAST - ULTRA ELEGANT NOTIFICATIONS */
+/* ============================================== */
+
+/* 🎨 CSS CUSTOM PROPERTIES */
+:root {
+  --mt-surface: hsl(220, 13%, 9%);
+  --mt-surface-2: hsl(220, 13%, 12%);
+  --mt-border: hsl(220, 13%, 20%);
+  --mt-text: hsl(210, 20%, 98%);
+  --mt-text-secondary: hsl(215, 20%, 65%);
+  --mt-success: hsl(142, 76%, 36%);
+  --mt-success-bg: hsl(142, 76%, 36%, 0.15);
+  --mt-success-border: hsl(142, 76%, 36%, 0.3);
+  --mt-error: hsl(0, 84%, 60%);
+  --mt-error-bg: hsl(0, 84%, 60%, 0.15);
+  --mt-error-border: hsl(0, 84%, 60%, 0.3);
+  --mt-warning: hsl(38, 92%, 50%);
+  --mt-warning-bg: hsl(38, 92%, 50%, 0.15);
+  --mt-warning-border: hsl(38, 92%, 50%, 0.3);
+  --mt-info: hsl(221, 83%, 53%);
+  --mt-info-bg: hsl(221, 83%, 53%, 0.15);
+  --mt-info-border: hsl(221, 83%, 53%, 0.3);
+  --mt-loading: hsl(220, 9%, 46%);
+  --mt-loading-bg: hsl(220, 9%, 46%, 0.15);
+  --mt-loading-border: hsl(220, 9%, 46%, 0.3);
+  
+  /* Shadows */
+  --mt-shadow: 0 8px 32px hsl(220, 13%, 5%, 0.4);
+  --mt-shadow-lg: 0 16px 40px hsl(220, 13%, 5%, 0.5);
+  
+  /* Spacing */
+  --mt-space-1: 0.25rem;
+  --mt-space-2: 0.5rem;
+  --mt-space-3: 0.75rem;
+  --mt-space-4: 1rem;
+  --mt-space-5: 1.25rem;
+  --mt-space-6: 1.5rem;
+  
+  /* Typography */
+  --mt-text-sm: 0.875rem;
+  --mt-text-base: 1rem;
+  
+  /* Border radius */
+  --mt-radius: 0.5rem;
+  --mt-radius-lg: 0.75rem;
+  --mt-radius-xl: 1rem;
+  
+  /* Z-index */
+  --mt-z-index: 9999;
+}
+
+/* 🔔 TOAST CONTAINER */
+.modern-toast-container {
+  position: fixed;
+  top: var(--mt-space-6);
+  right: var(--mt-space-6);
+  z-index: var(--mt-z-index);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-3);
+  max-width: 420px;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* 📱 MOBILE RESPONSIVE */
+@media (max-width: 640px) {
+  .modern-toast-container {
+    top: var(--mt-space-4);
+    right: var(--mt-space-4);
+    left: var(--mt-space-4);
+    max-width: none;
+  }
+}
+
+/* 🔔 TOAST ITEM */
+.modern-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mt-space-3);
+  padding: var(--mt-space-4) var(--mt-space-5);
+  background: var(--mt-surface);
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-xl);
+  box-shadow: var(--mt-shadow);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+  overflow: hidden;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-toast:hover {
+  box-shadow: var(--mt-shadow-lg);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.modern-toast--removing {
+  opacity: 0.7;
+  transform: translateX(100%) scale(0.95);
+}
+
+/* 🎨 TOAST VARIANTS */
+.modern-toast--success {
+  border-left: 4px solid var(--mt-success);
+  background: linear-gradient(135deg, var(--mt-surface) 0%, var(--mt-success-bg) 100%);
+  box-shadow: var(--mt-shadow), 0 0 20px var(--mt-success-border);
+}
+
+.modern-toast--error {
+  border-left: 4px solid var(--mt-error);
+  background: linear-gradient(135deg, var(--mt-surface) 0%, var(--mt-error-bg) 100%);
+  box-shadow: var(--mt-shadow), 0 0 20px var(--mt-error-border);
+}
+
+.modern-toast--warning {
+  border-left: 4px solid var(--mt-warning);
+  background: linear-gradient(135deg, var(--mt-surface) 0%, var(--mt-warning-bg) 100%);
+  box-shadow: var(--mt-shadow), 0 0 20px var(--mt-warning-border);
+}
+
+.modern-toast--info {
+  border-left: 4px solid var(--mt-info);
+  background: linear-gradient(135deg, var(--mt-surface) 0%, var(--mt-info-bg) 100%);
+  box-shadow: var(--mt-shadow), 0 0 20px var(--mt-info-border);
+}
+
+.modern-toast--loading {
+  border-left: 4px solid var(--mt-loading);
+  background: linear-gradient(135deg, var(--mt-surface) 0%, var(--mt-loading-bg) 100%);
+  box-shadow: var(--mt-shadow), 0 0 20px var(--mt-loading-border);
+}
+
+/* 🔔 TOAST CONTENT */
+.modern-toast-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mt-space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+/* 🎯 TOAST ICON */
+.modern-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  margin-top: var(--mt-space-1);
+}
+
+.modern-toast-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.modern-toast--success .modern-toast-icon-svg {
+  color: var(--mt-success);
+}
+
+.modern-toast--error .modern-toast-icon-svg {
+  color: var(--mt-error);
+}
+
+.modern-toast--warning .modern-toast-icon-svg {
+  color: var(--mt-warning);
+}
+
+.modern-toast--info .modern-toast-icon-svg {
+  color: var(--mt-info);
+}
+
+.modern-toast--loading .modern-toast-icon-svg {
+  color: var(--mt-loading);
+}
+
+/* 🔄 SPINNING ANIMATION FOR LOADING */
+.modern-toast-icon--spinning {
+  animation: mt-spin 1s linear infinite;
+}
+
+@keyframes mt-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 📝 TOAST TEXT */
+.modern-toast-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.modern-toast-title {
+  font-size: var(--mt-text-base);
+  font-weight: 600;
+  color: var(--mt-text);
+  line-height: 1.4;
+  margin-bottom: var(--mt-space-1);
+}
+
+.modern-toast-description {
+  font-size: var(--mt-text-sm);
+  color: var(--mt-text-secondary);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* ❌ TOAST CLOSE BUTTON */
+.modern-toast-close {
+  position: absolute;
+  top: var(--mt-space-3);
+  right: var(--mt-space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--mt-radius);
+  color: var(--mt-text-secondary);
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+
+.modern-toast:hover .modern-toast-close {
+  opacity: 1;
+}
+
+.modern-toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--mt-text);
+  transform: scale(1.1);
+}
+
+.modern-toast-close:focus-visible {
+  outline: 2px solid var(--mt-info);
+  outline-offset: 1px;
+  opacity: 1;
+}
+
+.modern-toast-close-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* 📊 TOAST PROGRESS BAR */
+.modern-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.4;
+  transform-origin: left;
+  animation: mt-progress linear forwards;
+  border-radius: 0 0 var(--mt-radius-xl) var(--mt-radius-xl);
+}
+
+.modern-toast--success .modern-toast-progress {
+  color: var(--mt-success);
+}
+
+.modern-toast--error .modern-toast-progress {
+  color: var(--mt-error);
+}
+
+.modern-toast--warning .modern-toast-progress {
+  color: var(--mt-warning);
+}
+
+.modern-toast--info .modern-toast-progress {
+  color: var(--mt-info);
+}
+
+.modern-toast--loading .modern-toast-progress {
+  color: var(--mt-loading);
+}
+
+@keyframes mt-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* 🌐 REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .modern-toast {
+    transition: none;
+  }
+  
+  .modern-toast-icon--spinning {
+    animation: none;
+  }
+  
+  .modern-toast-progress {
+    animation: none;
+  }
+  
+  .modern-toast:hover {
+    transform: none;
+  }
+}
+
+/* 🎨 HIGH CONTRAST MODE */
+@media (prefers-contrast: high) {
+  .modern-toast {
+    border-width: 2px;
+    box-shadow: none;
+  }
+  
+  .modern-toast--success {
+    border-color: var(--mt-success);
+    background: var(--mt-surface);
+  }
+  
+  .modern-toast--error {
+    border-color: var(--mt-error);
+    background: var(--mt-surface);
+  }
+  
+  .modern-toast--warning {
+    border-color: var(--mt-warning);
+    background: var(--mt-surface);
+  }
+  
+  .modern-toast--info {
+    border-color: var(--mt-info);
+    background: var(--mt-surface);
+  }
+  
+  .modern-toast--loading {
+    border-color: var(--mt-loading);
+    background: var(--mt-surface);
+  }
+}
+
+/* 📱 TOUCH DEVICE OPTIMIZATIONS */
+@media (hover: none) and (pointer: coarse) {
+  .modern-toast-close {
+    opacity: 1;
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .modern-toast {
+    padding-right: var(--mt-space-6);
+  }
+}
+
+/* 🎯 FOCUS MANAGEMENT */
+.modern-toast:focus-within .modern-toast-close {
+  opacity: 1;
+}

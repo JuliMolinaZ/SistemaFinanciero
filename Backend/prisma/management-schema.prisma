@@ -1,0 +1,212 @@
+// =====================================================
+// ESQUEMA INDEPENDIENTE PARA GESTIÓN DE PROYECTOS
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./management-client"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  relationMode      = "prisma"
+}
+
+// =====================================================
+// GESTIÓN DE PROYECTOS - TABLAS INDEPENDIENTES
+// =====================================================
+
+// TABLA PRINCIPAL DE GESTIÓN DE PROYECTOS
+model ManagementProject {
+  id                 Int                    @id @default(autoincrement())
+  nombre             String                 @db.VarChar(255)
+  descripcion        String?                @db.Text
+  cliente_id         Int?                   @map("cliente_id")
+  
+  // Gestión y metodología
+  methodology_id     Int?                   @map("methodology_id")
+  project_manager_id Int?                   @map("project_manager_id")
+  current_phase_id   String?                @map("current_phase_id") @db.VarChar(36)
+  
+  // Cronograma
+  start_date         DateTime?              @map("start_date") @db.Date
+  end_date           DateTime?              @map("end_date") @db.Date
+  
+  // Estado y progreso
+  status             String                 @default("planning") @db.VarChar(50) // planning, active, on_hold, completed, cancelled
+  priority           String                 @default("medium") @db.VarChar(20)   // low, medium, high, critical
+  progress           Int                    @default(0) // 0-100
+  
+  // Auditoría
+  created_at         DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at         DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relaciones
+  members            ManagementProjectMember[]
+  phases             ManagementProjectPhase[] @relation("ProjectPhases")
+  current_phase      ManagementProjectPhase? @relation("CurrentPhase", fields: [current_phase_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sprints            ManagementSprint[]
+  tasks              ManagementTask[]
+  documents          ManagementProjectDocument[]
+  notifications      ManagementProjectNotification[]
+  milestones         ManagementMilestone[]
+
+  @@index([cliente_id])
+  @@index([methodology_id])
+  @@index([project_manager_id])
+  @@index([current_phase_id])
+  @@index([status])
+  @@index([priority])
+  @@index([start_date])
+  @@index([end_date])
+  @@map("management_projects")
+}
+
+// Tabla de miembros del proyecto de gestión
+model ManagementProjectMember {
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  user_id     Int       @map("user_id")
+  role_name   String    @default("Developer") @map("role_name") @db.VarChar(100)
+  team_type   String    @default("operations") @map("team_type") @db.VarChar(20) // operations, it
+  joined_at   DateTime? @default(now()) @map("joined_at") @db.Timestamp(0)
+  left_at     DateTime? @map("left_at") @db.Timestamp(0)
+  is_active   Boolean   @default(true) @map("is_active")
+  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  
+  @@unique([project_id, user_id, team_type])
+  @@index([project_id])
+  @@index([user_id])
+  @@index([team_type])
+  @@map("management_project_members")
+}
+
+// Tabla de fases de gestión de proyectos
+model ManagementProjectPhase {
+  id                String              @id @default(uuid()) @db.VarChar(36)
+  project_id        Int                 @map("project_id")
+  name              String              @db.VarChar(100)
+  description       String?             @db.Text
+  position          Int                 @default(0)
+  is_completed      Boolean             @default(false) @map("is_completed")
+  completed_at      DateTime?           @map("completed_at") @db.Timestamp(0)
+  created_at        DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at        DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project           ManagementProject   @relation("ProjectPhases", fields: [project_id], references: [id], onDelete: Cascade)
+  current_projects  ManagementProject[] @relation("CurrentPhase")
+  tasks             ManagementTask[]
+  
+  @@unique([project_id, name])
+  @@index([project_id])
+  @@index([position])
+  @@map("management_project_phases")
+}
+
+// Tabla de sprints de gestión
+model ManagementSprint {
+  id          Int               @id @default(autoincrement())
+  project_id  Int               @map("project_id")
+  name        String            @db.VarChar(100)
+  description String?           @db.Text
+  start_date  DateTime?         @map("start_date") @db.Date
+  end_date    DateTime?         @map("end_date") @db.Date
+  status      String            @default("planning") @db.VarChar(50) // planning, active, completed
+  created_at  DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks       ManagementTask[]
+  
+  @@index([project_id])
+  @@index([status])
+  @@map("management_sprints")
+}
+
+// Tabla de tareas de gestión
+model ManagementTask {
+  id          Int                     @id @default(autoincrement())
+  project_id  Int                     @map("project_id")
+  sprint_id   Int?                    @map("sprint_id")
+  phase_id    String?                 @map("phase_id") @db.VarChar(36)
+  title       String                  @db.VarChar(255)
+  description String?                 @db.Text
+  status      String                  @default("todo") @db.VarChar(50) // todo, in_progress, done
+  priority    String                  @default("medium") @db.VarChar(20)
+  assigned_to Int?                    @map("assigned_to")
+  due_date    DateTime?               @map("due_date") @db.Date
+  created_at  DateTime                @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     ManagementProject       @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  sprint      ManagementSprint?       @relation(fields: [sprint_id], references: [id], onDelete: SetNull)
+  phase       ManagementProjectPhase? @relation(fields: [phase_id], references: [id], onDelete: SetNull)
+  
+  @@index([project_id])
+  @@index([sprint_id])
+  @@index([phase_id])
+  @@index([assigned_to])
+  @@index([status])
+  @@map("management_tasks")
+}
+
+// Tabla de documentos de gestión
+model ManagementProjectDocument {
+  id          Int               @id @default(autoincrement())
+  project_id  Int               @map("project_id")
+  name        String            @db.VarChar(255)
+  file_path   String            @db.VarChar(500)
+  file_size   Int?              @map("file_size")
+  mime_type   String?           @map("mime_type") @db.VarChar(100)
+  uploaded_by Int               @map("uploaded_by")
+  created_at  DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  
+  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  
+  @@index([project_id])
+  @@index([uploaded_by])
+  @@map("management_project_documents")
+}
+
+// Tabla de notificaciones de gestión
+model ManagementProjectNotification {
+  id         Int               @id @default(autoincrement())
+  project_id Int               @map("project_id")
+  user_id    Int               @map("user_id")
+  title      String            @db.VarChar(255)
+  message    String            @db.Text
+  type       String            @db.VarChar(50) // info, warning, success, error
+  is_read    Boolean           @default(false) @map("is_read")
+  created_at DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  
+  project    ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  
+  @@index([project_id])
+  @@index([user_id])
+  @@index([is_read])
+  @@map("management_project_notifications")
+}
+
+// Tabla de hitos de gestión
+model ManagementMilestone {
+  id          Int               @id @default(autoincrement())
+  project_id  Int               @map("project_id")
+  name        String            @db.VarChar(255)
+  description String?           @db.Text
+  due_date    DateTime?         @map("due_date") @db.Date
+  is_completed Boolean          @default(false) @map("is_completed")
+  completed_at DateTime?        @map("completed_at") @db.Timestamp(0)
+  created_at  DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  
+  @@index([project_id])
+  @@index([due_date])
+  @@map("management_milestones")
+}

@@ -3,6 +3,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GlobalContext } from '../../context/GlobalState';
+import { useNotify } from '../../hooks/useNotify.js';
 
 import avatar1 from '../../assets/avatars/avatar1.svg';
 import avatar2 from '../../assets/avatars/avatar2.svg';
@@ -16,6 +17,7 @@ const avatarOptions = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
 const ProfileSetup = () => {
   const { currentUser, setProfileData, setProfileComplete } = useContext(GlobalContext);
   const navigate = useNavigate();
+  const notify = useNotify();
 
   const [form, setForm] = useState({
     name: currentUser?.displayName || '',
@@ -75,7 +77,11 @@ const ProfileSetup = () => {
       setProfileComplete(true);
       navigate('/');
     } catch (error) {
-      alert('Error actualizando perfil. Intenta nuevamente más tarde.');
+      notify.error({
+        title: 'Error al actualizar perfil',
+        description: 'No se pudo guardar la información. Intenta nuevamente más tarde.',
+        error
+      });
     }
   };
 

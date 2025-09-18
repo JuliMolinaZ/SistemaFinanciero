@@ -206,7 +206,9 @@ exports.enviarACuentasPagar = async (req, res) => {
         pagado: false,
         autorizado: true,
         requiere_iva: false,
-        pagos_parciales: false
+        pagos_parciales: 0.00, // Debe ser Decimal, no Boolean
+        monto_transferencia: 0.00,
+        monto_efectivo: 0.00
       }
     });
 

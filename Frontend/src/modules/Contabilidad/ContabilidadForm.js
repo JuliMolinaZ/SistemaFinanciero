@@ -1,6 +1,7 @@
 // src/modules/Contabilidad/ContabilidadForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotify } from '../../hooks/useNotify.js';
 import {
   Container,
   Box,
@@ -286,7 +287,9 @@ const FormDialog = ({
 // COMPONENTE: MovementsTable
 // =====================
 const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, handleSelectMovement, handleEdit, handleDelete }) => {
-  console.log(">>> MovementsTable renderizado - total movimientos:", movimientos.length);
+  // Asegurar que movimientos sea siempre un array
+  const movimientosArray = Array.isArray(movimientos) ? movimientos : [];
+  console.log(">>> MovementsTable renderizado - total movimientos:", movimientosArray.length);
   return (
     <TableContainer component={Paper} sx={{ width: '100%', maxWidth: 1100, mt: 4, mb: 6, borderRadius: 2, boxShadow: 2, mx: 'auto' }}>
       <Table>
@@ -295,7 +298,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
             <TableCell padding="checkbox">
               <Checkbox
                 color="primary"
-                checked={movimientos.length > 0 && selectedMovimientos.length === movimientos.length}
+                checked={movimientosArray.length > 0 && selectedMovimientos.length === movimientosArray.length}
                 onChange={(e) => {
                   console.log(">>> MovementsTable: Selección total =", e.target.checked);
                   handleSelectAll(e.target.checked);
@@ -316,7 +319,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
           </TableRow>
         </TableHead>
         <TableBody>
-          {movimientos.map((m) => {
+          {movimientosArray.map((m) => {
             console.log(">>> MovementsTable: Renderizando movimiento:", m);
             return (
               <TableRow key={m.id} sx={{ '&:hover': { backgroundColor: '#fefefe' } }}>
@@ -404,6 +407,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
 // =====================
 const ContabilidadForm = () => {
   console.log(">>> ContabilidadForm: Renderizado");
+  const notify = useNotify();
   const [movimientos, setMovimientos] = useState([]);
   const [movimiento, setMovimiento] = useState({
     fecha: '',
@@ -431,11 +435,17 @@ const ContabilidadForm = () => {
     console.log(">>> fetchMovimientos: Iniciando...");
     try {
       const response = await axios.get(`${API_URL}/api/contabilidad`);
-      setMovimientos(response.data);
-      console.log(">>> fetchMovimientos: Movimientos recibidos:", response.data.length);
+      // La API devuelve {success: true, data: [...], pagination: {...}}
+      const movimientosData = response.data.data || [];
+      setMovimientos(movimientosData);
+      console.log(">>> fetchMovimientos: Movimientos recibidos:", movimientosData.length);
     } catch (error) {
       console.error(">>> fetchMovimientos: Error al obtener movimientos:", error);
-      alert("No se pudo obtener los movimientos.");
+      notify.error({
+        title: 'Error al cargar movimientos',
+        description: 'No se pudieron obtener los movimientos contables',
+        error
+      });
     } finally {
       setLoading(false);
       console.log(">>> fetchMovimientos: Finalizado. Loading:", false);
@@ -572,7 +582,11 @@ const ContabilidadForm = () => {
       setSelectedMovimientos((prev) => prev.filter((selId) => selId !== id));
     } catch (error) {
       console.error(">>> handleDelete: Error al eliminar movimiento:", error);
-      alert("Error al eliminar movimiento");
+      notify.error({
+        title: 'Error al eliminar',
+        description: 'No se pudo eliminar el movimiento contable',
+        error
+      });
     }
   };
 

@@ -75,9 +75,7 @@ import useDashboardData from '../../hooks/useDashboardData';
 // Estilos avanzados con temas personalizados
 const DashboardContainer = styled(Box)(({ theme, darkMode, fullscreen }) => ({
   minHeight: fullscreen ? '100vh' : 'calc(100vh - 64px)',
-  background: darkMode 
-    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
-    : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+  background: 'var(--surface)',
   padding: theme.spacing(2),
   position: fullscreen ? 'fixed' : 'relative',
   top: fullscreen ? 0 : 'auto',
@@ -85,16 +83,17 @@ const DashboardContainer = styled(Box)(({ theme, darkMode, fullscreen }) => ({
   right: fullscreen ? 0 : 'auto',
   bottom: fullscreen ? 0 : 'auto',
   zIndex: fullscreen ? 9999 : 'auto',
-  overflow: 'auto'
+  overflow: 'auto',
+  color: 'var(--text-primary)'
 }));
 
 const GlassCard = styled(Card)(({ theme, variant = 'default' }) => ({
-  background: 'rgba(255, 255, 255, 0.85)',
-  backdropFilter: 'blur(20px)',
+  background: 'var(--surface-2)',
   borderRadius: 16,
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  border: '1px solid var(--border)',
+  boxShadow: 'var(--shadow-md)',
+  color: 'var(--text-primary)',
+  transition: 'var(--transition-fast)',
   position: 'relative',
   overflow: 'hidden',
   '&::before': {
@@ -105,14 +104,14 @@ const GlassCard = styled(Card)(({ theme, variant = 'default' }) => ({
     right: 0,
     height: 2,
     background: variant === 'primary' 
-      ? 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+      ? 'var(--primary)'
       : variant === 'success'
-      ? 'linear-gradient(90deg, #11998e 0%, #38ef7d 100%)'
-      : 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+      ? 'var(--success)'
+      : 'var(--primary)'
   },
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 48px rgba(31, 38, 135, 0.2)'
+    transform: 'translateY(-2px)',
+    boxShadow: 'var(--shadow-lg)'
   }
 }));
 
@@ -120,21 +119,12 @@ const AnimatedFab = styled(Fab)(({ theme }) => ({
   position: 'fixed',
   bottom: theme.spacing(3),
   right: theme.spacing(3),
-  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-  animation: 'pulse 2s infinite',
+  background: 'var(--primary)',
+  color: 'white',
+  transition: 'var(--transition-fast)',
   '&:hover': {
-    background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
-  },
-  '@keyframes pulse': {
-    '0%': {
-      boxShadow: '0 0 0 0 rgba(102, 126, 234, 0.7)'
-    },
-    '70%': {
-      boxShadow: '0 0 0 10px rgba(102, 126, 234, 0)'
-    },
-    '100%': {
-      boxShadow: '0 0 0 0 rgba(102, 126, 234, 0)'
-    }
+    filter: 'brightness(1.1)',
+    transform: 'scale(1.05)'
   }
 }));
 

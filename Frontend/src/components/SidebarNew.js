@@ -128,6 +128,17 @@ const modulesConfig = [
         color: '#feca57'
       },
       {
+        id: 'project_management',
+        name: 'Gestión de Proyectos',
+        route: '/project-management',
+        icon: <Timeline />,
+        requiredPermission: 'project_management',
+        requiredRole: ['administrador', 'super administrador', 'gerente', 'pm', 'dev'],
+        description: 'Gestión avanzada de proyectos con metodologías ágiles',
+        color: '#667eea',
+        featured: true
+      },
+      {
         id: 'proveedores',
         name: 'Proveedores',
         route: '/proveedores',

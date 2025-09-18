@@ -1,21 +1,23 @@
-/* Tema Moderno para Sistema Financiero */
+/* Tema Moderno Unificado - Sistema de Diseño */
 
-/* Variables CSS personalizadas */
+/* DEPRECATED: Usando tokens unificados en tokens.css */
+/* Mantenemos por compatibilidad pero se migrarán gradualmente */
 :root {
-  --primary-color: #4ecdc4;
-  --primary-dark: #45b7d1;
-  --secondary-color: #96ceb4;
-  --accent-color: #ff6b6b;
-  --success-color: #27ae60;
-  --warning-color: #f39c12;
-  --error-color: #e74c3c;
-  --text-primary: #2c3e50;
-  --text-secondary: #7f8c8d;
-  --background-light: #f5f7fa;
-  --background-dark: #2c3e50;
-  --border-radius: 12px;
-  --box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Mapeo a nuestro nuevo sistema unificado */
+  --primary-color: var(--primary);
+  --primary-dark: var(--primary);
+  --secondary-color: var(--surface-2);
+  --accent-color: var(--primary);
+  --success-color: var(--success);
+  --warning-color: var(--warning);
+  --error-color: var(--danger);
+  --text-primary: var(--text-primary);
+  --text-secondary: var(--text-secondary);
+  --background-light: var(--surface);
+  --background-dark: var(--surface-2);
+  --border-radius: 0.75rem;
+  --box-shadow: var(--shadow-md);
+  --transition: var(--transition-fast);
 }
 
 /* Estilos globales */
@@ -27,7 +29,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--surface);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -45,13 +47,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: var(--primary);
   border-radius: 4px;
   transition: var(--transition);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+  background: var(--primary);
+  filter: brightness(1.1);
 }
 
 /* Animaciones globales */
@@ -174,27 +177,27 @@ body {
 .main-container {
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--surface);
 }
 
 .content-wrapper {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
 }
 
 /* Estilos para tarjetas modernas */
 .modern-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
   transition: var(--transition);
   overflow: hidden;
+  color: var(--text-primary);
 }
 
 .modern-card:hover {
@@ -204,7 +207,7 @@ body {
 
 /* Estilos para botones modernos */
 .modern-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: var(--border-radius);
@@ -217,9 +220,9 @@ body {
 }
 
 .modern-button:hover {
-  background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .modern-button:active {
@@ -228,51 +231,60 @@ body {
 
 /* Estilos para inputs modernos */
 .modern-input {
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(78, 205, 196, 0.3);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
   border-radius: var(--border-radius);
   padding: 12px 16px;
   font-size: 14px;
+  color: var(--text-primary);
   transition: var(--transition);
+}
+
+.modern-input::placeholder {
+  color: var(--text-secondary);
 }
 
 .modern-input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px var(--surface);
 }
 
 /* Estilos para tablas modernas */
 .modern-table {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: var(--box-shadow);
+  border: 1px solid var(--border);
 }
 
 .modern-table th {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-  color: white;
+  background: var(--surface-3);
+  color: var(--text-primary);
   font-weight: 600;
   padding: 16px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
 }
 
 .modern-table td {
   padding: 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid var(--divider);
+  color: var(--text-primary);
   transition: var(--transition);
 }
 
 .modern-table tr:hover {
-  background: rgba(78, 205, 196, 0.1);
+  background: var(--surface-3);
 }
 
 /* Estilos para badges y chips */
 .modern-badge {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-  color: white;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -282,30 +294,41 @@ body {
 }
 
 .modern-chip {
-  background: rgba(78, 205, 196, 0.1);
-  color: var(--primary-color);
+  background: var(--surface-3);
+  color: var(--text-primary);
   padding: 6px 12px;
   border-radius: 16px;
   font-size: 12px;
   font-weight: 500;
-  border: 1px solid rgba(78, 205, 196, 0.3);
+  border: 1px solid var(--border);
 }
 
 /* Estilos para loading states */
 .loading-skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200px 100%;
-  animation: shimmer 1.5s infinite;
+  background: var(--surface-3);
   border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: shimmer 1.5s infinite;
 }
 
 /* Estilos para notificaciones */
 .modern-notification {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   padding: 16px;
   margin: 8px 0;
   transition: var(--transition);
@@ -317,56 +340,58 @@ body {
 
 /* Estilos para modales modernos */
 .modern-modal {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: var(--surface);
   border-radius: var(--border-radius);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 /* Estilos para tooltips modernos */
 .modern-tooltip {
-  background: var(--background-dark);
-  color: white;
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
   box-shadow: var(--box-shadow);
-  backdrop-filter: blur(10px);
 }
 
 /* Estilos para gráficos y visualizaciones */
 .modern-chart {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
   padding: 20px;
   box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 /* Estilos para navegación */
 .modern-nav {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
 }
 
 /* Estilos para sidebar */
 .modern-sidebar {
-  background: rgba(44, 62, 80, 0.95);
-  backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+  background: var(--surface-2);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
 }
 
 /* Estilos para formularios */
 .modern-form {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
   padding: 24px;
   box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 .modern-form-group {
@@ -389,12 +414,13 @@ body {
 }
 
 .modern-stat-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-2);
   border-radius: var(--border-radius);
   padding: 20px;
   text-align: center;
   box-shadow: var(--box-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   transition: var(--transition);
 }
 
@@ -406,7 +432,7 @@ body {
 .modern-stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--primary);
   margin-bottom: 8px;
 }
 
@@ -437,26 +463,10 @@ body {
   }
 }
 
-/* Estilos para modo oscuro (opcional) */
+/* Estilos para modo oscuro - Ya aplicados por defecto con nuestro sistema unificado */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: #ecf0f1;
-    --text-secondary: #bdc3c7;
-    --background-light: #2c3e50;
-    --background-dark: #34495e;
-  }
-  
-  body {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  }
-  
-  .modern-card,
-  .modern-table,
-  .modern-form,
-  .modern-stat-card {
-    background: rgba(52, 73, 94, 0.9);
-    color: var(--text-primary);
-  }
+  /* El sistema ya está optimizado para modo oscuro por defecto */
+  /* Todos los componentes usan automáticamente las variables CSS unificadas */
 }
 
 /* Estilos para accesibilidad */

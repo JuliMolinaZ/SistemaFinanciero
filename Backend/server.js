@@ -79,6 +79,9 @@ const requisicionesRoutes = require('./routes/requisiciones');
 // Nueva ruta para Cotizaciones
 const cotizacionesRoutes = require('./src/routes/cotizaciones');
 
+// Rutas del módulo de gestión de proyectos
+const projectManagementRoutes = require('./src/routes/projectManagementSimple');
+
 // Middleware para loggear cada solicitud (opcional)
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -111,6 +114,21 @@ app.use('/api/requisiciones', requisicionesRoutes);
 
 // Nueva ruta de cotizaciones
 app.use('/api/cotizaciones', cotizacionesRoutes);
+
+// Rutas del módulo de gestión de proyectos
+console.log('🚀 Cargando rutas de gestión de proyectos...');
+app.use('/api/project-management', projectManagementRoutes);
+console.log('✅ Rutas de gestión de proyectos configuradas');
+
+// Ruta temporal que funciona (bypass de problemas de Prisma)
+const projectsWorkingRoutes = require('./src/routes/projectsWorking');
+app.use('/api/projects-working', projectsWorkingRoutes);
+console.log('✅ Rutas temporales de proyectos configuradas');
+
+// Ruta de prueba directa
+app.get('/api/project-management/test-direct', (req, res) => {
+  res.json({ message: 'Ruta de prueba directa funcionando' });
+});
 
 // Ruta 404 para solicitudes no encontradas
 app.use((req, res) => {

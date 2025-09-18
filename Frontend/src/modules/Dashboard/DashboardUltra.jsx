@@ -75,16 +75,16 @@ const ElegantCard = styled(Card)(({ theme, variant = 'default', size = 'standard
   height: '100%',
   minHeight: size === 'large' ? '400px' : size === 'xlarge' ? '500px' : '280px',
   borderRadius: 16,
-  background: 'white !important',
-  backdropFilter: 'none',
-  border: '1px solid var(--border-light)',
-  boxShadow: '0 4px 20px rgba(148, 163, 184, 0.12)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  background: 'var(--surface-2)',
+  border: '1px solid var(--border)',
+  boxShadow: 'var(--shadow-md)',
+  color: 'var(--text-primary)',
+  transition: 'var(--transition-fast)',
   position: 'relative',
   overflow: 'hidden',
   '&:hover': {
-    transform: 'translateY(-4px) scale(1.01)',
-    boxShadow: '0 8px 32px rgba(148, 163, 184, 0.18)',
+    transform: 'translateY(-2px)',
+    boxShadow: 'var(--shadow-lg)',
   }
 }));
 

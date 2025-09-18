@@ -1,0 +1,386 @@
+/* 🔔 NOTIFICATION SYSTEM - BEAUTIFUL TOASTS */
+/* =========================================== */
+
+/* 🎨 CSS CUSTOM PROPERTIES */
+:root {
+  --ns-surface: hsl(0, 0%, 100%);
+  --ns-surface-2: hsl(220, 13%, 98%);
+  --ns-border: hsl(220, 13%, 91%);
+  --ns-text: hsl(224, 71%, 4%);
+  --ns-text-secondary: hsl(220, 9%, 46%);
+  --ns-success: hsl(142, 76%, 36%);
+  --ns-success-bg: hsl(142, 76%, 36%, 0.1);
+  --ns-success-border: hsl(142, 76%, 36%, 0.2);
+  --ns-error: hsl(0, 84%, 60%);
+  --ns-error-bg: hsl(0, 84%, 60%, 0.1);
+  --ns-error-border: hsl(0, 84%, 60%, 0.2);
+  --ns-warning: hsl(38, 92%, 50%);
+  --ns-warning-bg: hsl(38, 92%, 50%, 0.1);
+  --ns-warning-border: hsl(38, 92%, 50%, 0.2);
+  --ns-info: hsl(221, 83%, 53%);
+  --ns-info-bg: hsl(221, 83%, 53%, 0.1);
+  --ns-info-border: hsl(221, 83%, 53%, 0.2);
+  --ns-loading: hsl(220, 9%, 46%);
+  --ns-loading-bg: hsl(220, 9%, 46%, 0.1);
+  --ns-loading-border: hsl(220, 9%, 46%, 0.2);
+  
+  /* Shadows */
+  --ns-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+  --ns-shadow-lg: 0 10px 25px rgb(0 0 0 / 0.15), 0 4px 10px rgb(0 0 0 / 0.05);
+  
+  /* Spacing */
+  --ns-space-1: 0.25rem;
+  --ns-space-2: 0.5rem;
+  --ns-space-3: 0.75rem;
+  --ns-space-4: 1rem;
+  --ns-space-5: 1.25rem;
+  --ns-space-6: 1.5rem;
+  
+  /* Typography */
+  --ns-text-sm: 0.875rem;
+  --ns-text-base: 1rem;
+  
+  /* Border radius */
+  --ns-radius: 0.5rem;
+  --ns-radius-lg: 0.75rem;
+  
+  /* Z-index */
+  --ns-z-index: 9999;
+}
+
+/* 🌙 DARK MODE SUPPORT */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ns-surface: hsl(224, 71%, 4%);
+    --ns-surface-2: hsl(220, 13%, 8%);
+    --ns-border: hsl(217, 19%, 27%);
+    --ns-text: hsl(210, 20%, 98%);
+    --ns-text-secondary: hsl(215, 20%, 65%);
+  }
+}
+
+/* 🔔 NOTIFICATION CONTAINER */
+.notification-container {
+  position: fixed;
+  top: var(--ns-space-6);
+  right: var(--ns-space-6);
+  z-index: var(--ns-z-index);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ns-space-3);
+  max-width: 400px;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* 📱 MOBILE RESPONSIVE */
+@media (max-width: 640px) {
+  .notification-container {
+    top: var(--ns-space-4);
+    right: var(--ns-space-4);
+    left: var(--ns-space-4);
+    max-width: none;
+  }
+}
+
+/* 🔔 NOTIFICATION ITEM */
+.notification {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ns-space-3);
+  padding: var(--ns-space-4);
+  background: var(--ns-surface);
+  border: 1px solid var(--ns-border);
+  border-radius: var(--ns-radius-lg);
+  box-shadow: var(--ns-shadow);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  overflow: hidden;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification:hover {
+  box-shadow: var(--ns-shadow-lg);
+  transform: translateY(-1px);
+}
+
+.notification--removing {
+  opacity: 0.7;
+  transform: translateX(100%);
+}
+
+/* 🎨 NOTIFICATION VARIANTS */
+.notification--success {
+  border-left: 4px solid var(--ns-success);
+  background: linear-gradient(135deg, var(--ns-surface) 0%, var(--ns-success-bg) 100%);
+}
+
+.notification--error {
+  border-left: 4px solid var(--ns-error);
+  background: linear-gradient(135deg, var(--ns-surface) 0%, var(--ns-error-bg) 100%);
+}
+
+.notification--warning {
+  border-left: 4px solid var(--ns-warning);
+  background: linear-gradient(135deg, var(--ns-surface) 0%, var(--ns-warning-bg) 100%);
+}
+
+.notification--info {
+  border-left: 4px solid var(--ns-info);
+  background: linear-gradient(135deg, var(--ns-surface) 0%, var(--ns-info-bg) 100%);
+}
+
+.notification--loading {
+  border-left: 4px solid var(--ns-loading);
+  background: linear-gradient(135deg, var(--ns-surface) 0%, var(--ns-loading-bg) 100%);
+}
+
+/* 🔔 NOTIFICATION CONTENT */
+.notification-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ns-space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+/* 🎯 NOTIFICATION ICON */
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin-top: var(--ns-space-1);
+}
+
+.notification-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.notification--success .notification-icon-svg {
+  color: var(--ns-success);
+}
+
+.notification--error .notification-icon-svg {
+  color: var(--ns-error);
+}
+
+.notification--warning .notification-icon-svg {
+  color: var(--ns-warning);
+}
+
+.notification--info .notification-icon-svg {
+  color: var(--ns-info);
+}
+
+.notification--loading .notification-icon-svg {
+  color: var(--ns-loading);
+}
+
+/* 🔄 SPINNING ANIMATION FOR LOADING */
+.notification-icon--spinning {
+  animation: ns-spin 1s linear infinite;
+}
+
+@keyframes ns-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 📝 NOTIFICATION TEXT */
+.notification-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: var(--ns-text-base);
+  font-weight: 600;
+  color: var(--ns-text);
+  line-height: 1.4;
+  margin-bottom: var(--ns-space-1);
+}
+
+.notification-description {
+  font-size: var(--ns-text-sm);
+  color: var(--ns-text-secondary);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* ❌ NOTIFICATION CLOSE BUTTON */
+.notification-close {
+  position: absolute;
+  top: var(--ns-space-2);
+  right: var(--ns-space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--ns-radius);
+  color: var(--ns-text-secondary);
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+
+.notification:hover .notification-close {
+  opacity: 1;
+}
+
+.notification-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--ns-text);
+}
+
+.notification-close:focus-visible {
+  outline: 2px solid var(--ns-info);
+  outline-offset: 1px;
+  opacity: 1;
+}
+
+.notification-close-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* 📊 NOTIFICATION PROGRESS BAR */
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.3;
+  transform-origin: left;
+  animation: ns-progress linear forwards;
+}
+
+.notification--success .notification-progress {
+  color: var(--ns-success);
+}
+
+.notification--error .notification-progress {
+  color: var(--ns-error);
+}
+
+.notification--warning .notification-progress {
+  color: var(--ns-warning);
+}
+
+.notification--info .notification-progress {
+  color: var(--ns-info);
+}
+
+.notification--loading .notification-progress {
+  color: var(--ns-loading);
+}
+
+@keyframes ns-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* 🌐 REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .notification {
+    transition: none;
+  }
+  
+  .notification-icon--spinning {
+    animation: none;
+  }
+  
+  .notification-progress {
+    animation: none;
+  }
+  
+  .notification:hover {
+    transform: none;
+  }
+}
+
+/* 🎨 HIGH CONTRAST MODE */
+@media (prefers-contrast: high) {
+  .notification {
+    border-width: 2px;
+    box-shadow: none;
+  }
+  
+  .notification--success {
+    border-color: var(--ns-success);
+    background: var(--ns-surface);
+  }
+  
+  .notification--error {
+    border-color: var(--ns-error);
+    background: var(--ns-surface);
+  }
+  
+  .notification--warning {
+    border-color: var(--ns-warning);
+    background: var(--ns-surface);
+  }
+  
+  .notification--info {
+    border-color: var(--ns-info);
+    background: var(--ns-surface);
+  }
+  
+  .notification--loading {
+    border-color: var(--ns-loading);
+    background: var(--ns-surface);
+  }
+}
+
+/* 📱 TOUCH DEVICE OPTIMIZATIONS */
+@media (hover: none) and (pointer: coarse) {
+  .notification-close {
+    opacity: 1;
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .notification {
+    padding-right: var(--ns-space-6);
+  }
+}
+
+/* 🎯 FOCUS MANAGEMENT */
+.notification:focus-within .notification-close {
+  opacity: 1;
+}
+
+/* 🎨 CUSTOM SCROLLBAR FOR LONG CONTENT */
+.notification-text::-webkit-scrollbar {
+  width: 4px;
+}
+
+.notification-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notification-text::-webkit-scrollbar-thumb {
+  background: var(--ns-text-secondary);
+  border-radius: 2px;
+}
+
+.notification-text::-webkit-scrollbar-thumb:hover {
+  background: var(--ns-text);
+}
