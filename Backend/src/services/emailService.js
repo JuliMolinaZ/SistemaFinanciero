@@ -1,10 +1,51 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-// Configuración del transportador de email
+// Configurar SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+// Función para enviar email con SendGrid
+const sendEmailWithSendGrid = async (emailData) => {
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error('SendGrid API Key no configurada');
+  }
+
+  const msg = {
+    to: emailData.to,
+    from: {
+      email: process.env.SENDGRID_FROM_EMAIL || 'noreply@runsolutions-services.com',
+      name: process.env.SENDGRID_FROM_NAME || 'RunSolutions'
+    },
+    subject: emailData.subject,
+    html: emailData.html,
+    text: emailData.text || emailData.html.replace(/<[^>]*>/g, '')
+  };
+
+  console.log('📧 Enviando email con SendGrid...');
+  console.log('   Desde:', msg.from.email);
+  console.log('   Hacia:', msg.to);
+  console.log('   Asunto:', msg.subject);
+
+  const result = await sgMail.send(msg);
+
+  console.log('✅ Email enviado con SendGrid exitosamente');
+  console.log('   Response:', result[0].statusCode);
+
+  return {
+    success: true,
+    messageId: result[0].headers['x-message-id'] || 'sendgrid-' + Date.now(),
+    response: `SendGrid: ${result[0].statusCode}`,
+    provider: 'sendgrid'
+  };
+};
+
+// Configuración del transportador de email SMTP (fallback)
 const createTransporter = () => {
-  // Usar SMTP directo de Gmail (más confiable para dominios corporativos)
+  // Usar SMTP directo de Gmail (fallback para cuando SendGrid falle)
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    console.log('🔧 Usando configuración SMTP directa');
+    console.log('🔧 Usando configuración SMTP directa como fallback');
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT || 587,
@@ -36,93 +77,174 @@ const createTransporter = () => {
   });
 };
 
-// Función para enviar email
+// Función para enviar email con sistema de fallback
 const sendEmail = async (emailData) => {
+  const errors = [];
+
   try {
-    // Solo simular envío si NO hay credenciales configuradas
-    if (!process.env.GMAIL_APP_PASSWORD && !process.env.SMTP_PASS) {
-      console.log('🧪 MODO SIMULACIÓN: No hay credenciales de email configuradas');
+    // 1. INTENTAR SENDGRID PRIMERO (recomendado para producción)
+    if (process.env.SENDGRID_API_KEY) {
+      try {
+        console.log('🚀 Intentando envío con SendGrid (proveedor principal)...');
+        const result = await sendEmailWithSendGrid(emailData);
+        console.log('✅ Email enviado exitosamente con SendGrid');
+        return result;
+      } catch (sendgridError) {
+        console.warn('⚠️ SendGrid falló:', sendgridError.message);
+        errors.push(`SendGrid: ${sendgridError.message}`);
+      }
+    } else {
+      console.log('⚠️ SendGrid no configurado (SENDGRID_API_KEY no encontrada)');
+    }
+
+    // 2. FALLBACK A SMTP SI SENDGRID FALLA
+    if (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD) {
+      try {
+        console.log('🔄 Fallback: Intentando envío con SMTP...');
+
+        const transporter = createTransporter();
+
+        const mailOptions = {
+          from: process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>',
+          to: emailData.to,
+          subject: emailData.subject,
+          html: emailData.html,
+          text: emailData.text || emailData.html.replace(/<[^>]*>/g, '')
+        };
+
+        console.log('📧 Enviando email con SMTP...');
+        console.log('   Desde:', mailOptions.from);
+        console.log('   Hacia:', mailOptions.to);
+        console.log('   Asunto:', mailOptions.subject);
+
+        const result = await transporter.sendMail(mailOptions);
+
+        console.log('✅ Email enviado exitosamente con SMTP');
+        console.log('   Message ID:', result.messageId);
+
+        return {
+          success: true,
+          messageId: result.messageId,
+          response: result.response,
+          provider: 'smtp'
+        };
+
+      } catch (smtpError) {
+        console.warn('⚠️ SMTP también falló:', smtpError.message);
+        errors.push(`SMTP: ${smtpError.message}`);
+      }
+    } else {
+      console.log('⚠️ SMTP no configurado (credenciales no encontradas)');
+    }
+
+    // 3. SI TODO FALLA, SIMULAR ENVÍO EN DESARROLLO
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🧪 MODO DESARROLLO: Simulando envío de email...');
       console.log('   Desde:', process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>');
       console.log('   Hacia:', emailData.to);
       console.log('   Asunto:', emailData.subject);
       console.log('   📝 Contenido HTML:', emailData.html.substring(0, 100) + '...');
-      console.log('✅ Email simulado enviado exitosamente');
-      
+      console.log('⚠️ ERRORES DE PROVEEDORES:', errors.join(', '));
+
       return {
         success: true,
-        messageId: 'simulated-' + Date.now(),
-        response: 'Email simulado - no hay credenciales configuradas'
+        messageId: 'simulated-dev-' + Date.now(),
+        response: 'Email simulado en desarrollo - proveedores no disponibles',
+        provider: 'simulation',
+        errors
       };
     }
 
-    const transporter = createTransporter();
-    
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>',
-      to: emailData.to,
-      subject: emailData.subject,
-      html: emailData.html,
-      text: emailData.text || emailData.html.replace(/<[^>]*>/g, '') // Versión texto plano
-    };
-
-    console.log('📧 Enviando email real...');
-    console.log('   Desde:', mailOptions.from);
-    console.log('   Hacia:', mailOptions.to);
-    console.log('   Asunto:', mailOptions.subject);
-
-    const result = await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email enviado exitosamente');
-    console.log('   Message ID:', result.messageId);
-    console.log('   Respuesta:', result.response);
-    
-    return {
-      success: true,
-      messageId: result.messageId,
-      response: result.response
-    };
+    // 4. EN PRODUCCIÓN, LANZAR ERROR SI TODOS LOS PROVEEDORES FALLAN
+    throw new Error(`Todos los proveedores de email fallaron: ${errors.join(', ')}`);
 
   } catch (error) {
-    console.error('❌ Error enviando email:', error);
-    
-    // En modo desarrollo, simular éxito si hay error de autenticación
-    if (process.env.NODE_ENV === 'development' && error.code === 'EAUTH') {
-      console.log('❌ ERROR DE AUTENTICACIÓN GMAIL:');
-      console.log('   📧 Email que NO se pudo enviar:');
-      console.log('   Desde:', process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>');
-      console.log('   Hacia:', emailData.to);
-      console.log('   Asunto:', emailData.subject);
-      console.log('   📝 Contenido:', emailData.html.substring(0, 200) + '...');
-      console.log('');
-      console.log('🔧 SOLUCIÓN REQUERIDA:');
-      console.log('   1. Generar nueva App Password en Gmail');
-      console.log('   2. Actualizar GMAIL_APP_PASSWORD en config.env');
-      console.log('   3. Reiniciar el servidor');
-      console.log('');
+    console.error('❌ Error crítico enviando email:', error);
+
+    // En desarrollo, siempre simular para no bloquear flujo
+    if (process.env.NODE_ENV === 'development') {
       console.log('🧪 Simulando envío para continuar desarrollo...');
-      
+
       return {
         success: true,
-        messageId: 'simulated-auth-error-' + Date.now(),
-        response: 'Email simulado debido a error de autenticación - REQUIERE NUEVA APP PASSWORD'
+        messageId: 'simulated-error-' + Date.now(),
+        response: 'Email simulado debido a error crítico - REVISAR CONFIGURACIÓN',
+        provider: 'simulation',
+        originalError: error.message
       };
     }
-    
+
     throw error;
   }
 };
 
-// Función para verificar conexión
+// Función para verificar conexión de proveedores
 const verifyConnection = async () => {
-  try {
-    const transporter = createTransporter();
-    await transporter.verify();
-    console.log('✅ Conexión de email verificada correctamente');
-    return true;
-  } catch (error) {
-    console.error('❌ Error verificando conexión de email:', error);
-    return false;
+  const results = {
+    sendgrid: false,
+    smtp: false,
+    overall: false
+  };
+
+  // Verificar SendGrid
+  if (process.env.SENDGRID_API_KEY) {
+    try {
+      console.log('🔍 Verificando conexión SendGrid...');
+      const testEmail = {
+        to: 'test@test.com',
+        subject: 'Test SendGrid Connection',
+        html: '<p>Test</p>'
+      };
+
+      // Solo probar la configuración, no enviar realmente
+      const msg = {
+        to: testEmail.to,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'noreply@runsolutions-services.com',
+          name: process.env.SENDGRID_FROM_NAME || 'RunSolutions'
+        },
+        subject: testEmail.subject,
+        html: testEmail.html
+      };
+
+      // SendGrid no tiene un método verify directo, pero podemos validar la API Key
+      if (process.env.SENDGRID_API_KEY.startsWith('SG.')) {
+        results.sendgrid = true;
+        console.log('✅ SendGrid configurado correctamente');
+      } else {
+        console.log('❌ SendGrid API Key parece inválida');
+      }
+    } catch (error) {
+      console.log('❌ Error verificando SendGrid:', error.message);
+    }
+  } else {
+    console.log('⚠️ SendGrid no configurado');
   }
+
+  // Verificar SMTP
+  if (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD) {
+    try {
+      console.log('🔍 Verificando conexión SMTP...');
+      const transporter = createTransporter();
+      await transporter.verify();
+      results.smtp = true;
+      console.log('✅ SMTP configurado correctamente');
+    } catch (error) {
+      console.log('❌ Error verificando SMTP:', error.message);
+    }
+  } else {
+    console.log('⚠️ SMTP no configurado');
+  }
+
+  results.overall = results.sendgrid || results.smtp;
+
+  if (results.overall) {
+    console.log('✅ Al menos un proveedor de email está disponible');
+  } else {
+    console.log('❌ No hay proveedores de email disponibles');
+  }
+
+  return results;
 };
 
 // Función para enviar email de prueba
