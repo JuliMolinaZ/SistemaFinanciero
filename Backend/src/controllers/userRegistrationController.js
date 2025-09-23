@@ -2,6 +2,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { logDatabaseOperation, logAuth } = require('../middlewares/logger');
 const { auditEvent, AUDIT_ACTIONS } = require('../middlewares/audit');
+const { verifyFirebaseToken } = require('../config/firebase');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -121,8 +122,8 @@ exports.registerUserBySuperAdmin = async (req, res) => {
         is_active: true,
         is_first_login: true,
         profile_complete: false,
-        // Generar Firebase UID único automáticamente
-        firebase_uid: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        // NO generar Firebase UID falso - dejar null para que se actualice después
+        firebase_uid: null,
         created_at: new Date(),
         updated_at: new Date()
       },
@@ -158,7 +159,7 @@ exports.registerUserBySuperAdmin = async (req, res) => {
       console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
     }
 
-    // Enviar email de invitación automáticamente
+    // Enviar email de invitación automáticamente usando el nuevo servicio
     try {
       console.log('📧 Enviando email de invitación automáticamente...');
       
@@ -176,88 +177,20 @@ exports.registerUserBySuperAdmin = async (req, res) => {
         }
       });
 
-      // Configurar email de invitación
-      const emailData = {
-        to: newUser.email,
-        subject: '🎉 ¡Bienvenido a RunSolutions! Tu cuenta está lista',
-        html: `
-          <!DOCTYPE html>
-          <html lang="es">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Bienvenido a RunSolutions</title>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
-              .button { display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 20px 0; font-weight: bold; }
-              .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
-              .role-badge { display: inline-block; background: #f39c12; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; }
-              .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>🚀 ¡Bienvenido a RunSolutions!</h1>
-                <p>Sistema Integral de Gestión y Manejo Administrativo</p>
-              </div>
-              
-              <div class="content">
-                <h2>¡Tu cuenta ha sido creada exitosamente!</h2>
-                
-                <div class="info-box">
-                  <h3>📧 Información de tu cuenta:</h3>
-                  <p><strong>Email:</strong> ${newUser.email}</p>
-                  <p><strong>Rol asignado:</strong> <span class="role-badge">${roleExists.name}</span></p>
-                  <p><strong>Descripción del rol:</strong> ${roleExists.description || 'Sin descripción'}</p>
-                </div>
-                
-                <h3>🔐 Cómo acceder a tu cuenta:</h3>
-                <ol>
-                  <li><strong>Haz clic en el botón de acceso</strong> que aparece más abajo</li>
-                  <li><strong>Completa tu perfil</strong> con tu información personal</li>
-                  <li><strong>Establece tu contraseña</strong> para futuros accesos</li>
-                  <li><strong>¡Listo!</strong> Ya puedes usar el sistema</li>
-                </ol>
-                
-                <div style="text-align: center;">
-                  <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/complete-profile/${accessToken}" class="button">
-                    🚀 Completar Mi Perfil y Acceder
-                  </a>
-                </div>
-                
-                <div class="info-box">
-                  <h3>⚠️ Importante:</h3>
-                  <ul>
-                    <li>Este enlace es válido por <strong>24 horas</strong></li>
-                    <li>Si no puedes acceder, contacta al administrador</li>
-                    <li>Tu contraseña será solicitada en el primer acceso</li>
-                  </ul>
-                </div>
-                
-                <div class="footer">
-                  <p>Este es un email automático del sistema RunSolutions</p>
-                  <p>Si tienes dudas, contacta a tu administrador</p>
-                </div>
-              </div>
-            </div>
-          </body>
-          </html>
-        `
+      // Usar el nuevo servicio de notificaciones
+      const { sendUserInvitationNotification } = require('../services/userNotificationService');
+      
+      // Obtener información del usuario que invita
+      const invitedBy = req.user ? {
+        name: req.user.name || 'Administrador',
+        email: req.user.email || 'admin@runsolutions-services.com'
+      } : {
+        name: 'Administrador del Sistema',
+        email: 'admin@runsolutions-services.com'
       };
 
-      // Enviar email (simulado por ahora)
-      console.log('📧 Email de invitación generado:');
-      console.log('   Destinatario:', newUser.email);
-      console.log('   Token de acceso:', accessToken);
-      console.log('   Enlace de acceso:', `${process.env.FRONTEND_URL || 'http://localhost:3000'}/complete-profile/${accessToken}`);
-      
-      // Enviar email real usando el servicio
-      const { sendEmail } = require('../services/emailService');
-      await sendEmail(emailData);
+      // Enviar notificación usando el nuevo servicio
+      await sendUserInvitationNotification(newUser, invitedBy);
       
       console.log('✅ Email de invitación enviado exitosamente');
       
@@ -338,12 +271,74 @@ exports.verifyAccessToken = async (req, res) => {
         department: user.department,
         position: user.position,
         hire_date: user.hire_date,
-        roles: user.roles
+        roles: user.roles,
+        firebase_uid: user.firebase_uid,
+        profile_complete: user.profile_complete,
+        is_first_login: user.is_first_login
       }
     });
     
   } catch (error) {
     console.error('❌ Error verificando token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// =====================================================
+// VERIFICAR USUARIO POR FIREBASE UID O EMAIL
+// =====================================================
+
+exports.verifyUserByFirebaseOrEmail = async (req, res) => {
+  try {
+    const { identifier } = req.params; // Puede ser firebase_uid o email
+    
+    console.log('🔍 Verificando usuario por identificador:', identifier);
+    
+    // Buscar usuario por firebase_uid o email
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { firebase_uid: identifier },
+          { email: identifier }
+        ]
+      },
+      include: {
+        roles: true
+      }
+    });
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+    
+    console.log('✅ Usuario encontrado:', user.email);
+    
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        department: user.department,
+        position: user.position,
+        hire_date: user.hire_date,
+        roles: user.roles,
+        firebase_uid: user.firebase_uid,
+        profile_complete: user.profile_complete,
+        is_first_login: user.is_first_login,
+        is_active: user.is_active
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error verificando usuario:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor'
@@ -419,28 +414,50 @@ exports.completeUserProfile = async (req, res) => {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // Usar el Firebase UID enviado por el frontend, o generar uno temporal si no se envía
-    const finalFirebaseUID = firebase_uid || `temp_${existingUser.email.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
-    console.log('🔐 Firebase UID que se guardará:', finalFirebaseUID);
+    // Validar y procesar la fecha de contratación
+    let processedHireDate = null;
+    if (hire_date && hire_date.trim() !== '') {
+      const date = new Date(hire_date);
+      if (!isNaN(date.getTime())) {
+        processedHireDate = date;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha de contratación inválido'
+        });
+      }
+    }
+
+    // Usar el Firebase UID enviado por el frontend si está disponible
     console.log('🔐 Firebase UID enviado por frontend:', firebase_uid);
+
+    // Solo actualizar Firebase UID si se proporciona uno real
+    let updateData = {
+      name: name.trim(),
+      password: hashedPassword,
+      phone: phone?.trim(),
+      department: department?.trim(),
+      position: position?.trim(),
+      hire_date: processedHireDate,
+      avatar: avatarPath,
+      is_first_login: false,
+      profile_complete: true,
+      is_active: true,
+      updated_at: new Date()
+    };
+
+    // Solo incluir firebase_uid si se proporciona un UID real de Firebase
+    if (firebase_uid && !firebase_uid.startsWith('temp_') && !firebase_uid.startsWith('user_')) {
+      updateData.firebase_uid = firebase_uid;
+      console.log('🔐 Firebase UID real que se guardará:', firebase_uid);
+    } else {
+      console.log('🔐 No se actualizará Firebase UID - se esperará actualización posterior');
+    }
 
     // Actualizar el usuario usando el ID del usuario encontrado por token
     const updatedUser = await prisma.user.update({
       where: { id: existingUser.id },
-      data: {
-        name: name.trim(),
-        password: hashedPassword,
-        phone: phone?.trim(),
-        department: department?.trim(),
-        position: position?.trim(),
-        hire_date: hire_date ? new Date(hire_date) : null,
-        avatar: avatarPath,
-        firebase_uid: finalFirebaseUID,
-        is_first_login: false,
-        profile_complete: true,
-        is_active: true,
-        updated_at: new Date()
-      },
+      data: updateData,
       include: {
         roles: {
           select: {
@@ -978,6 +995,25 @@ exports.updateUser = async (req, res) => {
       delete transformedUpdateData.status; // Eliminar el campo status ya que no existe en la BD
     }
 
+    // Validar y limpiar campos de fecha
+    if ('hire_date' in transformedUpdateData) {
+      const hireDate = transformedUpdateData.hire_date;
+      if (hireDate && hireDate.trim() !== '') {
+        // Validar que sea una fecha válida
+        const date = new Date(hireDate);
+        if (isNaN(date.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Formato de fecha de contratación inválido'
+          });
+        }
+        transformedUpdateData.hire_date = date;
+      } else {
+        // Si está vacío, establecer como null
+        transformedUpdateData.hire_date = null;
+      }
+    }
+
     console.log('📝 Datos transformados para BD:', transformedUpdateData);
 
     // Actualizar el usuario
@@ -1231,6 +1267,184 @@ exports.updateUserFirebaseUID = async (req, res) => {
       success: false,
       error: error.message,
       message: 'Error al actualizar Firebase UID'
+    });
+  }
+};
+
+// =====================================================
+// CREAR USUARIO DESDE FIREBASE AUTH
+// =====================================================
+
+exports.createUserFromFirebase = async (req, res) => {
+  const start = Date.now();
+  try {
+    console.log('🔍 Creando usuario desde Firebase Auth...');
+    console.log('📝 Datos recibidos:', req.body);
+    
+    const { firebase_uid, email, name, role, avatar } = req.body;
+    
+    // Validaciones básicas
+    if (!firebase_uid || !email || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos requeridos faltantes',
+        errors: [{
+          field: !firebase_uid ? 'firebase_uid' : !email ? 'email' : 'name',
+          message: 'Campo requerido'
+        }]
+      });
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { firebase_uid },
+          { email: email.trim().toLowerCase() }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      // Si existe pero no tiene firebase_uid, actualizarlo
+      if (existingUser.email === email.trim().toLowerCase() && !existingUser.firebase_uid) {
+        console.log('🔄 Usuario existe sin Firebase UID, actualizando...');
+        
+        const updatedUser = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            firebase_uid: firebase_uid,
+            name: name || existingUser.name,
+            avatar: avatar || existingUser.avatar,
+            updated_at: new Date()
+          },
+          include: {
+            roles: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                level: true
+              }
+            }
+          }
+        });
+
+        console.log('✅ Usuario actualizado con Firebase UID:', updatedUser);
+
+        return res.status(200).json({
+          success: true,
+          message: 'Usuario actualizado exitosamente',
+          data: {
+            id: updatedUser.id,
+            firebase_uid: updatedUser.firebase_uid,
+            email: updatedUser.email,
+            name: updatedUser.name,
+            role: updatedUser.role,
+            avatar: updatedUser.avatar,
+            profile_complete: updatedUser.profile_complete || false,
+            roles: updatedUser.roles
+          }
+        });
+      }
+
+      return res.status(409).json({
+        success: false,
+        message: 'El usuario ya existe',
+        errors: [{
+          field: existingUser.firebase_uid === firebase_uid ? 'firebase_uid' : 'email',
+          message: 'Ya existe un usuario con estos datos'
+        }]
+      });
+    }
+
+    // Buscar rol por defecto si no se especifica
+    let roleToAssign = role || 'Desarrollador'; // Cambiar a Desarrollador para que tenga acceso a Gestión de Proyectos
+    const roleExists = await prisma.role.findFirst({
+      where: { name: roleToAssign }
+    });
+
+    if (!roleExists) {
+      // Usar rol por defecto si no existe el especificado
+      const defaultRole = await prisma.role.findFirst({
+        where: { name: 'Desarrollador' }
+      });
+      roleToAssign = defaultRole ? 'Desarrollador' : 'usuario';
+    }
+
+    // Crear nuevo usuario
+    const newUser = await prisma.user.create({
+      data: {
+        firebase_uid: firebase_uid,
+        email: email.trim().toLowerCase(),
+        name: name,
+        role: roleToAssign,
+        avatar: avatar || '',
+        is_active: true,
+        is_first_login: true,
+        profile_complete: false,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      include: {
+        roles: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            level: true
+          }
+        }
+      }
+    });
+
+    console.log('✅ Usuario creado exitosamente:', newUser);
+
+    // Registrar en auditoría
+    try {
+      await auditEvent({
+        userId: firebase_uid,
+        userEmail: email,
+        action: AUDIT_ACTIONS.CREATE,
+        tableName: 'users',
+        recordId: newUser.id,
+        details: {
+          action: 'Usuario creado desde Firebase Auth',
+          email: newUser.email,
+          role: newUser.role
+        }
+      });
+    } catch (auditError) {
+      console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
+    }
+
+    logDatabaseOperation('INSERT', 'users', Date.now() - start, true);
+    logAuth('create_firebase', newUser.id, true, req.ip, req.get('User-Agent'));
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuario creado exitosamente',
+      data: {
+        id: newUser.id,
+        firebase_uid: newUser.firebase_uid,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        avatar: newUser.avatar,
+        profile_complete: newUser.profile_complete,
+        roles: newUser.roles
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error creando usuario desde Firebase:', error);
+    logDatabaseOperation('INSERT', 'users', Date.now() - start, false);
+    logAuth('create_firebase', null, false, req.ip, req.get('User-Agent'));
+
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno'
     });
   }
 };

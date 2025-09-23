@@ -1,9 +1,9 @@
-// controllers/usuarioController.js - VERSIÓN UNIFICADA CON PRISMA
 const { PrismaClient } = require('@prisma/client');
 const { logDatabaseOperation, logAuth } = require('../middlewares/logger');
 const { generateJWT } = require('../middlewares/auth');
 const { hashPassword, verifyPassword } = require('../utils/encryption');
 const { auditEvent, AUDIT_ACTIONS } = require('../middlewares/audit');
+const { verifyFirebaseToken } = require('../config/firebase');
 
 // Inicializar Prisma Client
 const prisma = new PrismaClient();
@@ -207,6 +207,8 @@ exports.getUserByFirebaseUid = async (req, res) => {
   try {
     const { firebase_uid } = req.params;
     
+    console.log('🔍 Buscando usuario con Firebase UID:', firebase_uid);
+    
     // Verificar cache
     const cacheKey = `user_firebase_${firebase_uid}`;
     const cachedUser = getCachedData(cacheKey);
@@ -237,9 +239,103 @@ exports.getUserByFirebaseUid = async (req, res) => {
     });
     
     if (!user) {
+      console.log('❌ Usuario no encontrado con Firebase UID:', firebase_uid);
+      
+      // Si el usuario no existe, intentar buscar por email en el token Firebase
+      const firebaseToken = req.headers['x-firebase-token'];
+      if (firebaseToken) {
+        try {
+          const decodedToken = await verifyFirebaseToken(firebaseToken);
+          const email = decodedToken.email;
+          
+          console.log('🔍 Buscando usuario por email:', email);
+          
+          // Buscar usuario por email
+          const userByEmail = await prisma.user.findFirst({
+            where: { email: email.toLowerCase() },
+            include: {
+              roles: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  level: true,
+                  is_active: true
+                }
+              }
+            }
+          });
+          
+          if (userByEmail) {
+            console.log('✅ Usuario encontrado por email, actualizando Firebase UID...');
+            
+            // Actualizar Firebase UID
+            const updatedUser = await prisma.user.update({
+              where: { id: userByEmail.id },
+              data: {
+                firebase_uid: firebase_uid,
+                updated_at: new Date()
+              },
+              include: {
+                roles: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    level: true,
+                    is_active: true
+                  }
+                }
+              }
+            });
+            
+            console.log('✅ Firebase UID actualizado exitosamente');
+            
+            // Agregar status y mantener compatibilidad con el frontend
+            const userWithStatus = {
+              ...updatedUser,
+              role: updatedUser.roles ? updatedUser.roles.name : updatedUser.role || 'Sin rol',
+              role_info: updatedUser.roles ? {
+                id: updatedUser.roles.id,
+                name: updatedUser.roles.name,
+                description: updatedUser.roles.description,
+                level: updatedUser.roles.level,
+                is_active: updatedUser.roles.is_active
+              } : null,
+              status: updatedUser.updated_at && new Date(updatedUser.updated_at) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) ? 'active' : 'inactive'
+            };
+            
+            // Guardar en cache
+            setCachedData(cacheKey, userWithStatus);
+            
+            logDatabaseOperation('UPDATE', 'users', Date.now() - start, true, 'Firebase UID actualizado');
+            return res.json({
+              success: true,
+              data: userWithStatus,
+              fromCache: false,
+              firebase_uid_updated: true
+            });
+          }
+        } catch (firebaseError) {
+          console.log('⚠️ Error verificando token Firebase:', firebaseError.message);
+        }
+      }
+      
       return res.status(404).json({ 
         success: false,
-        message: 'Usuario no encontrado' 
+        message: 'Usuario no encontrado',
+        error: 'USER_NOT_FOUND',
+        firebase_uid: firebase_uid
+      });
+    }
+
+    // Verificar si el usuario está activo
+    if (!user.is_active) {
+      console.log('⚠️ Usuario inactivo:', user.email);
+      return res.status(403).json({
+        success: false,
+        message: 'Usuario inactivo',
+        error: 'USER_INACTIVE'
       });
     }
 
@@ -262,6 +358,7 @@ exports.getUserByFirebaseUid = async (req, res) => {
     // Guardar en cache
     setCachedData(cacheKey, userWithStatus);
     
+    console.log('✅ Usuario encontrado:', user.email, 'Rol:', user.roles?.name);
     logDatabaseOperation('SELECT', 'users', Date.now() - start, true);
     res.json({
       success: true,

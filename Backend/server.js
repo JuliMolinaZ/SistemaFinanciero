@@ -3,7 +3,17 @@ const express = require('express')
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: './config.env' });
+
+// Inicializar Firebase Admin SDK
+const { initializeFirebase } = require('./src/config/firebase');
+try {
+  initializeFirebase();
+  console.log('✅ Firebase Admin SDK inicializado correctamente');
+} catch (error) {
+  console.error('❌ Error inicializando Firebase Admin SDK:', error.message);
+  console.log('⚠️ Continuando sin Firebase Admin SDK...');
+}
 
 const app = express();
 
@@ -136,6 +146,12 @@ console.log('✅ Rutas de gestión de proyectos configuradas');
 // Rutas de usuarios
 console.log('🚀 Cargando rutas de usuarios...');
 app.use('/api/users', require('./src/routes/users'));
+app.use('/api/permissions', require('./src/routes/permissions'));
+
+// Rutas de prueba temporal
+const { testDatabaseConnection, configureDevOperatorPermissionsSimple } = require('./src/controllers/testPermissionsController');
+app.get('/api/test-db', testDatabaseConnection);
+app.post('/api/test-permissions', configureDevOperatorPermissionsSimple);
 console.log('✅ Rutas de usuarios configuradas');
 
 // Ruta temporal que funciona (bypass de problemas de Prisma)

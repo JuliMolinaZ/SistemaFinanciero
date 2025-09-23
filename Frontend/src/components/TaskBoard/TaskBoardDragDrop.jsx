@@ -753,7 +753,7 @@ const TaskBoardDragDrop = ({
 }) => {
   const theme = useTheme();
   const { notify } = useNotifications();
-  const { confirmState, handleConfirm, handleCancel } = useConfirm();
+  const { confirmState, handleConfirm, handleCancel, confirmDelete } = useConfirm();
   const taskNotify = useTaskNotifications();
 
   // Obtener usuario actual desde el contexto global
@@ -1088,22 +1088,32 @@ const TaskBoardDragDrop = ({
 
   // Manejar eliminación de tarea con confirmación personalizada
   const handleDeleteTask = async (taskId) => {
+    console.log('🗑️ Iniciando eliminación de tarea:', taskId);
+    
     const taskToDelete = tasks.find(task => task.id === taskId);
-    if (!taskToDelete) return;
+    if (!taskToDelete) {
+      console.log('❌ Tarea no encontrada:', taskId);
+      return;
+    }
 
-    // Usar el sistema de confirmación personalizado
-    const confirmed = await handleConfirm({
-      title: 'Eliminar Tarea',
-      message: `¿Estás seguro de que deseas eliminar la tarea "${taskToDelete.title}"?`,
-      description: 'Esta acción no se puede deshacer.',
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar',
-      severity: 'error'
-    });
-
-    if (!confirmed) return;
+    console.log('🔍 Tarea encontrada:', taskToDelete.title);
 
     try {
+      // Usar el sistema de confirmación personalizado
+      console.log('📋 Mostrando diálogo de confirmación...');
+      const confirmed = await confirmDelete(
+        `¿Estás seguro de que deseas eliminar la tarea "${taskToDelete.title}"?\n\nEsta acción no se puede deshacer.`,
+        'Eliminar Tarea'
+      );
+
+      console.log('✅ Confirmación recibida:', confirmed);
+
+      if (!confirmed) {
+        console.log('❌ Usuario canceló la eliminación');
+        return;
+      }
+
+      console.log('🚀 Procediendo con la eliminación...');
       await taskManagementService.deleteTask(taskId);
 
       setTasks(prev => prev.filter(task => task.id !== taskId));
@@ -1115,8 +1125,10 @@ const TaskBoardDragDrop = ({
         onTaskDelete(taskId);
       }
 
+      console.log('✅ Tarea eliminada exitosamente');
+
     } catch (error) {
-      console.error('Error eliminando tarea:', error);
+      console.error('❌ Error eliminando tarea:', error);
       taskNotify.taskError('eliminar la tarea', error);
     }
   };

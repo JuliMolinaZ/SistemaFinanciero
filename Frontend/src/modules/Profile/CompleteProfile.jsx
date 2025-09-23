@@ -158,54 +158,76 @@ const CompleteProfile = () => {
 
   const handleSubmit = async () => {
     if (!validateStep(activeStep)) return;
-    
+
     try {
       setSubmitting(true);
-      
+
+      // Intentar obtener el Firebase UID si el usuario está autenticado
+      let firebaseUID = null;
+      try {
+        const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+        const auth = getAuth();
+
+        // Esperar a que Firebase se inicialice
+        const currentUser = await new Promise((resolve) => {
+          const unsubscribe = onAuthStateChanged(auth, (user) => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
+        if (currentUser && currentUser.uid) {
+          firebaseUID = currentUser.uid;
+          console.log('🔐 Firebase UID obtenido para envío:', firebaseUID);
+        }
+      } catch (firebaseError) {
+        console.log('ℹ️ No se pudo obtener Firebase UID, continuando sin él:', firebaseError.message);
+      }
+
       const submitData = {
         ...formData,
-        token: token
+        token: token,
+        firebase_uid: firebaseUID // Incluir Firebase UID si está disponible
       };
-      
-      const response = await axios.post('/api/user-registration/complete-profile', submitData);
+
+      console.log('📤 Enviando datos de completar perfil:', { ...submitData, password: '[HIDDEN]', confirmPassword: '[HIDDEN]' });
+
+      const response = await axios.post(`/api/user-registration/complete-profile/${token}`, submitData);
       
       if (response.data.success) {
-        // Después de completar el perfil, actualizar el Firebase UID si está disponible
-        try {
-          // Obtener el usuario actual de Firebase si está autenticado
-          const { getAuth, onAuthStateChanged } = await import('firebase/auth');
-          const auth = getAuth();
-          
-          // Esperar a que Firebase se inicialice
-          await new Promise((resolve) => {
-            const unsubscribe = onAuthStateChanged(auth, (user) => {
-              unsubscribe();
-              resolve(user);
+        console.log('✅ Perfil completado exitosamente');
+
+        // Si no se incluyó Firebase UID en la llamada inicial, intentar actualizarlo ahora
+        if (!firebaseUID) {
+          try {
+            const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+            const auth = getAuth();
+
+            const currentUser = await new Promise((resolve) => {
+              const unsubscribe = onAuthStateChanged(auth, (user) => {
+                unsubscribe();
+                resolve(user);
+              });
             });
-          });
-          
-          const currentUser = auth.currentUser;
-          if (currentUser && currentUser.uid) {
-            console.log('🔐 Usuario de Firebase detectado:', currentUser.uid);
-            
-            // Actualizar el Firebase UID en el backend
-            const updateResponse = await axios.put(`/api/user-registration/update-firebase-uid/${userData.email}`, {
-              firebase_uid: currentUser.uid
-            });
-            
-            if (updateResponse.data.success) {
-              console.log('✅ Firebase UID actualizado exitosamente');
-            } else {
-              console.warn('⚠️ No se pudo actualizar el Firebase UID:', updateResponse.data.message);
+
+            if (currentUser && currentUser.uid) {
+              console.log('🔐 Actualizando Firebase UID posterior:', currentUser.uid);
+
+              const updateResponse = await axios.put(`/api/user-registration/update-firebase-uid/${userData.email}`, {
+                firebase_uid: currentUser.uid
+              });
+
+              if (updateResponse.data.success) {
+                console.log('✅ Firebase UID actualizado exitosamente');
+              } else {
+                console.warn('⚠️ No se pudo actualizar el Firebase UID:', updateResponse.data.message);
+              }
             }
-          } else {
-            console.log('ℹ️ No hay usuario de Firebase autenticado');
+          } catch (firebaseError) {
+            console.warn('⚠️ Error al actualizar Firebase UID posterior:', firebaseError.message);
           }
-        } catch (firebaseError) {
-          console.warn('⚠️ Error al actualizar Firebase UID:', firebaseError.message);
-          // No bloquear el flujo principal si falla la actualización de Firebase
         }
-        
+
         setSuccess(true);
         // Redirigir al login después de 3 segundos
         setTimeout(() => {

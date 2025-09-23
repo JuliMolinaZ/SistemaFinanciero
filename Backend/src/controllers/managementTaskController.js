@@ -10,6 +10,60 @@ const {
 } = require('../services/taskNotificationService');
 
 /**
+ * Obtener tareas asignadas a un usuario específico
+ */
+const getTasksByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log('🔍 Obteniendo tareas del usuario:', userId);
+
+    // Usar la misma consulta que funciona en getTasksByProject pero filtrar por usuario
+    const tasks = await prisma.$queryRaw`
+      SELECT
+        t.id,
+        t.title,
+        t.description,
+        t.status,
+        t.priority,
+        t.assigned_to,
+        t.due_date,
+        t.created_at,
+        t.updated_at,
+        t.project_id,
+        t.sprint_id,
+        t.phase_id,
+        u.name as assignee_name,
+        u.email as assignee_email,
+        p.nombre as project_name,
+        'Administrador' as created_by_name
+      FROM management_tasks t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      LEFT JOIN projects p ON t.project_id = p.id
+      WHERE t.assigned_to = ${parseInt(userId)}
+      ORDER BY t.created_at DESC
+    `;
+
+    console.log(`✅ Encontradas ${tasks.length} tareas para el usuario ${userId}`);
+
+    res.json({
+      success: true,
+      data: tasks,
+      total: tasks.length,
+      message: `Tareas del usuario obtenidas correctamente`
+    });
+
+  } catch (error) {
+    console.error('❌ Error al obtener tareas del usuario:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      error: error.message
+    });
+  }
+};
+
+/**
  * Obtener todas las tareas de un proyecto
  */
 const getTasksByProject = async (req, res) => {
@@ -200,10 +254,11 @@ const createTask = async (req, res) => {
         `;
         
         if (project.length > 0) {
-          await sendTaskCreatedNotification(taskData, taskData.assignee, project[0]);
+          console.log('📧 Enviando notificación de asignación a:', taskData.assignee.email);
+          await sendTaskAssignmentNotification(taskData, taskData.assignee, project[0]);
         }
       } catch (emailError) {
-        console.warn('⚠️ No se pudo enviar notificación de creación:', emailError.message);
+        console.warn('⚠️ No se pudo enviar notificación de asignación:', emailError.message);
       }
     }
 
@@ -375,7 +430,16 @@ const updateTask = async (req, res) => {
           
           // Si cambió la asignación, enviar notificación de asignación
           if (assigned_to !== undefined) {
-            await sendTaskAssignmentNotification(taskData, taskData.assignee, project[0]);
+            // Obtener el asignado anterior
+            const oldTask = await prisma.$queryRaw`
+              SELECT assigned_to FROM management_tasks WHERE id = ${parseInt(taskId)} LIMIT 1
+            `;
+            
+            // Solo enviar notificación si realmente cambió el asignado
+            if (oldTask.length > 0 && oldTask[0].assigned_to !== (assigned_to ? parseInt(assigned_to) : null)) {
+              console.log('📧 Enviando notificación de nueva asignación a:', taskData.assignee.email);
+              await sendTaskAssignmentNotification(taskData, taskData.assignee, project[0]);
+            }
           }
         }
       } catch (emailError) {
@@ -491,10 +555,85 @@ const getAvailableUsers = async (req, res) => {
   }
 };
 
+/**
+ * Probar envío de email de asignación
+ */
+const testEmailNotification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email es requerido'
+      });
+    }
+
+    console.log('🧪 Iniciando prueba de email a:', email);
+    console.log('🔧 Variables de entorno:');
+    console.log('   NODE_ENV:', process.env.NODE_ENV);
+    console.log('   GMAIL_USER:', process.env.GMAIL_USER);
+    console.log('   GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '***configurado***' : 'NO CONFIGURADO');
+    console.log('   SMTP_USER:', process.env.SMTP_USER);
+    console.log('   SMTP_PASS:', process.env.SMTP_PASS ? '***configurado***' : 'NO CONFIGURADO');
+
+    // Datos de prueba
+    const testTask = {
+      id: 999,
+      title: 'Tarea de Prueba - SIGMA',
+      description: 'Esta es una tarea de prueba para verificar que el sistema de notificaciones por email funcione correctamente.',
+      status: 'todo',
+      priority: 'high',
+      assigned_to: 1,
+      due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      project_id: 1
+    };
+
+    const testAssignee = {
+      id: 1,
+      name: 'Usuario de Prueba',
+      email: email
+    };
+
+    const testProject = {
+      id: 1,
+      nombre: 'Proyecto SIGMA de Prueba'
+    };
+
+    console.log('📧 Enviando notificación de asignación...');
+    
+    const result = await sendTaskAssignmentNotification(testTask, testAssignee, testProject);
+    
+    console.log('✅ Resultado del envío:', result);
+
+    res.json({
+      success: true,
+      message: `Email de prueba enviado exitosamente a ${email}`,
+      data: {
+        task: testTask.title,
+        assignee: testAssignee.name,
+        project: testProject.nombre,
+        result: result
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error en prueba de notificación:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error enviando email de prueba',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+};
+
 module.exports = {
   getTasksByProject,
+  getTasksByUser,
   createTask,
   updateTask,
   deleteTask,
-  getAvailableUsers
+  getAvailableUsers,
+  testEmailNotification
 };

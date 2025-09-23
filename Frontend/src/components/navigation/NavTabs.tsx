@@ -14,18 +14,30 @@ type NavItem = {
 // 🧭 COMPONENTE PRINCIPAL - NAVEGACIÓN PROFESIONAL
 export function NavTabs({ 
   current, 
-  onTabChange 
+  onTabChange,
+  userRole = 'administrador' // Rol por defecto
 }: { 
   current: NavItem['label'];
   onTabChange?: (tab: NavItem['label']) => void;
+  userRole?: string;
 }) {
-  const items: NavItem[] = [
+  // 🎯 Filtrar tabs según el rol del usuario
+  const getAllItems = (): NavItem[] => [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/projects' },
     { label: 'Proyectos', icon: ClipboardList, href: '/projects/list', badge: 3 },
     { label: 'Tareas', icon: Users2, href: '/projects/tasks', badge: 2 },
     { label: 'Sprints', icon: Clock3, href: '/projects/sprints', badge: 1 },
     { label: 'Analytics', icon: TrendingUp, href: '/projects/analytics' },
   ];
+
+  const getFilteredItems = (): NavItem[] => {
+    const allItems = getAllItems();
+
+    // Mostrar todas las pestañas para todos los roles
+    return allItems;
+  };
+
+  const items = getFilteredItems();
 
   return (
     <nav 

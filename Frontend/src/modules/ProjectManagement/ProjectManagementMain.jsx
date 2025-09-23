@@ -152,6 +152,9 @@ const ProjectManagementContent = () => {
   const { state, updateState, updateLoading, updateFilters } = useProjectManagement();
   const { error, captureError, resetError } = useErrorHandler();
   const notify = useNotify();
+  
+  // 🔐 Obtener información del usuario desde el contexto global
+  const { profileData } = React.useContext(GlobalContext);
 
   // 📋 PROJECT DRAWER STATE
   const [selectedProject, setSelectedProject] = useState(null);
@@ -289,6 +292,14 @@ const ProjectManagementContent = () => {
   useEffect(() => {
     reloadData(true);
   }, [reloadData]);
+
+  // 🎯 Efecto para configurar pestaña inicial según rol
+  useEffect(() => {
+    if (profileData?.role?.toLowerCase() === 'desarrollador' ||
+        profileData?.role?.toLowerCase() === 'operador') {
+      updateState({ activeTab: 'Dashboard' });
+    }
+  }, [profileData, updateState]);
 
   // 🚀 Función global para crear proyectos
   useEffect(() => {
@@ -452,6 +463,7 @@ const ProjectManagementContent = () => {
             tasks={tasks}
             sprints={sprints}
             onProjectSelect={(project) => updateState({ selectedProject: project })}
+            userRole={profileData?.role}
           />
         );
       case 'Proyectos':
@@ -693,11 +705,9 @@ const ProjectManagementContent = () => {
 
           {/* 🎪 NavTabs */}
           <NavTabs
-              activeTab={state.activeTab}
+            current={state.activeTab}
             onTabChange={handleTabChange}
-            projects={state.projects}
-            tasks={state.tasks}
-            sprints={state.sprints}
+            userRole={profileData?.role}
           />
 
           {/* 📊 Content */}

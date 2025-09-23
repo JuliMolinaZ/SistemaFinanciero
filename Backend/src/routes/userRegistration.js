@@ -26,6 +26,9 @@ router.get('/all-users', userRegistrationController.getAllUsers);
 // Verificar token de acceso
 router.get('/verify-token/:token', userRegistrationController.verifyAccessToken);
 
+// Verificar usuario por Firebase UID o email
+router.get('/verify-user/:identifier', userRegistrationController.verifyUserByFirebaseOrEmail);
+
 // Verificar estado de perfil de usuario
 router.get('/profile-status/:email', userRegistrationController.checkUserProfileStatus);
 
@@ -37,6 +40,9 @@ router.post('/complete-profile/:token', userRegistrationController.upload.single
 
 // Actualizar Firebase UID del usuario (cuando se registra en Firebase)
 router.put('/update-firebase-uid/:email', userRegistrationController.updateUserFirebaseUID);
+
+// Crear usuario desde Firebase Auth (para usuarios invitados)
+router.post('/create-from-firebase', userRegistrationController.createUserFromFirebase);
 
 // =====================================================
 // RUTAS PARA ADMINISTRACIÓN

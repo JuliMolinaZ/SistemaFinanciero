@@ -33,9 +33,9 @@ const createTransporter = () => {
 // Función para enviar email
 const sendEmail = async (emailData) => {
   try {
-    // Modo desarrollo: solo simular envío si las credenciales no están configuradas
-    if (process.env.NODE_ENV === 'development' && !process.env.GMAIL_APP_PASSWORD) {
-      console.log('🧪 MODO DESARROLLO: Simulando envío de email...');
+    // Solo simular envío si NO hay credenciales configuradas
+    if (!process.env.GMAIL_APP_PASSWORD && !process.env.SMTP_PASS) {
+      console.log('🧪 MODO SIMULACIÓN: No hay credenciales de email configuradas');
       console.log('   Desde:', process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>');
       console.log('   Hacia:', emailData.to);
       console.log('   Asunto:', emailData.subject);
@@ -45,7 +45,7 @@ const sendEmail = async (emailData) => {
       return {
         success: true,
         messageId: 'simulated-' + Date.now(),
-        response: 'Email simulado en modo desarrollo'
+        response: 'Email simulado - no hay credenciales configuradas'
       };
     }
 

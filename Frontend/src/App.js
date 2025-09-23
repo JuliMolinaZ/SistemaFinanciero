@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -45,6 +45,7 @@ import PrivateRoute from './components/PrivateRoute';
 import CompleteProfile from './modules/Profile/CompleteProfile';
 import ErrorTestPanel from './components/ErrorTestPanel';
 import RequisicionesForm from './modules/Requisiciones/RequisicionesForm';
+import ProjectRedirect from './components/ProjectRedirect';
 
 // Componente completamente aislado para usuarios invitados
 const InvitationProfile = () => {
@@ -52,7 +53,15 @@ const InvitationProfile = () => {
   console.log('🚀 URL actual:', window.location.pathname);
   console.log('🚀 Timestamp:', new Date().toISOString());
   console.log('🚀 User Agent:', navigator.userAgent);
-  return <CompleteProfile />;
+  
+  // Importar dinámicamente el componente InvitationHandler
+  const InvitationHandler = React.lazy(() => import('./components/InvitationHandler'));
+  
+  return (
+    <React.Suspense fallback={<div>Cargando...</div>}>
+      <InvitationHandler />
+    </React.Suspense>
+  );
 };
 
 // Componente interno que maneja la lógica de invitación
@@ -71,6 +80,17 @@ function AppContent() {
   
   // Detectar si es un usuario invitado basado en la URL - DETECCIÓN AGRESIVA
   const isInvitedUser = window.location.pathname.includes('/complete-profile/');
+  
+  // Redirección automática para usuarios con perfil incompleto
+  useEffect(() => {
+    if (currentUser && !profileComplete && !isInvitedUser) {
+      console.log('🔄 Usuario con perfil incompleto - Redirigiendo a Mi Perfil');
+      // Solo redirigir si no estamos ya en /mi-perfil
+      if (window.location.pathname !== '/mi-perfil') {
+        window.location.href = '/mi-perfil';
+      }
+    }
+  }, [currentUser, profileComplete, isInvitedUser]);
   
   // Debug: Log para verificar la detección
   console.log('🔍 DEBUG - AppContent RENDERIZADO');
@@ -122,53 +142,52 @@ function AppContent() {
   return (
     <>
       {currentUser ? (
-        !profileComplete ? (
-          <ProfileSetup />
-        ) : (
-          <>
-            <Header />
-            <SidebarNew />
-            <main
-              style={{
-                ...mainContentStyle,
-                padding: '1rem',
-                marginTop: '80px'
-              }}
-            >
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/dashboard-ultra" element={<DashboardUltra />} />
+        <>
+          <Header />
+          <SidebarNew />
+          <main
+            style={{
+              ...mainContentStyle,
+              padding: '1rem',
+              marginTop: '80px'
+            }}
+          >
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard-ultra" element={<DashboardUltra />} />
 
-                <Route path="/usuarios" element={<UsersManagementMain />} />
-                <Route path="/clientes" element={<ClientModule />} />
-                <Route path="/horas-extra" element={<HorasExtra />} />
-                <Route path="/fases" element={<PhasesModule />} />
-                <Route path="/mi-perfil" element={<MyProfile />} />
+              <Route path="/usuarios" element={<UsersManagementMain />} />
+              <Route path="/clientes" element={<ClientModule />} />
+              <Route path="/horas-extra" element={<HorasExtra />} />
+              <Route path="/fases" element={<PhasesModule />} />
+              <Route path="/mi-perfil" element={<MyProfile />} />
 
-                <Route
-                  path="/proyectos"
-                  element={
-                    <PrivateRoute allowedRoles={['super administrador', 'administrador']} moduleName="proyectos">
+              <Route
+                path="/proyectos"
+                element={
+                  <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm']} moduleName="proyectos">
+                    <ProjectRedirect>
                       <ProyectosForm />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/project-management"
-                  element={
-                    <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm', 'dev']} moduleName="project_management">
-                      <ProjectManagementMain />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/projects/new"
-                  element={
-                    <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm', 'dev']} moduleName="project_management">
-                      <ProjectManagementMain />
-                    </PrivateRoute>
-                  }
-                />
+                    </ProjectRedirect>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/project-management"
+                element={
+                  <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm', 'dev', 'desarrollador', 'operador']} moduleName="project_management">
+                    <ProjectManagementMain />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/projects/new"
+                element={
+                  <PrivateRoute allowedRoles={['super administrador', 'administrador', 'gerente', 'pm', 'dev', 'desarrollador', 'operador']} moduleName="project_management">
+                    <ProjectManagementMain />
+                  </PrivateRoute>
+                }
+              />
                 <Route
                   path="/proveedores"
                   element={
@@ -288,8 +307,7 @@ function AppContent() {
               </Routes>
             </main>
           </>
-        )
-      ) : (
+        ) : (
         // Si no hay usuario pero hay error de backend, mostrar error de backend
         !backendConnected && backendError ? (
           <BackendError 

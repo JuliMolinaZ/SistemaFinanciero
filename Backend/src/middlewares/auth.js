@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { auth } = require('firebase-admin');
+const { verifyFirebaseToken } = require('../config/firebase');
 const { logAuth } = require('./logger');
 
 // Configuración JWT
@@ -97,7 +97,7 @@ const verifyAuth = async (req, res, next) => {
     }
 
     try {
-      const decodedToken = await auth().verifyIdToken(firebaseToken);
+      const decodedToken = await verifyFirebaseToken(firebaseToken);
       req.user = {
         firebase_uid: decodedToken.uid,
         email: decodedToken.email,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Box,
   Card,
@@ -13,7 +13,8 @@ import {
   Tooltip,
   Skeleton,
   LinearProgress,
-  useTheme
+  useTheme,
+  Button
 } from '@mui/material';
 import {
   Refresh,
@@ -33,11 +34,14 @@ import {
   ShowChart,
   Timeline,
   CheckCircle,
-  Flag
+  Flag,
+  Task
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { GlobalContext } from '../../context/GlobalState';
+import MyTasksDashboard from '../../components/dashboard/MyTasksDashboard';
 import '../../styles/dashboard-ultra.css';
 
 // Estilos CSS personalizados para el tema elegante y sofisticado
@@ -1043,7 +1047,8 @@ const KPICard = ({ title, value, subtitle, icon, color = 'var(--primary-blue)', 
 
 const DashboardUltra = () => {
   const theme = useTheme();
-  
+  const { profileData } = useContext(GlobalContext);
+
   // Estados del dashboard
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
@@ -1051,6 +1056,7 @@ const DashboardUltra = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [realTimeMode, setRealTimeMode] = useState(true);
+  const [showTaskDashboard, setShowTaskDashboard] = useState(false);
 
   // Función para obtener datos reales del dashboard
   const fetchDashboardData = async () => {
@@ -1329,13 +1335,42 @@ const DashboardUltra = () => {
                       </IconButton>
                     </Tooltip>
                     
+                    <Tooltip title="Ver mis tareas asignadas" arrow>
+                      <Button
+                        onClick={() => setShowTaskDashboard(!showTaskDashboard)}
+                        variant={showTaskDashboard ? "contained" : "outlined"}
+                        startIcon={<Task />}
+                        sx={{
+                          borderRadius: '12px',
+                          px: 3,
+                          py: 1.5,
+                          background: showTaskDashboard
+                            ? 'linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark))'
+                            : 'transparent',
+                          borderColor: 'var(--primary-blue)',
+                          color: showTaskDashboard ? 'white' : 'var(--primary-blue)',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            background: showTaskDashboard
+                              ? 'linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue))'
+                              : 'var(--primary-blue-soft)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 4px 20px var(--primary-blue-soft)'
+                          }
+                        }}
+                      >
+                        Mis Tareas
+                      </Button>
+                    </Tooltip>
+
                     <Tooltip title={autoRefresh ? 'Auto-refresh activado' : 'Auto-refresh desactivado'} arrow>
-                      <IconButton 
+                      <IconButton
                         onClick={() => setAutoRefresh(!autoRefresh)}
                         sx={{
                           width: 56,
                           height: 56,
-                          background: autoRefresh 
+                          background: autoRefresh
                             ? 'linear-gradient(135deg, var(--success-green), var(--success-green-dark))'
                             : 'var(--bg-tertiary)',
                           color: autoRefresh ? 'white' : 'var(--text-secondary)',
@@ -1446,9 +1481,22 @@ const DashboardUltra = () => {
             </Box>
           </motion.div>
 
+          {/* DASHBOARD DE TAREAS PERSONALES */}
+          {showTaskDashboard && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <MyTasksDashboard />
+            </motion.div>
+          )}
+
           {/* Contenido de las tabs con mejor organización visual */}
-          <AnimatePresence mode="wait">
-            {activeTab === 0 && (
+          {!showTaskDashboard && (
+            <AnimatePresence mode="wait">
+              {activeTab === 0 && (
               <motion.div
                 key="financiero"
                 initial={{ opacity: 0, y: 20 }}
@@ -2484,57 +2532,7 @@ const DashboardUltra = () => {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Footer elegante mejorado */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1 }}
-          >
-            <Box 
-              className="dashboard-footer"
-              sx={{
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              <Box className="footer-content">
-                <Box>
-                  <Typography 
-                    variant="body2" 
-                    className="footer-text"
-                  >
-                    📊 Dashboard actualizado en tiempo real
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    className="footer-timestamp"
-                  >
-                    Última actualización: {new Date().toLocaleString('es-CO')}
-                  </Typography>
-                </Box>
-                
-                <Box className="footer-status">
-                  {realTimeMode && (
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Box className="status-indicator real-time">
-                        <Box className="status-dot real-time" />
-                        🟢 Modo tiempo real activado
-                      </Box>
-                    </motion.div>
-                  )}
-                  
-                  <Box className="status-indicator system">
-                    <Box className="status-dot system" />
-                    🚀 Sistema operativo
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </motion.div>
+          )}
         </Box>
       </Box>
     </GlobalStyles>

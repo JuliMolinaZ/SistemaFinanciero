@@ -28,8 +28,9 @@ const ProfileSetup = () => {
   const [roles, setRoles] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/roles')
-      .then(response => {
+    const fetchRoles = async () => {
+      try {
+        const response = await axios.get('/api/roles');
         // Verificar la estructura de la respuesta
         if (response.data && response.data.success && Array.isArray(response.data.data)) {
           setRoles(response.data.data);
@@ -38,8 +39,20 @@ const ProfileSetup = () => {
         } else {
           setRoles([]);
         }
-      })
+      } catch (error) {
+        console.log('⚠️ Error al cargar roles (esto es normal para usuarios invitados):', error.response?.status);
+        // Si es un error 401, es normal para usuarios invitados
+        if (error.response?.status === 401) {
+          console.log('ℹ️ Usuario invitado - roles se cargarán después de completar perfil');
+          setRoles([]);
+        } else {
+          console.error('Error inesperado al cargar roles:', error);
+          setRoles([]);
+        }
+      }
+    };
 
+    fetchRoles();
   }, []);
 
   const handleChange = e => {

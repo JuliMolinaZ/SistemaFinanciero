@@ -126,7 +126,24 @@ axios.interceptors.response.use(
       
       // Evitar loops infinitos si el error viene de una llamada de auth
       const isAuthCall = error.config?.url?.includes('/api/usuarios/firebase/') || 
-                        error.config?.url?.includes('/api/auth/');
+                        error.config?.url?.includes('/api/auth/') ||
+                        error.config?.url?.includes('/api/roles');
+      
+      // NO mostrar modal de error para llamadas de autenticación básicas
+      if (isAuthCall) {
+        console.log('🔥 Error 401 en llamada de auth - NO mostrando modal');
+        console.log('🔥 URL:', error.config?.url, 'Status:', error.response?.status);
+        // Para llamadas de auth, devolver una respuesta controlada en lugar de rechazar
+        return Promise.resolve({
+          data: { 
+            success: false, 
+            error: 'Authentication required',
+            message: error.response?.data?.message || 'Usuario no autenticado'
+          },
+          status: 401,
+          config: error.config
+        });
+      }
       
       if (!isAuthCall && globalAuthErrorHandler) {
         console.log('🔥 Usando handler global para mostrar modal');
@@ -487,8 +504,9 @@ export const GlobalProvider = ({ children }) => {
           }
           
           setProfileData(userData);
-          setProfileComplete(true);
+          setProfileComplete(userData.profile_complete || false);
           console.log('✅ Perfil del usuario cargado exitosamente');
+          console.log('✅ Profile complete status:', userData.profile_complete);
           
         } catch (err) {
           console.error("❌ Error al cargar perfil:", err);
@@ -525,13 +543,32 @@ export const GlobalProvider = ({ children }) => {
           }
           
           if (err.response && err.response.status === 404) {
+            console.log('🔐 Usuario no encontrado en el backend');
+            
+            // Si es un usuario invitado, verificar si existe por email
+            if (window.location.pathname.includes('/complete-profile/')) {
+              console.log('🎯 Usuario invitado detectado, verificando por email...');
+              try {
+                const verifyResponse = await axios.get(`/api/user-registration/verify-user/${user.email}`);
+                if (verifyResponse.data.success) {
+                  console.log('✅ Usuario invitado encontrado por email:', verifyResponse.data.data);
+                  setProfileData(verifyResponse.data.data);
+                  setProfileComplete(verifyResponse.data.data.profile_complete);
+                  setAuthLoading(false);
+                  return;
+                }
+              } catch (verifyError) {
+                console.log('⚠️ No se pudo verificar usuario invitado:', verifyError.message);
+              }
+            }
+            
             console.log('🔐 Usuario no encontrado, intentando crear perfil...');
             try {
-              const createResponse = await axios.post('/api/usuarios', {
+              const createResponse = await axios.post('/api/user-registration/create-from-firebase', {
                 firebase_uid: user.uid,
                 email: user.email,
                 name: user.displayName || "Nombre Desconocido",
-                role: "defaultRole",
+                role: "usuario",
                 avatar: user.photoURL || ""
               });
               console.log("✅ Usuario creado en el backend:", createResponse.data);
@@ -547,8 +584,9 @@ export const GlobalProvider = ({ children }) => {
               }
               
               setProfileData(userData);
-              setProfileComplete(true);
+              setProfileComplete(userData.profile_complete || false);
               console.log('✅ Perfil del usuario creado exitosamente');
+              console.log('✅ Profile complete status:', userData.profile_complete);
             } catch (createError) {
               console.error("❌ Error al crear el usuario:", createError);
               console.error("❌ Detalles del error de creación:", {

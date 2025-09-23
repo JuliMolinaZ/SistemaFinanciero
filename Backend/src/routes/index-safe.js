@@ -47,6 +47,7 @@ const securityRoutes = safeRequire('./security', 'security');
 const managementProjectsRoutes = safeRequire('./managementProjects', 'managementProjects');
 const managementTasksRoutes = safeRequire('./managementTasks', 'managementTasks');
 const testTaskNotificationsRoutes = safeRequire('./testTaskNotifications', 'testTaskNotifications');
+const testUserTasksRoutes = safeRequire('./testUserTasks', 'testUserTasks');
 console.log('✅ Todas las rutas importadas');
 
 // Configurar rutas
@@ -73,6 +74,7 @@ router.use('/security', securityRoutes);
 router.use('/management-projects', managementProjectsRoutes);
 router.use('/management-tasks', managementTasksRoutes);
 router.use('/test-task-notifications', testTaskNotificationsRoutes);
+router.use('/test-user-tasks', testUserTasksRoutes);
 
 // Ruta de salud del sistema
 router.get('/health', (req, res) => {
