@@ -1,4 +1,4 @@
-const prisma = require('../lib/prisma');
+const prisma = require('../../lib/prisma');
 const { logDatabaseOperation, logAuth } = require('../middlewares/logger');
 const { generateJWT } = require('../middlewares/auth');
 const { hashPassword, verifyPassword } = require('../utils/encryption');

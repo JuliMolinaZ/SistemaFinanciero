@@ -33,6 +33,22 @@ const createTransporter = () => {
 // Función para enviar email
 const sendEmail = async (emailData) => {
   try {
+    // Modo desarrollo: solo simular envío si las credenciales no están configuradas
+    if (process.env.NODE_ENV === 'development' && !process.env.GMAIL_APP_PASSWORD) {
+      console.log('🧪 MODO DESARROLLO: Simulando envío de email...');
+      console.log('   Desde:', process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>');
+      console.log('   Hacia:', emailData.to);
+      console.log('   Asunto:', emailData.subject);
+      console.log('   📝 Contenido HTML:', emailData.html.substring(0, 100) + '...');
+      console.log('✅ Email simulado enviado exitosamente');
+      
+      return {
+        success: true,
+        messageId: 'simulated-' + Date.now(),
+        response: 'Email simulado en modo desarrollo'
+      };
+    }
+
     const transporter = createTransporter();
     
     const mailOptions = {
@@ -62,6 +78,30 @@ const sendEmail = async (emailData) => {
 
   } catch (error) {
     console.error('❌ Error enviando email:', error);
+    
+    // En modo desarrollo, simular éxito si hay error de autenticación
+    if (process.env.NODE_ENV === 'development' && error.code === 'EAUTH') {
+      console.log('❌ ERROR DE AUTENTICACIÓN GMAIL:');
+      console.log('   📧 Email que NO se pudo enviar:');
+      console.log('   Desde:', process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>');
+      console.log('   Hacia:', emailData.to);
+      console.log('   Asunto:', emailData.subject);
+      console.log('   📝 Contenido:', emailData.html.substring(0, 200) + '...');
+      console.log('');
+      console.log('🔧 SOLUCIÓN REQUERIDA:');
+      console.log('   1. Generar nueva App Password en Gmail');
+      console.log('   2. Actualizar GMAIL_APP_PASSWORD en config.env');
+      console.log('   3. Reiniciar el servidor');
+      console.log('');
+      console.log('🧪 Simulando envío para continuar desarrollo...');
+      
+      return {
+        success: true,
+        messageId: 'simulated-auth-error-' + Date.now(),
+        response: 'Email simulado debido a error de autenticación - REQUIERE NUEVA APP PASSWORD'
+      };
+    }
+    
     throw error;
   }
 };

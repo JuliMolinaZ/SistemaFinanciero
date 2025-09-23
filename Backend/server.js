@@ -81,10 +81,21 @@ const cotizacionesRoutes = require('./src/routes/cotizaciones');
 
 // Rutas del módulo de gestión de proyectos
 const projectManagementRoutes = require('./src/routes/projectManagementSimple');
+const managementTasksRoutes = require('./src/routes/managementTasks');
 
 // Middleware para loggear cada solicitud (opcional)
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  
+  // Log detallado para peticiones PUT a management-projects
+  if (req.method === 'PUT' && req.url.includes('/api/management-projects/')) {
+    console.log('🔍 PUT REQUEST DEBUG:');
+    console.log('  - URL:', req.url);
+    console.log('  - Content-Type:', req.headers['content-type']);
+    console.log('  - Content-Length:', req.headers['content-length']);
+    console.log('  - Body preview:', req.body);
+  }
+  
   next();
 });
 
@@ -118,7 +129,14 @@ app.use('/api/cotizaciones', cotizacionesRoutes);
 // Rutas del módulo de gestión de proyectos
 console.log('🚀 Cargando rutas de gestión de proyectos...');
 app.use('/api/project-management', projectManagementRoutes);
+app.use('/api/management-projects', require('./src/routes/managementProjects'));
+app.use('/api/management-tasks', managementTasksRoutes);
 console.log('✅ Rutas de gestión de proyectos configuradas');
+
+// Rutas de usuarios
+console.log('🚀 Cargando rutas de usuarios...');
+app.use('/api/users', require('./src/routes/users'));
+console.log('✅ Rutas de usuarios configuradas');
 
 // Ruta temporal que funciona (bypass de problemas de Prisma)
 const projectsWorkingRoutes = require('./src/routes/projectsWorking');
@@ -128,6 +146,37 @@ console.log('✅ Rutas temporales de proyectos configuradas');
 // Ruta de prueba directa
 app.get('/api/project-management/test-direct', (req, res) => {
   res.json({ message: 'Ruta de prueba directa funcionando' });
+});
+
+// Ruta temporal de usuarios para testing
+app.get('/api/users', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.json({
+      success: true,
+      data: users
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener usuarios',
+      error: error.message
+    });
+  }
 });
 
 // Ruta 404 para solicitudes no encontradas
