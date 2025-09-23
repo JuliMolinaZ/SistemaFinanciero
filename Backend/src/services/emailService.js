@@ -15,7 +15,10 @@ const createTransporter = () => {
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 10000, // 10 segundos
+      greetingTimeout: 5000,    // 5 segundos
+      socketTimeout: 10000      // 10 segundos
     });
   }
 
@@ -26,7 +29,10 @@ const createTransporter = () => {
     auth: {
       user: process.env.GMAIL_USER || 'tu-email@gmail.com',
       pass: process.env.GMAIL_APP_PASSWORD || 'tu-app-password'
-    }
+    },
+    connectionTimeout: 10000, // 10 segundos
+    greetingTimeout: 5000,    // 5 segundos
+    socketTimeout: 10000      // 10 segundos
   });
 };
 
