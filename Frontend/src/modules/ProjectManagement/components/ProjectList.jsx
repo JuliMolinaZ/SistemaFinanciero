@@ -6,18 +6,24 @@ import ProjectTableOnly from './ProjectTableOnly';
 import ProjectDialogWorking from '../../../components/ui/ProjectDialogWorking';
 
 // 🎯 COMPONENTE PRINCIPAL
-const ProjectList = ({ 
-  projects = [], 
+const ProjectList = ({
+  projects = [],
   groups = [],
-  onEdit, 
-  onDelete, 
-  onView, 
-  onExport, 
+  onEdit,
+  onDelete,
+  onView,
+  onExport,
   filters,
   loading = false,
   phases = [],
-  ...props 
+  ...props
 }) => {
+  // Log para debugging cuando cambian los props
+  console.log('🔄 ProjectList re-renderizado:', {
+    projectsCount: projects.length,
+    groupsCount: groups.length,
+    timestamp: new Date().toLocaleTimeString()
+  });
   const [selectedProject, setSelectedProject] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -60,12 +66,14 @@ const ProjectList = ({
   }, [onView]);
 
   // 🎯 HANDLE PROJECT UPDATE
-  const handleProjectUpdate = useCallback((updatedProject) => {
-    console.log('🔄 Proyecto actualizado:', updatedProject);
-    // Update the project in the parent component
+  const handleProjectUpdate = useCallback((projectId, updatedProject) => {
+    console.log('🔄 Proyecto actualizado en ProjectList:', { projectId, updatedProject });
+
+    // Pasar ambos parámetros al componente padre
     if (onEdit) {
-      onEdit(updatedProject);
+      onEdit(projectId, updatedProject);
     }
+
     // Update local selected project
     setSelectedProject(updatedProject);
   }, [onEdit]);
@@ -109,4 +117,4 @@ const ProjectList = ({
   );
 };
 
-export default React.memo(ProjectList);
+export default ProjectList;

@@ -1,0 +1,403 @@
+/* 🚀 ANALYTICS EJECUTIVO - ESTILOS PREMIUM PARA DASHBOARD GERENCIAL */
+/* ================================================================== */
+
+.analytics-executive-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 🎨 HERO SECTION EJECUTIVO */
+.analytics-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+}
+
+.analytics-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.analytics-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* 📊 KPI CARDS EJECUTIVOS */
+.kpi-executive-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-executive-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--kpi-color, #667eea) 0%, var(--kpi-color-light, #764ba2) 100%);
+  opacity: 0.8;
+}
+
+.kpi-executive-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+}
+
+.kpi-executive-card:hover::before {
+  opacity: 1;
+  animation: kpi-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes kpi-glow {
+  0% { box-shadow: 0 0 5px var(--kpi-color, #667eea); }
+  100% { box-shadow: 0 0 20px var(--kpi-color, #667eea); }
+}
+
+/* 🎯 KPI VALORES */
+.kpi-value {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, var(--kpi-color, #667eea) 0%, var(--kpi-color-dark, #5a67d8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+.kpi-label {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-subtitle {
+  font-size: 0.75rem !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+  margin-top: 0.5rem;
+}
+
+/* 📈 GRÁFICOS EJECUTIVOS */
+.chart-executive-container {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.chart-executive-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+.chart-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #334155 !important;
+  margin-bottom: 1.5rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-title svg {
+  color: #667eea;
+  font-size: 1.75rem;
+}
+
+/* 🏆 TOP PROJECTS RANKING */
+.top-projects-table {
+  background: transparent;
+}
+
+.top-projects-table .MuiTableHead-root .MuiTableCell-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none !important;
+  padding: 1rem !important;
+}
+
+.top-projects-table .MuiTableBody-root .MuiTableRow-root {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1) !important;
+}
+
+.top-projects-table .MuiTableBody-root .MuiTableRow-root:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%) !important;
+  transform: scale(1.01);
+}
+
+.top-projects-table .MuiTableCell-root {
+  border: none !important;
+  padding: 1rem !important;
+  font-weight: 500 !important;
+}
+
+/* 🏅 RANKING MEDALS */
+.ranking-medal {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 0.875rem;
+  position: relative;
+}
+
+.ranking-medal.gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.ranking-medal.silver {
+  background: linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%);
+  box-shadow: 0 4px 15px rgba(192, 192, 192, 0.4);
+}
+
+.ranking-medal.bronze {
+  background: linear-gradient(135deg, #CD7F32 0%, #B8860B 100%);
+  box-shadow: 0 4px 15px rgba(205, 127, 50, 0.4);
+}
+
+.ranking-medal.other {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* ⚠️ ALERTAS CRÍTICAS */
+.critical-alerts-container {
+  background: linear-gradient(135deg, rgba(250, 112, 154, 0.08) 0%, rgba(254, 225, 64, 0.08) 100%);
+  border: 2px solid rgba(250, 112, 154, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.alert-item {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.alert-item.high {
+  border-left-color: #fa709a;
+  background: linear-gradient(135deg, rgba(250, 112, 154, 0.1) 0%, rgba(250, 112, 154, 0.05) 100%);
+}
+
+.alert-item.medium {
+  border-left-color: #fee140;
+  background: linear-gradient(135deg, rgba(254, 225, 64, 0.1) 0%, rgba(254, 225, 64, 0.05) 100%);
+}
+
+.alert-item.low {
+  border-left-color: #a8edea;
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.1) 0%, rgba(168, 237, 234, 0.05) 100%);
+}
+
+.alert-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* 🔮 PREDICCIONES INTELIGENTES */
+.predictions-container {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.prediction-card {
+  background: linear-gradient(135deg, rgba(76, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+  border: 1px solid rgba(76, 172, 254, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.prediction-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(76, 172, 254, 0.2);
+}
+
+.prediction-date {
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 💡 RECOMENDACIONES */
+.recommendation-item {
+  background: rgba(102, 126, 234, 0.05);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.recommendation-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateX(4px);
+}
+
+.recommendation-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* 📱 RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .analytics-hero {
+    padding: 1.5rem;
+  }
+
+  .kpi-value {
+    font-size: 2rem !important;
+  }
+
+  .chart-executive-container {
+    padding: 1rem;
+  }
+
+  .top-projects-table .MuiTableCell-root {
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+/* 🎭 ANIMACIONES AVANZADAS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 🌟 EFECTOS DE GLASSMORPHISM */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.glass-effect-dark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* 🚀 SCROLLBAR PERSONALIZADO */
+.analytics-executive-dashboard ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.analytics-executive-dashboard ::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 4px;
+}
+
+.analytics-executive-dashboard ::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.analytics-executive-dashboard ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}

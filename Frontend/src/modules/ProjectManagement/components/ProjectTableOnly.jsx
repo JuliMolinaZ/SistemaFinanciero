@@ -1,9 +1,11 @@
 // 📋 PROJECT TABLE ONLY - TABLA SIMPLE Y ATRACTIVA
 // =================================================
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import ProjectTablePure from './ProjectTablePure';
 import ProjectDialogWorking from '../../../components/ui/ProjectDialogWorking';
+import { useNotifications } from '../../../hooks/useNotifications';
+import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 
 // 🔍 TOOLBAR SIMPLE
 const SimpleToolbar = ({ 
@@ -437,9 +439,27 @@ const ProjectTableOnly = ({
   onDelete,
   loading = false
 }) => {
+  // Log para debugging cuando cambian los props
+  console.log('🔄 ProjectTableOnly re-renderizado:', {
+    projectsCount: projects.length,
+    groupsCount: groups.length,
+    timestamp: new Date().toLocaleTimeString(),
+    firstProject: projects[0]?.nombre || 'N/A',
+    firstProjectProgress: projects[0]?.progress || 'N/A'
+  });
+
   const [selectedProject, setSelectedProject] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState('view'); // 'view' or 'edit'
+  const [forceRender, setForceRender] = useState(0);
+
+  // Forzar re-renderizado cuando cambien los datos críticos
+  useEffect(() => {
+    setForceRender(prev => prev + 1);
+    console.log('🔄 Datos de proyectos actualizados, forzando re-renderizado');
+  }, [projects, groups]);
+  
+  const { notify, confirm } = useNotifications();
 
   const handleView = useCallback((project, rowElement = null) => {
     console.log('👁️ Ver proyecto:', project.nombre || project.name);
@@ -475,28 +495,31 @@ const ProjectTableOnly = ({
     setDrawerOpen(true);
   }, []);
 
-  const handleDelete = useCallback((project) => {
+  const handleDelete = useCallback(async (project) => {
     console.log('🗑️ Solicitud de eliminar proyecto:', project.nombre || project.name);
     
-    // Crear confirmación elegante
-    const confirmed = window.confirm(
-      `⚠️ ELIMINAR PROYECTO\n\n` +
-      `¿Estás seguro de que quieres eliminar el proyecto:\n` +
-      `"${project.nombre}"?\n\n` +
-      `Esta acción no se puede deshacer.`
-    );
-    
-    if (confirmed) {
-      console.log('✅ Confirmado - Eliminando proyecto:', project.nombre);
-      onDelete?.(project);
-    } else {
-      console.log('❌ Cancelado - No se eliminó el proyecto');
+    try {
+      // Mostrar confirmación personalizada
+      const confirmed = await confirm.confirmDelete(
+        `¿Estás seguro de que quieres eliminar el proyecto "${project.nombre}"?\n\nEsta acción no se puede deshacer.`,
+        'Eliminar proyecto'
+      );
+      
+      if (confirmed) {
+        console.log('✅ Confirmado - Eliminando proyecto:', project.nombre);
+        onDelete?.(project);
+      } else {
+        console.log('❌ Cancelado - No se eliminó el proyecto');
+      }
+    } catch (error) {
+      console.error('Error en confirmación de eliminación:', error);
     }
-  }, [onDelete]);
+  }, [onDelete, confirm]);
 
   return (
     <>
       <ProjectTablePure
+        key={`table-pure-${forceRender}`}
         projects={projects}
         groups={groups}
         onView={handleView}
@@ -515,10 +538,28 @@ const ProjectTableOnly = ({
         }}
         project={selectedProject}
         initialEditMode={drawerMode === 'edit'}
-        onUpdate={(updatedProject) => {
-          console.log('🔄 Proyecto actualizado:', updatedProject);
-          onEdit?.(updatedProject);
-          setSelectedProject(updatedProject);
+        onUpdate={(projectId, updatedProject) => {
+          console.log('🔄 Proyecto actualizado desde modal:', { projectId, updatedProject });
+
+          // Validar que tenemos un ID válido
+          if (!projectId || projectId === 'undefined' || projectId === null) {
+            console.error('❌ ID de proyecto inválido en onUpdate:', projectId);
+            return;
+          }
+
+          // Llamar al manejador de actualización del padre que actualiza el estado
+          onEdit?.(projectId, updatedProject);
+
+          // Actualizar el proyecto seleccionado en el modal inmediatamente
+          // Solo actualizar si tenemos un proyecto válido
+          if (updatedProject && typeof updatedProject === 'object' && updatedProject.id) {
+            setSelectedProject(updatedProject);
+            console.log('✅ Modal actualizado con proyecto:', updatedProject.nombre);
+          } else {
+            console.warn('⚠️ Proyecto actualizado inválido:', updatedProject);
+          }
+
+          console.log('✅ Modal y tabla actualizados automáticamente');
           // Mantener el modal abierto para ver los cambios
         }}
         onDelete={(deletedProject) => {
@@ -529,6 +570,16 @@ const ProjectTableOnly = ({
           onDelete?.(deletedProject);
         }}
       />
+
+      {/* 🎭 Confirm Dialog */}
+      {confirm.confirmState.open && (
+        <ConfirmDialog
+          open={confirm.confirmState.open}
+          onClose={confirm.handleCancel}
+          onConfirm={confirm.handleConfirm}
+          {...confirm.confirmState.config}
+        />
+      )}
     </>
   );
 };

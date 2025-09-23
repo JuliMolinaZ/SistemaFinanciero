@@ -1,0 +1,329 @@
+/* 🎨 TASK BOARD ENHANCED STYLES - UI/UX AVANZADO */
+/* ================================================ */
+
+/* Variables específicas para el TaskBoard */
+:root {
+  --task-board-transition: cubic-bezier(0.4, 0, 0.2, 1);
+  --task-board-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --task-board-fast: 0.15s;
+  --task-board-normal: 0.25s;
+  --task-board-slow: 0.4s;
+}
+
+/* 🚀 EFECTOS DE HOVER Y INTERACCIÓN */
+.task-card-enhanced {
+  position: relative;
+  transition: all var(--task-board-normal) var(--task-board-transition);
+  will-change: transform, box-shadow;
+}
+
+.task-card-enhanced::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg,
+    var(--pm-primary),
+    var(--pm-success),
+    var(--pm-warning),
+    var(--pm-danger));
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--task-board-fast) var(--task-board-transition);
+  z-index: -1;
+}
+
+.task-card-enhanced:hover::before {
+  opacity: 0.1;
+}
+
+.task-card-enhanced:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 8px 16px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* 🎯 DRAG STATES AVANZADOS */
+.task-dragging {
+  transform: rotate(5deg) scale(1.1);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 12px 24px rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--pm-primary);
+  z-index: 9999;
+  opacity: 0.95;
+}
+
+.task-dragging::after {
+  content: '🚀';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 1.5rem;
+  animation: task-float 1s ease-in-out infinite;
+}
+
+/* 📋 COLUMNAS INTERACTIVAS */
+.column-drop-zone {
+  position: relative;
+  transition: all var(--task-board-normal) var(--task-board-spring);
+}
+
+.column-drop-zone.drag-over {
+  background: linear-gradient(135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(59, 130, 246, 0.05) 100%);
+  border-color: var(--pm-primary);
+  transform: scale(1.02);
+  box-shadow:
+    0 0 0 2px var(--pm-primary),
+    0 8px 32px rgba(59, 130, 246, 0.2);
+}
+
+.column-drop-zone.drag-over::before {
+  content: '↓ Suelta aquí';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--pm-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  animation: task-bounce 0.6s ease-in-out infinite;
+}
+
+/* 🎨 INDICADORES VISUALES */
+.priority-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, var(--color) 0%, transparent 100%);
+  animation: priority-pulse 3s ease-in-out infinite;
+}
+
+.priority-high .priority-indicator {
+  --color: var(--pm-danger);
+  animation-duration: 1.5s;
+}
+
+.priority-medium .priority-indicator {
+  --color: var(--pm-warning);
+  animation-duration: 2s;
+}
+
+.priority-low .priority-indicator {
+  --color: var(--pm-success);
+  animation-duration: 3s;
+}
+
+/* ⚡ MICRO-INTERACCIONES */
+.task-action-button {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--task-board-fast) var(--task-board-transition);
+}
+
+.task-action-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all var(--task-board-normal) var(--task-board-transition);
+}
+
+.task-action-button:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.task-action-button:active {
+  transform: scale(0.95);
+}
+
+/* 🌊 ANIMACIONES FLUIDAS */
+@keyframes task-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes task-bounce {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes priority-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.05);
+  }
+}
+
+@keyframes column-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes task-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes task-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+}
+
+/* 🎭 ESTADOS DINÁMICOS */
+.task-creating {
+  animation: task-slide-in var(--task-board-normal) var(--task-board-spring);
+}
+
+.task-updating {
+  animation: task-bounce 0.6s ease-in-out;
+}
+
+.task-deleting {
+  animation: task-slide-out var(--task-board-normal) var(--task-board-transition);
+}
+
+.column-receiving {
+  animation: column-glow 1s ease-in-out;
+}
+
+/* 📱 RESPONSIVE TOUCH ENHANCEMENTS */
+@media (hover: none) and (pointer: coarse) {
+  .task-card-enhanced {
+    padding: 1rem;
+  }
+
+  .task-action-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .column-drop-zone {
+    min-height: 200px;
+  }
+}
+
+/* 🔍 ACCESSIBILITY ENHANCEMENTS */
+.task-card-enhanced:focus-visible {
+  outline: 2px solid var(--pm-primary);
+  outline-offset: 2px;
+}
+
+.column-drop-zone:focus-visible {
+  outline: 2px solid var(--pm-primary);
+  outline-offset: 4px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .task-card-enhanced,
+  .column-drop-zone,
+  .task-action-button {
+    transition: none;
+    animation: none;
+  }
+
+  .task-card-enhanced:hover {
+    transform: none;
+  }
+
+  .task-dragging {
+    transform: scale(1.05);
+  }
+}
+
+/* 🎨 THEME VARIATIONS */
+.task-board-dark {
+  --task-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --task-glow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.task-board-light {
+  --task-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --task-glow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+/* 🚀 PERFORMANCE OPTIMIZATIONS */
+.task-card-enhanced,
+.column-drop-zone {
+  transform: translateZ(0); /* Force hardware acceleration */
+  backface-visibility: hidden;
+}
+
+/* 📊 STATUS INDICATORS */
+.status-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.status-todo .status-indicator {
+  background: var(--pm-text-muted);
+}
+
+.status-in_progress .status-indicator {
+  background: var(--pm-primary);
+  animation: priority-pulse 2s ease-in-out infinite;
+}
+
+.status-review .status-indicator {
+  background: var(--pm-warning);
+  animation: priority-pulse 1.5s ease-in-out infinite;
+}
+
+.status-done .status-indicator {
+  background: var(--pm-success);
+}

@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Plus,
   Minus,
+  ClipboardList,
   UserPlus,
   Search,
   Check,
@@ -35,7 +36,9 @@ import {
   Crown
 } from 'lucide-react';
 import { ProjectDialog, ProjectDialogHeader, ProjectDialogContent } from './ProjectDialog';
-import { useModernToast } from './ModernToast';
+import { useNotifications } from '../../hooks/useNotifications';
+import ConfirmDialog from './ConfirmDialog';
+import TaskManagement from '../../modules/ProjectManagement/components/TaskManagement';
 import './project-dialog.css';
 import './project-drawer.css'; // Reutilizar estilos existentes
 
@@ -77,26 +80,67 @@ const Badge = ({ children, variant = 'default', className = '', ...props }) => (
 const ProgressSlider = ({ value, onChange, disabled = false }) => {
   const [localValue, setLocalValue] = useState(value);
   const [isDragging, setIsDragging] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState(null);
 
   useEffect(() => {
+    console.log('🔄 ProgressSlider value updated:', value);
     setLocalValue(value);
   }, [value]);
 
   const handleChange = (e) => {
     const newValue = parseInt(e.target.value);
     setLocalValue(newValue);
+    
+    // Solo llamar onChange cuando no se está arrastrando
     if (!isDragging) {
-      onChange?.(newValue);
+      console.log('🔄 ProgressSlider onChange (handleChange):', newValue);
+      
+      // Limpiar timer anterior
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      
+      // Crear nuevo timer para debounce
+      const timer = setTimeout(() => {
+        onChange?.(newValue);
+      }, 100);
+      
+      setDebounceTimer(timer);
     }
   };
 
-  const handleMouseDown = () => setIsDragging(true);
+  const handleMouseDown = () => {
+    setIsDragging(true);
+    // Limpiar timer cuando se inicia el arrastre
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      setDebounceTimer(null);
+    }
+  };
+  
   const handleMouseUp = () => {
     setIsDragging(false);
     if (localValue !== value) {
+      console.log('🔄 ProgressSlider onChange (handleMouseUp):', localValue);
+      
+      // Limpiar timer anterior
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      
+      // Llamar inmediatamente al soltar
       onChange?.(localValue);
     }
   };
+
+  // Limpiar timer al desmontar
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
 
   return (
     <div className="pd-progress-slider">
@@ -151,28 +195,6 @@ const TabButton = ({ active, onClick, icon: Icon, children, disabled = false }) 
   </button>
 );
 
-// ⚠️ CONFIRM DIALOG (adaptado para modal)
-const ConfirmDialog = ({ open, onClose, onConfirm, title, message, confirmText = "Eliminar", variant = "danger" }) => (
-  <ProjectDialog open={open} onClose={onClose}>
-    <ProjectDialogHeader onClose={onClose} showCloseButton={false}>
-      <div className="pd-confirm-header">
-        <AlertTriangle className="pd-confirm-icon pd-confirm-icon--danger" />
-        <h3 className="pd-confirm-title">{title}</h3>
-      </div>
-    </ProjectDialogHeader>
-    <ProjectDialogContent scrollable={false}>
-      <p className="pd-confirm-message">{message}</p>
-      <div className="pd-confirm-actions">
-        <Button variant="ghost" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button variant={variant} onClick={onConfirm}>
-          {confirmText}
-        </Button>
-      </div>
-    </ProjectDialogContent>
-  </ProjectDialog>
-);
 
 // 👥 TEAM MANAGER COMPONENT
 const TeamManager = ({
@@ -372,6 +394,7 @@ const ProjectDialogWorking = ({
   onClose,
   project,
   onUpdate,
+  onCreate,
   onDelete,
   phases = [],
   initialEditMode = false
@@ -380,6 +403,7 @@ const ProjectDialogWorking = ({
   const [isEditing, setIsEditing] = useState(initialEditMode);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isCreateMode, setIsCreateMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [availableClients, setAvailableClients] = useState([]);
   const [availablePhases, setAvailablePhases] = useState([]);
@@ -392,7 +416,10 @@ const ProjectDialogWorking = ({
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  const toast = useModernToast();
+  // 🎯 Task Management States
+  const [showTaskManagement, setShowTaskManagement] = useState(false);
+
+  const { notify, confirm } = useNotifications();
 
   // 🛡️ Early return if no project when modal is open
   if (!project && open) {
@@ -416,8 +443,78 @@ const ProjectDialogWorking = ({
     members: []
   };
 
-  // 🎨 Get client color scheme
-  const clientColors = getClientColors(safeProject?.client?.color || editData.client_color);
+  // 🔍 Log del proyecto recibido para debugging
+  useEffect(() => {
+    console.log('🔍 ProjectDialogWorking - Proyecto recibido:', {
+      project,
+      safeProject,
+      projectId: project?.id,
+      projectIdType: typeof project?.id,
+      open
+    });
+  }, [project, open]);
+
+  // 🔍 Interceptor para capturar todas las peticiones fetch
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const [url, options] = args;
+      
+      // Solo interceptar peticiones PUT a management-projects
+      if (options?.method === 'PUT' && url?.includes('/api/management-projects/')) {
+        console.log('🔍 INTERCEPTOR - Petición PUT detectada:', {
+          url,
+          method: options?.method,
+          body: options?.body,
+          headers: options?.headers,
+          stackTrace: new Error().stack
+        });
+        
+        // Si la URL contiene 'undefined', rastrear el origen
+        if (url.includes('undefined')) {
+          console.error('🚨 ID UNDEFINED DETECTADO:', {
+            url,
+            body: options?.body,
+            bodyType: typeof options?.body,
+            stackTrace: new Error().stack
+          });
+
+          // Intentar prevenir la petición inválida
+          return Promise.reject(new Error('Petición bloqueada: ID undefined detectado'));
+        }
+
+        // Si el body no es un JSON válido, logear el problema
+        if (options?.body && typeof options?.body === 'string') {
+          try {
+            JSON.parse(options.body);
+          } catch (parseError) {
+            console.error('🚨 BODY INVÁLIDO DETECTADO:', {
+              url,
+              body: options?.body,
+              bodyType: typeof options?.body,
+              parseError: parseError.message,
+              stackTrace: new Error().stack
+            });
+          }
+        }
+      }
+      
+      return originalFetch(...args);
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+
+  // 🎨 Get client color scheme (simplified for better UI)
+  const clientColors = {
+    base: '#3b82f6',
+    dark: '#2563eb', 
+    light: '#93c5fd',
+    lighter: '#f8fafc',
+    darker: '#1d4ed8'
+  };
 
   // 📋 Cargar datos de clientes y fases cuando se abre el modal
   useEffect(() => {
@@ -431,7 +528,7 @@ const ProjectDialogWorking = ({
     try {
       // Cargar clientes
       console.log('🔍 Cargando clientes...');
-      const clientsResponse = await fetch('http://localhost:8765/api/clientes', {
+      const clientsResponse = await fetch('http://localhost:8765/api/clients', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -489,7 +586,7 @@ const ProjectDialogWorking = ({
         { id: 5, nombre: 'Completado' }
       ]);
 
-      toast.error({
+      notify.error({
         title: 'Error de conexión',
         description: 'Usando datos de ejemplo. Verifica la conexión al servidor.'
       });
@@ -500,6 +597,7 @@ const ProjectDialogWorking = ({
 
   // 👥 Load Available Users for Team Management
   const loadAvailableUsers = async () => {
+    console.log('🔍 Iniciando carga de usuarios disponibles...');
     setLoadingUsers(true);
     try {
       const response = await fetch('http://localhost:8765/api/users', {
@@ -510,12 +608,29 @@ const ProjectDialogWorking = ({
         credentials: 'include'
       });
 
+      console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+
       if (response.ok) {
         const userData = await response.json();
-        console.log('✅ Usuarios cargados:', userData);
-        setAvailableUsers(userData.data || userData || []);
+        console.log('✅ Datos de usuarios recibidos del servidor:', userData);
+        
+        // Procesar usuarios reales de la base de datos
+        const users = userData.data || userData || [];
+        console.log('📊 Usuarios a procesar:', users.length);
+        
+        const formattedUsers = users.map(user => ({
+          id: user.id,
+          name: user.name || user.nombre || `Usuario #${user.id}`,
+          email: user.email || user.correo || `usuario${user.id}@empresa.com`,
+          role: user.role || user.rol || 'Usuario'
+        }));
+        
+        console.log('✅ Usuarios formateados para mostrar:', formattedUsers);
+        setAvailableUsers(formattedUsers);
       } else {
-        // Mock users for development
+        console.warn('⚠️ Error del servidor:', response.status, response.statusText);
+        console.warn('⚠️ Usando datos de ejemplo como fallback');
+        // Solo usar mock como fallback si no hay conexión
         setAvailableUsers([
           { id: 1, name: 'Ana García', email: 'ana@empresa.com', role: 'Project Manager' },
           { id: 2, name: 'Carlos López', email: 'carlos@empresa.com', role: 'Developer' },
@@ -525,8 +640,9 @@ const ProjectDialogWorking = ({
         ]);
       }
     } catch (error) {
-      console.error('Error loading users:', error);
-      // Mock users for development
+      console.error('❌ Error cargando usuarios:', error);
+      console.warn('⚠️ Usando datos de ejemplo como fallback');
+      // Solo usar mock como fallback si no hay conexión
       setAvailableUsers([
         { id: 1, name: 'Ana García', email: 'ana@empresa.com', role: 'Project Manager' },
         { id: 2, name: 'Carlos López', email: 'carlos@empresa.com', role: 'Developer' },
@@ -536,39 +652,62 @@ const ProjectDialogWorking = ({
       ]);
     } finally {
       setLoadingUsers(false);
+      console.log('🏁 Carga de usuarios completada');
     }
   };
 
   // 👥 Team Management Functions
   const handleAddMember = async (userId, teamType) => {
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}/members`, {
+      console.log('👥 Agregando miembro:', { userId, teamType, projectId: safeProject.id });
+      
+      // Usar la ruta correcta del API
+      const response = await fetch(`http://localhost:8765/api/management-projects/${safeProject.id}/members`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ user_id: userId, team_type: teamType })
+        body: JSON.stringify({ 
+          user_id: parseInt(userId), 
+          team_type: teamType,
+          role_id: 1 // Rol por defecto, se puede mejorar después
+        })
       });
 
       const data = await response.json();
 
       if (data.success) {
         console.log('✅ Miembro agregado:', data.data);
-        onUpdate?.(data.data);
-        toast.success({
+        
+        // Actualizar el proyecto con los nuevos miembros
+        const updatedProject = await fetch(`http://localhost:8765/api/management-projects/${safeProject.id}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (updatedProject.ok) {
+          const projectData = await updatedProject.json();
+          console.log('🔄 Proyecto actualizado con nuevos miembros:', projectData.data);
+          
+          // Llamar a onUpdate con el ID y el proyecto actualizado
+          onUpdate?.(safeProject.id, projectData.data);
+        }
+        
+        notify.success({
           title: 'Miembro agregado',
           description: 'El miembro se agregó correctamente al equipo'
         });
       } else {
-        toast.error({
+        console.error('❌ Error al agregar miembro:', data.message);
+        notify.error({
           title: 'Error al agregar miembro',
           description: data.message || 'No se pudo agregar el miembro'
         });
       }
     } catch (error) {
       console.error('Error adding member:', error);
-      toast.error({
+      notify.error({
         title: 'Error de conexión',
         description: 'No se pudo conectar con el servidor'
       });
@@ -576,8 +715,25 @@ const ProjectDialogWorking = ({
   };
 
   const handleRemoveMember = async (memberId) => {
+    // Buscar el miembro para mostrar su nombre en la confirmación
+    const member = safeProject.members?.find(m => m.id === memberId);
+    const memberName = member?.user?.name || 'este miembro';
+
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}/members/${memberId}`, {
+      // Mostrar confirmación personalizada
+      const confirmed = await confirm.confirmDelete(
+        `¿Estás seguro de que deseas remover a ${memberName} del equipo?`,
+        'Remover miembro del equipo'
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      console.log('👥 Removiendo miembro:', { memberId, projectId: safeProject.id });
+      
+      // Usar la ruta correcta del API
+      const response = await fetch(`http://localhost:8765/api/management-projects/${safeProject.id}/members/${memberId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -586,20 +742,35 @@ const ProjectDialogWorking = ({
 
       if (data.success) {
         console.log('✅ Miembro removido:', data.data);
-        onUpdate?.(data.data);
-        toast.success({
+        
+        // Actualizar el proyecto con los miembros actualizados
+        const updatedProject = await fetch(`http://localhost:8765/api/management-projects/${safeProject.id}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (updatedProject.ok) {
+          const projectData = await updatedProject.json();
+          console.log('🔄 Proyecto actualizado después de remover miembro:', projectData.data);
+          
+          // Llamar a onUpdate con el ID y el proyecto actualizado
+          onUpdate?.(safeProject.id, projectData.data);
+        }
+        
+        notify.success({
           title: 'Miembro removido',
-          description: 'El miembro se removió correctamente del equipo'
+          description: `${memberName} se removió correctamente del equipo`
         });
       } else {
-        toast.error({
+        console.error('❌ Error al remover miembro:', data.message);
+        notify.error({
           title: 'Error al remover miembro',
           description: data.message || 'No se pudo remover el miembro'
         });
       }
     } catch (error) {
       console.error('Error removing member:', error);
-      toast.error({
+      notify.error({
         title: 'Error de conexión',
         description: 'No se pudo conectar con el servidor'
       });
@@ -638,16 +809,20 @@ const ProjectDialogWorking = ({
     }
   }, [project]);
 
-  // Reset states when modal closes
+  // Reset states when modal closes and detect create mode
   useEffect(() => {
     if (!open) {
       setActiveTab('overview');
       setIsEditing(false);
       setShowDeleteConfirm(false);
+      setIsCreateMode(false);
     } else {
-      setIsEditing(initialEditMode);
+      // Detectar si es modo creación (no hay proyecto)
+      const createMode = !project;
+      setIsCreateMode(createMode);
+      setIsEditing(createMode || initialEditMode);
     }
-  }, [open, initialEditMode]);
+  }, [open, project, initialEditMode]);
 
   // Handle edit mode toggle
   const handleEditToggle = () => {
@@ -672,36 +847,58 @@ const ProjectDialogWorking = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(editData)
-      });
+      if (isCreateMode) {
+        // Crear nuevo proyecto
+        console.log('🆕 Creando nuevo proyecto:', editData);
+        const newProject = await onCreate?.(editData);
 
-      const data = await response.json();
-
-      if (data.success) {
-        console.log('✅ Proyecto actualizado:', data.data);
-        setIsEditing(false);
-        onUpdate?.(data.data);
-        toast.success({
-          title: 'Proyecto actualizado',
-          description: 'Los cambios se guardaron correctamente'
-        });
+        if (newProject) {
+          console.log('✅ Proyecto creado:', newProject);
+          setIsEditing(false);
+          setIsCreateMode(false);
+          onClose?.();
+          // No mostrar toast aquí, se muestra en el componente padre
+        }
       } else {
-        console.error('❌ Error al guardar:', data.message);
-        toast.error({
-          title: 'Error al guardar',
-          description: data.message || 'No se pudieron guardar los cambios'
+        // Validar que el proyecto tenga un ID válido
+        if (!safeProject.id || safeProject.id === null || safeProject.id === undefined) {
+          console.error('❌ No se puede actualizar: ID de proyecto inválido', safeProject.id);
+          notify.error({
+            title: 'Error de validación',
+            description: 'ID de proyecto inválido'
+          });
+          return;
+        }
+
+        // Actualizar proyecto existente
+        const response = await fetch(`http://localhost:8765/api/management-projects/${safeProject.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(editData)
         });
+
+        const data = await response.json();
+
+        if (data.success) {
+          console.log('✅ Proyecto actualizado:', data.data);
+          setIsEditing(false);
+          onUpdate?.(safeProject.id, data.data);
+          // No mostrar toast aquí, se muestra en el componente padre
+        } else {
+          console.error('❌ Error al guardar:', data.message);
+          notify.error({
+            title: '❌ Error al guardar',
+            description: data.message || 'No se pudieron guardar los cambios'
+          });
+        }
       }
     } catch (error) {
       console.error('Error saving project:', error);
-      toast.error({
-        title: 'Error de conexión',
+      notify.error({
+        title: '❌ Error de conexión',
         description: 'No se pudo conectar con el servidor'
       });
     } finally {
@@ -711,35 +908,78 @@ const ProjectDialogWorking = ({
 
   // Handle inline updates (progress)
   const handleInlineUpdate = async (field, value) => {
+    console.log('🔄 handleInlineUpdate llamado:', { 
+      field, 
+      value, 
+      projectId: safeProject.id,
+      projectIdType: typeof safeProject.id,
+      project: safeProject,
+      stackTrace: new Error().stack
+    });
+    
+    // Validar que el proyecto tenga un ID válido
+    if (!safeProject.id || safeProject.id === null || safeProject.id === undefined) {
+      console.error('🚨 ID DE PROYECTO INVÁLIDO DETECTADO:', {
+        projectId: safeProject.id,
+        projectIdType: typeof safeProject.id,
+        project: safeProject,
+        stackTrace: new Error().stack
+      });
+      console.warn('⚠️ No se puede actualizar: ID de proyecto inválido', safeProject.id);
+      return;
+    }
+
+    // Prevenir llamadas duplicadas muy rápidas
+    const updateKey = `${safeProject.id}-${field}-${value}`;
+    if (window.lastUpdateKey === updateKey) {
+      console.log('⚠️ Llamada duplicada ignorada:', updateKey);
+      return;
+    }
+    window.lastUpdateKey = updateKey;
+
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}`, {
+      const requestBody = { [field]: value };
+      const requestUrl = `http://localhost:8765/api/management-projects/${safeProject.id}`;
+      
+      console.log('🌐 Enviando petición PUT:', {
+        url: requestUrl,
+        body: requestBody,
+        bodyString: JSON.stringify(requestBody)
+      });
+
+      const response = await fetch(requestUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ [field]: value })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
 
       if (data.success) {
         console.log('✅ Campo actualizado:', field, value);
-        onUpdate?.(data.data);
-        toast.success({
-          title: field === 'progress' ? 'Progreso actualizado' : 'Campo actualizado',
-          description: `${field === 'progress' ? 'Progreso' : 'Campo'} actualizado correctamente`
-        });
+
+        // Validar que tenemos datos válidos antes de llamar onUpdate
+        if (data.data && safeProject.id) {
+          onUpdate?.(safeProject.id, data.data);
+
+          // La notificación se maneja en el componente padre para evitar duplicados
+          console.log('✅ Datos enviados al componente padre para actualización');
+        } else {
+          console.error('❌ Datos inválidos después de actualización:', { data: data.data, id: safeProject.id });
+        }
       } else {
         console.error('❌ Error al actualizar:', data.message);
-        toast.error({
+        notify.error({
           title: 'Error al actualizar',
           description: data.message || 'No se pudo actualizar'
         });
       }
     } catch (error) {
       console.error('Error updating project:', error);
-      toast.error({
+      notify.error({
         title: 'Error de conexión',
         description: 'No se pudo conectar con el servidor'
       });
@@ -749,34 +989,12 @@ const ProjectDialogWorking = ({
   // Handle delete
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log('✅ Proyecto eliminado:', data.data);
-        onDelete?.(project);
-        onClose();
-        toast.success({
-          title: 'Proyecto eliminado',
-          description: 'El proyecto se eliminó correctamente'
-        });
-      } else {
-        console.error('❌ Error al eliminar:', data.message);
-        toast.error({
-          title: 'Error al eliminar',
-          description: data.message || 'No se pudo eliminar el proyecto'
-        });
-      }
+      console.log('🗑️ Eliminando proyecto desde dialog:', safeProject.id);
+      await onDelete?.(safeProject.id);
+      onClose();
     } catch (error) {
-      console.error('Error deleting project:', error);
-      toast.error({
-        title: 'Error de conexión',
-        description: 'No se pudo conectar con el servidor'
-      });
+      console.error('❌ Error al eliminar desde dialog:', error);
+      // El error se maneja en el componente padre
     } finally {
       setShowDeleteConfirm(false);
     }
@@ -884,17 +1102,36 @@ const ProjectDialogWorking = ({
                   />
                 ) : (
                   <h2 id="dialog-title" className="pd-header-title">
-                    {safeProject.nombre}
+                    {isCreateMode ? 'Nuevo Proyecto' : safeProject.nombre}
                   </h2>
                 )}
                 <p className="pd-header-subtitle">
-                  {safeProject.client?.nombre || 'Sin cliente'}
+                  {isCreateMode ? 'Crear nuevo proyecto de gestión' : (safeProject.client?.nombre || 'Sin cliente')}
                 </p>
               </div>
             </div>
 
             <div className="pd-header-actions">
-              {!isEditing ? (
+              {isCreateMode ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={onClose}
+                    size="sm"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    icon={Save}
+                    onClick={handleSave}
+                    loading={saving}
+                    size="sm"
+                  >
+                    Crear Proyecto
+                  </Button>
+                </>
+              ) : !isEditing ? (
                 <>
                   <Button
                     variant="outline"
@@ -917,7 +1154,7 @@ const ProjectDialogWorking = ({
                 <>
                   <Button
                     variant="ghost"
-                    onClick={handleEditToggle}
+                    onClick={onClose}
                     size="sm"
                   >
                     Cancelar
@@ -970,26 +1207,11 @@ const ProjectDialogWorking = ({
             >
 
               {/* 📝 INFORMACIÓN BÁSICA */}
-              <div
-                className="pd-section pd-section--basic pd-section--client-themed"
-                style={{
-                  borderColor: clientColors.light,
-                  background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface-2) 100%)`
-                }}
-              >
+              <div className="pd-section pd-section--basic">
                 <div className="pd-section-header">
                   <div className="pd-section-header-content">
-                    <div
-                      className="pd-section-icon-wrapper"
-                      style={{
-                        backgroundColor: `${clientColors.base}20`,
-                        borderColor: clientColors.light
-                      }}
-                    >
-                      <Edit2
-                        className="pd-section-header-icon"
-                        style={{ color: clientColors.base }}
-                      />
+                    <div className="pd-section-icon-wrapper">
+                      <Edit2 className="pd-section-header-icon" />
                     </div>
                     <div>
                       <h3 className="pd-section-title">Información Básica</h3>
@@ -1027,26 +1249,11 @@ const ProjectDialogWorking = ({
               </div>
 
               {/* 🎯 ESTADO Y PROGRESO */}
-              <div
-                className="pd-section pd-section--status pd-section--client-themed"
-                style={{
-                  borderColor: clientColors.light,
-                  background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface-2) 100%)`
-                }}
-              >
+              <div className="pd-section pd-section--status">
                 <div className="pd-section-header">
                   <div className="pd-section-header-content">
-                    <div
-                      className="pd-section-icon-wrapper pd-section-icon-wrapper--status"
-                      style={{
-                        backgroundColor: `${clientColors.base}20`,
-                        borderColor: clientColors.light
-                      }}
-                    >
-                      <Target
-                        className="pd-section-header-icon"
-                        style={{ color: clientColors.base }}
-                      />
+                    <div className="pd-section-icon-wrapper pd-section-icon-wrapper--status">
+                      <Target className="pd-section-header-icon" />
                     </div>
                     <div>
                       <h3 className="pd-section-title">Estado y Progreso</h3>
@@ -1058,18 +1265,9 @@ const ProjectDialogWorking = ({
                 <div className="pd-section-content">
                   <div className="pd-status-grid">
                     {/* Status */}
-                    <div
-                      className="pd-status-card pd-status-card--client-themed"
-                      style={{
-                        borderColor: clientColors.light,
-                        background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface) 100%)`
-                      }}
-                    >
+                    <div className="pd-status-card">
                       <div className="pd-status-card-header">
-                        <Target
-                          className="pd-status-card-icon"
-                          style={{ color: clientColors.base }}
-                        />
+                        <Target className="pd-status-card-icon" />
                         <span className="pd-status-card-title">Estado</span>
                       </div>
                       {isEditing ? (
@@ -1092,18 +1290,9 @@ const ProjectDialogWorking = ({
                     </div>
 
                     {/* Priority */}
-                    <div
-                      className="pd-status-card pd-status-card--client-themed"
-                      style={{
-                        borderColor: clientColors.light,
-                        background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface) 100%)`
-                      }}
-                    >
+                    <div className="pd-status-card">
                       <div className="pd-status-card-header">
-                        <AlertTriangle
-                          className="pd-status-card-icon"
-                          style={{ color: clientColors.base }}
-                        />
+                        <AlertTriangle className="pd-status-card-icon" />
                         <span className="pd-status-card-title">Prioridad</span>
                       </div>
                       {isEditing ? (
@@ -1126,25 +1315,13 @@ const ProjectDialogWorking = ({
                   </div>
 
                   {/* Progress - Full Width */}
-                  <div
-                    className="pd-progress-section pd-progress-section--client-themed"
-                    style={{
-                      borderColor: clientColors.light,
-                      background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface) 100%)`
-                    }}
-                  >
+                  <div className="pd-progress-section">
                     <div className="pd-progress-header">
                       <label className="pd-field-label pd-field-label--progress">
-                        <Activity
-                          className="pd-field-icon"
-                          style={{ color: clientColors.base }}
-                        />
+                        <Activity className="pd-field-icon" />
                         Progreso del proyecto
                       </label>
-                      <div
-                        className="pd-progress-percentage"
-                        style={{ color: clientColors.base }}
-                      >
+                      <div className="pd-progress-percentage">
                         {(safeProject.progress || editData.progress || 0)}%
                       </div>
                     </div>
@@ -1180,26 +1357,11 @@ const ProjectDialogWorking = ({
               </div>
 
               {/* 👥 ASIGNACIONES */}
-              <div
-                className="pd-section pd-section--assignments pd-section--client-themed"
-                style={{
-                  borderColor: clientColors.light,
-                  background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface-2) 100%)`
-                }}
-              >
+              <div className="pd-section pd-section--assignments">
                 <div className="pd-section-header">
                   <div className="pd-section-header-content">
-                    <div
-                      className="pd-section-icon-wrapper pd-section-icon-wrapper--assignments"
-                      style={{
-                        backgroundColor: `${clientColors.base}20`,
-                        borderColor: clientColors.light
-                      }}
-                    >
-                      <Users
-                        className="pd-section-header-icon"
-                        style={{ color: clientColors.base }}
-                      />
+                    <div className="pd-section-icon-wrapper pd-section-icon-wrapper--assignments">
+                      <Users className="pd-section-header-icon" />
                     </div>
                     <div>
                       <h3 className="pd-section-title">Asignaciones</h3>
@@ -1211,18 +1373,9 @@ const ProjectDialogWorking = ({
                 <div className="pd-section-content">
                   <div className="pd-assignments-grid">
                     {/* Client */}
-                    <div
-                      className="pd-assignment-card pd-assignment-card--client-themed"
-                      style={{
-                        borderColor: clientColors.light,
-                        background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface) 100%)`
-                      }}
-                    >
+                    <div className="pd-assignment-card">
                       <div className="pd-assignment-card-header">
-                        <User
-                          className="pd-assignment-card-icon"
-                          style={{ color: clientColors.base }}
-                        />
+                        <User className="pd-assignment-card-icon" />
                         <span className="pd-assignment-card-title">Cliente</span>
                       </div>
                       {isEditing ? (
@@ -1284,18 +1437,9 @@ const ProjectDialogWorking = ({
                     </div>
 
                     {/* Current Phase */}
-                    <div
-                      className="pd-assignment-card pd-assignment-card--client-themed"
-                      style={{
-                        borderColor: clientColors.light,
-                        background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface) 100%)`
-                      }}
-                    >
+                    <div className="pd-assignment-card">
                       <div className="pd-assignment-card-header">
-                        <Settings
-                          className="pd-assignment-card-icon"
-                          style={{ color: clientColors.base }}
-                        />
+                        <Settings className="pd-assignment-card-icon" />
                         <span className="pd-assignment-card-title">Fase Actual</span>
                       </div>
                       {isEditing ? (
@@ -1462,26 +1606,11 @@ const ProjectDialogWorking = ({
               </div>
 
               {/* 👥 EQUIPO DEL PROYECTO */}
-              <div
-                className="pd-section pd-section--team pd-section--client-themed"
-                style={{
-                  borderColor: clientColors.light,
-                  background: `linear-gradient(135deg, ${clientColors.lighter} 0%, var(--pd-surface-2) 100%)`
-                }}
-              >
+              <div className="pd-section pd-section--team">
                 <div className="pd-section-header">
                   <div className="pd-section-header-content">
-                    <div
-                      className="pd-section-icon-wrapper pd-section-icon-wrapper--team"
-                      style={{
-                        backgroundColor: `${clientColors.base}20`,
-                        borderColor: clientColors.light
-                      }}
-                    >
-                      <Users
-                        className="pd-section-header-icon"
-                        style={{ color: clientColors.base }}
-                      />
+                    <div className="pd-section-icon-wrapper pd-section-icon-wrapper--team">
+                      <Users className="pd-section-header-icon" />
                     </div>
                     <div>
                       <h3 className="pd-section-title">Equipo del Proyecto</h3>
@@ -1516,18 +1645,30 @@ const ProjectDialogWorking = ({
                             {safeProject.members && safeProject.members.length === 1 ? 'miembro' : 'miembros'}
                           </span>
                         </div>
-                        {isEditing && (
+                        <div className="pd-action-buttons">
+                          {isEditing && (
+                            <button
+                              onClick={() => {
+                                loadAvailableUsers();
+                                setShowTeamManager(true);
+                              }}
+                              className="pd-add-member-btn"
+                            >
+                              <UserPlus className="pd-icon" />
+                              Agregar miembro
+                            </button>
+                          )}
                           <button
                             onClick={() => {
-                              loadAvailableUsers();
-                              setShowTeamManager(true);
+                              console.log('🎯 Abriendo gestión de tareas para proyecto:', safeProject.id);
+                              setShowTaskManagement(true);
                             }}
-                            className="pd-add-member-btn"
+                            className="pd-task-management-btn"
                           >
-                            <UserPlus className="pd-icon" />
-                            Agregar miembro
+                            <ClipboardList className="pd-icon" />
+                            Gestión de Tareas
                           </button>
-                        )}
+                        </div>
                       </div>
 
                       {safeProject.members && safeProject.members.length > 0 && (
@@ -1697,6 +1838,29 @@ const ProjectDialogWorking = ({
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
       />
+
+      {/* 🎯 Task Management */}
+      {showTaskManagement && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full h-full max-w-7xl max-h-[95vh] m-4">
+            <TaskManagement
+              projectId={safeProject.id}
+              projectName={safeProject.nombre}
+              onClose={() => setShowTaskManagement(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 🎭 Confirm Dialog */}
+      {confirm.confirmState.open && (
+        <ConfirmDialog
+          open={confirm.confirmState.open}
+          onClose={confirm.handleCancel}
+          onConfirm={confirm.handleConfirm}
+          {...confirm.confirmState.config}
+        />
+      )}
     </>
   );
 };

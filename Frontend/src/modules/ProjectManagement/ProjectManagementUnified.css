@@ -1,0 +1,743 @@
+/* 🚀 PROJECT MANAGEMENT UNIFIED STYLES - CONSISTENTE CON SISTEMA */
+/* ============================================================= */
+
+/* 🎨 VARIABLES CSS UNIFICADAS - CONSISTENTE CON DASHBOARD Y PROYECTOS */
+:root {
+  /* Superficies - Gradiente oscuro elegante */
+  --pm-surface: hsl(222 47% 8%);
+  --pm-surface-2: hsl(222 36% 11%);
+  --pm-surface-3: hsl(222 36% 14%);
+  --pm-surface-4: hsl(222 36% 17%);
+  --pm-surface-glass: hsla(222, 36%, 13%, 0.85);
+  
+  /* Textos - Alto contraste */
+  --pm-text-primary: hsl(210 40% 98%);
+  --pm-text-secondary: hsl(215 20% 75%);
+  --pm-text-muted: hsl(215 16% 55%);
+  --pm-text-accent: hsl(221 83% 65%);
+  
+  /* Bordes - Sutiles pero visibles */
+  --pm-border: hsl(215 16% 20%);
+  --pm-border-strong: hsl(215 16% 28%);
+  --pm-border-glass: hsla(215, 16%, 25%, 0.4);
+  
+  /* Colores semánticos - Consistente con sistema */
+  --pm-primary: hsl(221 83% 53%);
+  --pm-primary-hover: hsl(221 83% 58%);
+  --pm-primary-light: hsl(221 83% 65%);
+  --pm-success: hsl(142 76% 36%);
+  --pm-success-light: hsl(142 76% 45%);
+  --pm-warning: hsl(38 92% 50%);
+  --pm-warning-light: hsl(38 92% 60%);
+  --pm-danger: hsl(0 84% 60%);
+  --pm-danger-light: hsl(0 84% 70%);
+  --pm-info: hsl(199 89% 48%);
+  
+  /* Glassmorphism - Efecto cristal */
+  --pm-glass-bg: hsla(222, 36%, 13%, 0.85);
+  --pm-glass-border: hsla(215, 16%, 25%, 0.4);
+  --pm-glass-blur: blur(24px);
+  
+  /* Sombras avanzadas */
+  --pm-shadow-xs: 0 1px 3px hsla(222, 47%, 4%, 0.2);
+  --pm-shadow-sm: 0 4px 12px hsla(222, 47%, 4%, 0.25);
+  --pm-shadow-md: 0 8px 24px hsla(222, 47%, 4%, 0.3);
+  --pm-shadow-lg: 0 16px 48px hsla(222, 47%, 4%, 0.4);
+  --pm-shadow-xl: 0 24px 64px hsla(222, 47%, 4%, 0.5);
+  
+  /* Glows - Efectos de brillo */
+  --pm-glow-primary: 0 0 24px hsla(221, 83%, 53%, 0.4);
+  --pm-glow-success: 0 0 24px hsla(142, 76%, 36%, 0.4);
+  --pm-glow-danger: 0 0 24px hsla(0, 84%, 60%, 0.4);
+  --pm-glow-warning: 0 0 24px hsla(38, 92%, 50%, 0.4);
+  
+  /* Transiciones suaves */
+  --pm-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --pm-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --pm-transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --pm-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Radios consistentes */
+  --pm-radius-sm: 0.375rem;
+  --pm-radius-md: 0.5rem;
+  --pm-radius-lg: 0.75rem;
+  --pm-radius-xl: 1rem;
+  --pm-radius-2xl: 1.5rem;
+}
+
+/* 📦 CONTENEDOR PRINCIPAL DEL MÓDULO */
+.project-management-module {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--pm-surface);
+  color: var(--pm-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  position: relative;
+}
+
+/* 🎯 HEADER DEL MÓDULO */
+.pm-header {
+  background: var(--pm-surface-2);
+  border-bottom: 1px solid var(--pm-border);
+  padding: 2rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.pm-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    hsla(221, 83%, 53%, 0.1) 0%, 
+    hsla(199, 89%, 48%, 0.05) 100%);
+  pointer-events: none;
+}
+
+.pm-header-content {
+  position: relative;
+  z-index: 1;
+}
+
+.pm-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--pm-text-primary);
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pm-subtitle {
+  font-size: 1.125rem;
+  color: var(--pm-text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* 📊 PANEL DE ESTADÍSTICAS */
+.pm-stats-panel {
+  background: var(--pm-surface-glass);
+  backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-border-glass);
+  border-radius: var(--pm-radius-xl);
+  padding: 1.5rem;
+  margin: 1.5rem;
+  box-shadow: var(--pm-shadow-md);
+  transition: var(--pm-transition-normal);
+}
+
+.pm-stats-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pm-shadow-lg);
+}
+
+.pm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.pm-stat-card {
+  background: var(--pm-surface-3);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg);
+  padding: 1.25rem;
+  text-align: center;
+  transition: var(--pm-transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.pm-stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--pm-shadow-sm);
+}
+
+.pm-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--pm-primary);
+  opacity: 0;
+  transition: var(--pm-transition-normal);
+}
+
+.pm-stat-card:hover::before {
+  opacity: 1;
+}
+
+.pm-stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--pm-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.pm-stat-label {
+  font-size: 0.875rem;
+  color: var(--pm-text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 🎨 TABLERO KANBAN - OPTIMIZADO PARA MACBOOK AIR 13" */
+.pm-kanban-board {
+  background: var(--pm-surface-2);
+  border-radius: var(--pm-radius-xl);
+  padding: 1rem 1.5rem;
+  margin: 1rem 1.5rem;
+  border: 1px solid var(--pm-border);
+  box-shadow: var(--pm-shadow-md);
+  position: relative;
+  overflow: hidden;
+  min-height: calc(100vh - 280px); /* Optimizado para viewport completo */
+  max-height: calc(100vh - 280px);
+}
+
+.pm-kanban-board::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    hsla(221, 83%, 53%, 0.03) 0%, 
+    hsla(199, 89%, 48%, 0.02) 100%);
+  pointer-events: none;
+}
+
+.pm-kanban-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pm-kanban-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--pm-text-primary);
+  margin: 0;
+}
+
+.pm-kanban-badge {
+  background: var(--pm-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--pm-radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--pm-glow-primary);
+}
+
+.pm-kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columnas fijas para MacBook Air 13" */
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  min-width: 100%;
+  overflow-x: visible;
+}
+
+/* 📋 COLUMNAS DEL KANBAN - RESPONSIVE PARA MACBOOK AIR 13" */
+.pm-kanban-column {
+  background: var(--pm-surface-glass);
+  backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-border-glass);
+  border-radius: var(--pm-radius-lg);
+  padding: 1rem;
+  min-height: calc(100vh - 380px); /* Altura optimizada */
+  max-height: calc(100vh - 380px);
+  transition: var(--pm-transition-normal);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pm-kanban-column:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--pm-shadow-sm);
+}
+
+.pm-kanban-column::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--pm-primary);
+  opacity: 0.7;
+}
+
+.pm-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pm-border);
+}
+
+.pm-column-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pm-text-primary);
+  margin: 0;
+}
+
+.pm-column-count {
+  background: var(--pm-surface-4);
+  color: var(--pm-text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--pm-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* 🎯 TARJETAS DE TAREA */
+.pm-task-card {
+  background: var(--pm-surface-3);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-md);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: var(--pm-transition-normal);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.pm-task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pm-shadow-sm);
+  border-color: var(--pm-primary);
+}
+
+.pm-task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--pm-primary);
+  opacity: 0;
+  transition: var(--pm-transition-normal);
+}
+
+.pm-task-card:hover::before {
+  opacity: 1;
+}
+
+.pm-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.pm-task-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pm-text-primary);
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.pm-task-menu {
+  padding: 0.25rem;
+  background: var(--pm-surface-4);
+  border: none;
+  border-radius: var(--pm-radius-sm);
+  color: var(--pm-text-muted);
+  cursor: pointer;
+  transition: var(--pm-transition-fast);
+}
+
+.pm-task-menu:hover {
+  background: var(--pm-border);
+  color: var(--pm-text-primary);
+}
+
+.pm-task-description {
+  font-size: 0.75rem;
+  color: var(--pm-text-secondary);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.pm-task-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--pm-text-muted);
+}
+
+.pm-task-priority {
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--pm-radius-sm);
+  font-weight: 600;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pm-priority-high {
+  background: var(--pm-danger);
+  color: white;
+}
+
+.pm-priority-medium {
+  background: var(--pm-warning);
+  color: white;
+}
+
+.pm-priority-low {
+  background: var(--pm-success);
+  color: white;
+}
+
+/* 🎨 ESTADO VACÍO */
+.pm-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: var(--pm-text-muted);
+}
+
+.pm-empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+.pm-empty-text {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* 📱 RESPONSIVE DESIGN - OPTIMIZADO PARA MACBOOK AIR 13" Y MOBILE */
+
+/* MacBook Air 13" (1440x900) */
+@media (min-width: 1366px) and (max-width: 1440px) {
+  .pm-kanban-grid {
+    grid-template-columns: repeat(4, minmax(300px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .pm-kanban-column {
+    min-height: calc(100vh - 320px);
+    max-height: calc(100vh - 320px);
+    padding: 0.875rem;
+  }
+
+  .pm-kanban-board {
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 1rem;
+  }
+
+  .pm-task-card {
+    margin-bottom: 0.625rem;
+    padding: 0.875rem;
+  }
+}
+
+/* Laptops pequeñas y tablets landscape */
+@media (max-width: 1365px) {
+  .pm-kanban-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .pm-kanban-board {
+    min-height: calc(100vh - 300px);
+    max-height: calc(100vh - 300px);
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .pm-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .pm-title {
+    font-size: 2rem;
+  }
+
+  .pm-subtitle {
+    font-size: 1rem;
+  }
+
+  .pm-stats-panel,
+  .pm-kanban-board {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .pm-kanban-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    overflow-x: auto;
+  }
+
+  .pm-kanban-column {
+    min-height: 450px;
+    max-height: 600px;
+  }
+
+  .pm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .pm-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-kanban-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .pm-kanban-column {
+    min-height: 400px;
+    max-height: 500px;
+  }
+
+  .pm-task-card {
+    padding: 0.75rem;
+  }
+
+  .pm-kanban-board {
+    margin: 0.5rem;
+    padding: 0.75rem;
+  }
+}
+
+/* 🎭 ANIMACIONES */
+@keyframes pm-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pm-slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pm-pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes pm-breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes pm-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pm-wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(1deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+}
+
+.pm-fade-in {
+  animation: pm-fadeIn 0.3s ease-out;
+}
+
+.pm-slide-in {
+  animation: pm-slideIn 0.3s ease-out;
+}
+
+.pm-pulse {
+  animation: pm-pulse 2s ease-in-out infinite;
+}
+
+/* 🎯 DRAG & DROP STATES - MEJORADO */
+.pm-drag-over {
+  background: var(--pm-primary);
+  opacity: 0.15;
+  border-color: var(--pm-primary);
+  transform: scale(1.02);
+  box-shadow: var(--pm-glow-primary);
+  animation: pm-pulse 1.5s ease-in-out infinite;
+}
+
+.pm-dragging {
+  opacity: 0.7;
+  transform: rotate(3deg) scale(1.05);
+  z-index: 1000;
+  box-shadow: var(--pm-shadow-xl);
+  border-color: var(--pm-primary);
+}
+
+/* Columna con tareas siendo arrastradas */
+.pm-kanban-column.drag-over {
+  background: linear-gradient(135deg,
+    var(--pm-primary)10 0%,
+    var(--pm-primary)05 100%);
+  border-color: var(--pm-primary);
+  transform: scale(1.02);
+  animation: pm-breathe 2s ease-in-out infinite;
+}
+
+/* Lista de tareas con scroll optimizado */
+.pm-kanban-tasks {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pm-primary) transparent;
+}
+
+.pm-kanban-tasks::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pm-kanban-tasks::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pm-kanban-tasks::-webkit-scrollbar-thumb {
+  background: var(--pm-primary);
+  border-radius: 3px;
+  opacity: 0.5;
+  transition: opacity var(--pm-transition-fast);
+}
+
+.pm-kanban-tasks::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+}
+
+/* 🎨 SELECTOR DE PROYECTO */
+.pm-project-selector {
+  background: var(--pm-surface-glass);
+  backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-border-glass);
+  border-radius: var(--pm-radius-lg);
+  padding: 1.5rem;
+  margin: 1.5rem;
+  box-shadow: var(--pm-shadow-md);
+}
+
+.pm-project-selector .MuiFormControl-root {
+  width: 100%;
+}
+
+.pm-project-selector .MuiInputLabel-root {
+  color: var(--pm-text-secondary);
+  font-weight: 500;
+}
+
+.pm-project-selector .MuiInputLabel-root.Mui-focused {
+  color: var(--pm-primary);
+}
+
+.pm-project-selector .MuiOutlinedInput-root {
+  background: var(--pm-surface-3);
+  border-radius: var(--pm-radius-md);
+  color: var(--pm-text-primary);
+}
+
+.pm-project-selector .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: var(--pm-border);
+}
+
+.pm-project-selector .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--pm-border-strong);
+}
+
+.pm-project-selector .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--pm-primary);
+  box-shadow: var(--pm-glow-primary);
+}
+
+.pm-project-selector .MuiSelect-icon {
+  color: var(--pm-text-secondary);
+}
+
+.pm-project-selector .MuiMenu-paper {
+  background: var(--pm-surface-glass);
+  backdrop-filter: var(--pm-glass-blur);
+  border: 1px solid var(--pm-border-glass);
+  border-radius: var(--pm-radius-lg);
+}
+
+.pm-project-selector .MuiMenuItem-root {
+  color: var(--pm-text-primary);
+}
+
+.pm-project-selector .MuiMenuItem-root:hover {
+  background: var(--pm-surface-3);
+}
+
+.pm-project-selector .MuiMenuItem-root.Mui-selected {
+  background: var(--pm-primary);
+  color: white;
+}
+
+.pm-project-selector .MuiMenuItem-root.Mui-selected:hover {
+  background: var(--pm-primary-hover);
+}

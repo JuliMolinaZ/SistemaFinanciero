@@ -779,6 +779,14 @@ const ProjectTablePure = ({
   onDelete,
   loading = false
 }) => {
+  // Log para debugging cuando se re-renderiza ProjectTablePure
+  console.log('🔄 ProjectTablePure renderizado:', {
+    projectsCount: projects.length,
+    groupsCount: groups.length,
+    timestamp: new Date().toLocaleTimeString(),
+    firstProjectInGroups: groups[0]?.projects[0]?.nombre || 'N/A',
+    firstProjectProgress: groups[0]?.projects[0]?.progress || 'N/A'
+  });
   const [searchValue, setSearchValue] = useState('');
   const [filters, setFilters] = useState({});
   const [sortField, setSortField] = useState('created_at');
@@ -786,8 +794,28 @@ const ProjectTablePure = ({
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   const [selectedProjects, setSelectedProjects] = useState([]);
 
+  // 🔍 Create a hash of the groups data to force updates when content changes
+  const groupsDataHash = useMemo(() => {
+    const hash = groups.map(group =>
+      `${group.clientId}-${group.projects.map(p => `${p.id}:${p.progress}`).join(',')}`
+    ).join('|');
+    console.log('🔍 Groups data hash creado:', hash.slice(0, 50) + '...');
+    return hash;
+  }, [groups]);
+
   // 🔄 Enhanced filtering and sorting
   const filteredGroups = useMemo(() => {
+    console.log('🔄 filteredGroups useMemo ejecutándose:', {
+      groupsCount: groups.length,
+      groupsDataHash: groupsDataHash.slice(0, 30) + '...',
+      searchValue,
+      filters,
+      sortField,
+      sortDirection,
+      firstGroupProjectsCount: groups[0]?.projects?.length || 0,
+      firstProjectProgress: groups[0]?.projects[0]?.progress || 'N/A'
+    });
+
     let filtered = groups.map(group => {
       let filteredProjects = [...group.projects];
 
@@ -848,7 +876,7 @@ const ProjectTablePure = ({
     });
 
     return filtered;
-  }, [groups, searchValue, filters, sortField, sortDirection]);
+  }, [groups, groupsDataHash, searchValue, filters, sortField, sortDirection]);
 
   const handleSort = useCallback((field) => {
     if (sortField === field) {

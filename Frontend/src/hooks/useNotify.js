@@ -2,7 +2,7 @@
 // ==============================================
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNotifications } from '../components/ui/NotificationSystem';
+import { useNotifications as useNotificationContext } from '../components/ui/NotificationSystem';
 
 // 🎯 TIPOS DE NOTIFICACIÓN
 const NOTIFICATION_TYPES = {
@@ -25,10 +25,10 @@ export function useNotify() {
   // Intentar usar el sistema de notificaciones si está disponible
   let notificationSystem = null;
   try {
-    notificationSystem = useNotifications();
+    notificationSystem = useNotificationContext();
   } catch (error) {
     // Si no hay NotificationProvider, usar fallback
-    console.warn('NotificationProvider no disponible, usando fallback con alert');
+    console.warn('NotificationProvider no disponible, usando fallback con console');
   }
 
   // 🎯 Funciones de conveniencia por tipo
@@ -36,8 +36,8 @@ export function useNotify() {
     if (notificationSystem) {
       return notificationSystem.notify.success(options);
     } else {
-      // Fallback con alert
-      alert(`✅ ${options.title}\n${options.description || ''}`);
+      // Fallback con console (sin alert)
+      console.log(`✅ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
     }
   }, [notificationSystem]);
 
@@ -45,8 +45,8 @@ export function useNotify() {
     if (notificationSystem) {
       return notificationSystem.notify.error(options);
     } else {
-      // Fallback con alert
-      alert(`❌ ${options.title}\n${options.description || ''}`);
+      // Fallback con console (sin alert)
+      console.error(`❌ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
     }
   }, [notificationSystem]);
 
@@ -54,8 +54,8 @@ export function useNotify() {
     if (notificationSystem) {
       return notificationSystem.notify.warning(options);
     } else {
-      // Fallback con alert
-      alert(`⚠️ ${options.title}\n${options.description || ''}`);
+      // Fallback con console (sin alert)
+      console.warn(`⚠️ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
     }
   }, [notificationSystem]);
 
@@ -63,8 +63,8 @@ export function useNotify() {
     if (notificationSystem) {
       return notificationSystem.notify.info(options);
     } else {
-      // Fallback con alert
-      alert(`ℹ️ ${options.title}\n${options.description || ''}`);
+      // Fallback con console (sin alert)
+      console.info(`ℹ️ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
     }
   }, [notificationSystem]);
 
@@ -73,7 +73,7 @@ export function useNotify() {
       return notificationSystem.notify.loading(options);
     } else {
       // Fallback con console
-      console.log(`⏳ ${options.title}\n${options.description || ''}`);
+      console.log(`⏳ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
     }
   }, [notificationSystem]);
 

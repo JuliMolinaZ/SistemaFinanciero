@@ -4,7 +4,7 @@
 // 🌐 API Configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
 const API_ENDPOINTS = {
-  projects: '/api/project-management/projects-real',
+  projects: '/api/management-projects',
   methodologies: '/api/project-management/methodologies',
   projectRoles: '/api/project-management/project-roles'
 };
@@ -65,6 +65,7 @@ export const projectManagementService = {
       // Procesar los datos del backend
       let projects = [];
       
+      // Nuestra API devuelve un objeto con data, groups, meta
       if (data.success && data.data && Array.isArray(data.data)) {
         console.log('✅ Datos recibidos del backend:', data.data.length, 'proyectos');
         
@@ -78,11 +79,47 @@ export const projectManagementService = {
           priority: project.priority || 'medium',
           progress: project.progress || 0,
           cliente_id: project.cliente_id,
-          client_name: project.client_name,
+          client_name: project.client?.nombre || 'Sin Cliente',
           // Crear objeto client para compatibilidad
-          client: {
+          client: project.client || {
             id: project.cliente_id,
-            nombre: project.client_name || 'Sin Cliente'
+            nombre: 'Sin Cliente'
+          },
+          // Datos adicionales con valores por defecto
+          project_manager: project.project_manager || {
+            id: 1,
+            name: 'No asignado',
+            email: 'no-asignado@empresa.com'
+          },
+          methodology: project.methodology || {
+            id: 1,
+            name: 'Scrum'
+          },
+          members: project.members || [],
+          start_date: project.start_date,
+          end_date: project.end_date,
+          created_at: project.created_at,
+          updated_at: project.updated_at
+        }));
+      } else if (Array.isArray(data)) {
+        // Fallback para array directo
+        console.log('✅ Datos recibidos del backend (array):', data.length, 'proyectos');
+        
+        projects = data.map(project => ({
+          ...project,
+          // Asegurar que todos los campos necesarios estén presentes
+          id: project.id,
+          nombre: project.nombre || 'Sin nombre',
+          descripcion: project.descripcion || `Descripción del ${project.nombre || 'proyecto'}`,
+          status: project.status || 'planning',
+          priority: project.priority || 'medium',
+          progress: project.progress || 0,
+          cliente_id: project.cliente_id,
+          client_name: project.client?.nombre || 'Sin Cliente',
+          // Crear objeto client para compatibilidad
+          client: project.client || {
+            id: project.cliente_id,
+            nombre: 'Sin Cliente'
           },
           // Datos adicionales con valores por defecto
           project_manager: project.project_manager || {
@@ -106,35 +143,29 @@ export const projectManagementService = {
         projects = this.getMockProjects();
       }
 
-      // Usar grupos del backend si están disponibles, sino crear localmente
+      // Crear grupos localmente basados en los proyectos
       let groups = [];
-      if (data.groups && Array.isArray(data.groups)) {
-        groups = data.groups;
-        console.log('✅ Usando grupos del backend:', groups.length);
-      } else {
-        // Crear grupos localmente como fallback
-        const groupMap = new Map();
-        projects.forEach(project => {
-          const clientKey = project.cliente_id || 'no-client';
-          const clientName = project.client?.nombre || project.client_name || 'Sin Cliente';
+      const groupMap = new Map();
+      projects.forEach(project => {
+        const clientKey = project.cliente_id || 'no-client';
+        const clientName = project.client?.nombre || project.client_name || 'Sin Cliente';
 
-          if (!groupMap.has(clientKey)) {
-            groupMap.set(clientKey, {
-              clientId: project.cliente_id,
-              clientName,
-              count: 0,
-              projects: []
-            });
-          }
+        if (!groupMap.has(clientKey)) {
+          groupMap.set(clientKey, {
+            clientId: project.cliente_id,
+            clientName,
+            count: 0,
+            projects: []
+          });
+        }
 
-          const group = groupMap.get(clientKey);
-          group.projects.push(project);
-          group.count++;
-        });
+        const group = groupMap.get(clientKey);
+        group.projects.push(project);
+        group.count++;
+      });
 
-        groups = Array.from(groupMap.values());
-        console.log('✅ Grupos creados localmente:', groups.length);
-      }
+      groups = Array.from(groupMap.values());
+      console.log('✅ Grupos creados localmente:', groups.length);
 
       console.log('✅ Proyectos procesados:', projects.length);
       console.log('✅ Grupos creados:', groups.length);
@@ -170,7 +201,7 @@ export const projectManagementService = {
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      return data.data;
+      return data;
     } catch (error) {
       console.error('Error fetching project:', error);
       throw error;
@@ -188,7 +219,7 @@ export const projectManagementService = {
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      return data.data;
+      return data;
     } catch (error) {
       console.error('Error creating project:', error);
       throw error;
@@ -198,15 +229,25 @@ export const projectManagementService = {
   // ✏️ UPDATE PROJECT
   async updateProject(id, updates) {
     try {
+      // Validar que el ID sea válido
+      if (!id || id === 'undefined' || id === null) {
+        console.error('❌ ID de proyecto inválido:', id);
+        throw new Error('ID de proyecto inválido');
+      }
+
       const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
+      console.log('🔍 Updating project:', url, updates);
+      
       const response = await fetch(url, createRequest('PUT', updates));
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('❌ Update error:', response.status, data);
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      return data.data;
+      console.log('✅ Project updated successfully:', data);
+      return data.data || data; // Devolver data.data si existe, sino data
     } catch (error) {
       console.error('Error updating project:', error);
       throw error;
@@ -217,14 +258,18 @@ export const projectManagementService = {
   async deleteProject(id) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
+      console.log('🔍 Deleting project:', url);
+      
       const response = await fetch(url, createRequest('DELETE'));
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('❌ Delete error:', response.status, data);
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      return data;
+      console.log('✅ Project deleted successfully:', data);
+      return data; // La respuesta de delete no tiene data.data
     } catch (error) {
       console.error('Error deleting project:', error);
       throw error;

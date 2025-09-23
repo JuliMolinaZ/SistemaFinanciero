@@ -7,7 +7,7 @@ import { Button } from '../ui/EnterpriseComponents';
 import projectManagementService from '../../services/projectManagementService';
 import '../ui/enterprise-system.css';
 
-export default function CreateProjectForm({ onClose, onSuccess, className = '', ...props }) {
+export default function CreateProjectForm({ open = true, onClose, onSuccess, className = '', ...props }) {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -107,11 +107,25 @@ export default function CreateProjectForm({ onClose, onSuccess, className = '', 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🚀 Iniciando creación de proyecto...');
+    console.log('📝 Datos del formulario:', formData);
+    console.log('👥 Equipo operaciones:', selectedOperationsUsers);
+    console.log('💻 Equipo TI:', selectedItUsers);
+    
+    // Prevenir múltiples submits
+    if (loading) {
+      console.log('⚠️ Submit ya en progreso, ignorando...');
+      return;
+    }
+    
     if (!validateForm()) {
+      console.log('❌ Validación falló');
       return;
     }
 
     setLoading(true);
+    setErrors({}); // Limpiar errores previos
+    
     try {
       const projectData = {
         ...formData,
@@ -133,19 +147,41 @@ export default function CreateProjectForm({ onClose, onSuccess, className = '', 
         ]
       };
 
+      console.log('📤 Enviando datos al backend:', projectData);
       const result = await projectManagementService.createProject(projectData);
       
       console.log('✅ Proyecto creado exitosamente:', result);
-      onSuccess?.(result.data);
+      
+      // Llamar a onSuccess con los datos del proyecto creado
+      onSuccess?.(result.data || result);
+      
+      // Cerrar el modal
       onClose?.();
     } catch (error) {
       console.error('❌ Error creando proyecto:', error);
-      setErrors({ general: error.message || 'Error al crear el proyecto' });
+      
+      // Manejar diferentes tipos de errores
+      let errorMessage = 'Error al crear el proyecto';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setErrors({ general: errorMessage });
     } finally {
       setLoading(false);
     }
   };
 
+  // No renderizar si no está abierto
+  if (!open) {
+    console.log('🚫 CreateProjectForm: Modal cerrado, no renderizando');
+    return null;
+  }
+
+  console.log('✅ CreateProjectForm: Modal abierto, renderizando...');
   return (
     <div className={`enterprise-modal-overlay ${className}`} {...props}>
       <div className="enterprise-modal-content">
@@ -244,7 +280,7 @@ export default function CreateProjectForm({ onClose, onSuccess, className = '', 
           <div className="enterprise-form-row">
             <div className="enterprise-form-field">
               <label className="enterprise-form-label">
-                Fecha de Inicio
+                📅 Fecha de Inicio
               </label>
               <input
                 type="date"
@@ -252,11 +288,23 @@ export default function CreateProjectForm({ onClose, onSuccess, className = '', 
                 value={formData.start_date}
                 onChange={handleChange}
                 className="enterprise-form-input"
+                title="Seleccionar fecha de inicio"
+                style={{
+                  background: 'white',
+                  color: '#1f2937',
+                  border: '2px solid #d1d5db',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
               />
             </div>
             <div className="enterprise-form-field">
               <label className="enterprise-form-label">
-                Fecha de Fin
+                📅 Fecha de Fin
               </label>
               <input
                 type="date"
@@ -264,6 +312,18 @@ export default function CreateProjectForm({ onClose, onSuccess, className = '', 
                 value={formData.end_date}
                 onChange={handleChange}
                 className={`enterprise-form-input ${errors.end_date ? 'enterprise-form-input--error' : ''}`}
+                title="Seleccionar fecha de fin"
+                style={{
+                  background: 'white',
+                  color: '#1f2937',
+                  border: '2px solid #d1d5db',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
               />
               {errors.end_date && (
                 <span className="enterprise-form-error">{errors.end_date}</span>
@@ -393,26 +453,27 @@ export default function CreateProjectForm({ onClose, onSuccess, className = '', 
               )}
             </div>
           </div>
-        </form>
 
-        {/* Footer */}
-        <div className="enterprise-modal-footer">
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            icon={loading ? Loader2 : Save}
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? 'Creando...' : 'Crear Proyecto'}
-          </Button>
-        </div>
+          {/* Footer dentro del formulario */}
+          <div className="enterprise-modal-footer">
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              disabled={loading}
+              type="button"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              icon={loading ? Loader2 : Save}
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Creando...' : 'Crear Proyecto'}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

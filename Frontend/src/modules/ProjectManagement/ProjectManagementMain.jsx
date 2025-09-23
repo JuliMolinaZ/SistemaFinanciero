@@ -14,9 +14,13 @@ import {
   Tooltip,
   Stack,
   useTheme,
-  alpha
+  alpha,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
-import './ProjectManagementEnterprise.css';
+import './ProjectManagementUnified.css';
 import {
   Dashboard as DashboardIcon,
   Assignment as AssignmentIcon,
@@ -46,7 +50,7 @@ import {
   UnifiedAlert,
   UnifiedSkeleton
 } from '../../components/DesignSystem/BaseComponents';
-import { UnifiedSearchInput } from '../../components/DesignSystem/FormComponents';
+import { UnifiedSearchInput, UnifiedSelect } from '../../components/DesignSystem/FormComponents';
 import UnifiedErrorBoundary, { useErrorHandler } from '../../components/DesignSystem/ErrorBoundary';
 import { designTheme, styleUtils } from '../../components/DesignSystem/theme';
 
@@ -54,6 +58,7 @@ import { designTheme, styleUtils } from '../../components/DesignSystem/theme';
 import ProjectDashboard from './components/ProjectDashboard';
 import ProjectList from './components/ProjectList';
 import TaskBoard from './components/TaskBoard';
+import TaskManagementUnified from './components/TaskManagementUnified';
 import SprintManagement from './components/SprintManagement';
 import ProjectMetrics from './components/ProjectMetrics';
 
@@ -61,6 +66,11 @@ import ProjectMetrics from './components/ProjectMetrics';
 import { NavTabs } from '../../components/navigation/NavTabs.tsx';
 import ContextualFab from '../../components/ui/ContextualFab';
 import CreateProjectForm from '../../components/forms/CreateProjectForm';
+import BrutalFAB from '../../components/ui/BrutalFAB';
+import BrutalCreateButton from '../../components/ui/BrutalCreateButton';
+import UltraBrutalButton from '../../components/ui/UltraBrutalButton';
+import ContextualBrutalButton from '../../components/ui/ContextualBrutalButton';
+import SimpleModal from '../../components/ui/SimpleModal';
 
 // 🎯 HOOK PERSONALIZADO PARA GESTIÓN DE ESTADOS
 const useProjectManagement = () => {
@@ -136,8 +146,8 @@ const useProjectManagement = () => {
 
 // 🎭 Componentes antiguos eliminados - ahora se usa NavTabs
 
-// 🎬 COMPONENTE PRINCIPAL REFACTORIZADO
-const ProjectManagementMain = () => {
+// 🎬 COMPONENTE INTERNO CON NOTIFICACIONES
+const ProjectManagementContent = () => {
   const theme = useTheme();
   const { state, updateState, updateLoading, updateFilters } = useProjectManagement();
   const { error, captureError, resetError } = useErrorHandler();
@@ -146,6 +156,10 @@ const ProjectManagementMain = () => {
   // 📋 PROJECT DRAWER STATE
   const [selectedProject, setSelectedProject] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // 🎯 TASK MANAGEMENT STATE
+  const [showTaskManagement, setShowTaskManagement] = useState(false);
+  const [selectedProjectForTasks, setSelectedProjectForTasks] = useState(null);
 
   // 📊 Mock data mientras conectamos con la API real
   const mockData = useMemo(() => ({
@@ -209,11 +223,10 @@ const ProjectManagementMain = () => {
 
   // 🎯 Configuración de tabs dinámica - ahora se maneja en NavTabs
 
-  // 🔄 Efecto para cargar datos reales desde la API
-  useEffect(() => {
-    const loadInitialData = async () => {
+  // 🔄 Función para recargar datos desde la API
+  const reloadData = useCallback(async (showLoading = true) => {
       try {
-        updateLoading('projects', true);
+      if (showLoading) updateLoading('projects', true);
         
         // Importar el servicio de project management
         const { projectManagementService } = await import('../../services/projectManagementService');
@@ -250,14 +263,14 @@ const ProjectManagementMain = () => {
           sprints: mockData.sprints // Mantener mock por ahora
         });
 
-        console.log('✅ Datos cargados exitosamente:');
+      console.log('✅ Datos recargados exitosamente:');
         console.log('   - Proyectos:', projectData.projects.length);
         console.log('   - Grupos:', projectData.groups.length);
         console.log('   - Fases:', phases.length);
         
       } catch (err) {
-        console.error('❌ Error en loadInitialData:', err);
-        captureError(err, { context: 'loadInitialData' });
+      console.error('❌ Error en reloadData:', err);
+      captureError(err, { context: 'reloadData' });
         
         // Fallback a datos mock
         updateState({
@@ -268,12 +281,14 @@ const ProjectManagementMain = () => {
           phases: []
         });
       } finally {
-        updateLoading('projects', false);
+      if (showLoading) updateLoading('projects', false);
       }
-    };
-
-    loadInitialData();
   }, [updateState, updateLoading, captureError, mockData]);
+
+  // 🔄 Efecto para cargar datos iniciales
+  useEffect(() => {
+    reloadData(true);
+  }, [reloadData]);
 
   // 🚀 Función global para crear proyectos
   useEffect(() => {
@@ -291,6 +306,113 @@ const ProjectManagementMain = () => {
   const handleTabChange = useCallback((tabId) => {
     updateState({ activeTab: tabId });
   }, [updateState]);
+
+  // 🔄 Manejadores de operaciones CRUD con recarga automática
+  const handleProjectCreate = useCallback(async (projectData) => {
+    try {
+      console.log('📝 Creando proyecto:', projectData);
+      
+      // Importar el servicio
+      const { projectManagementService } = await import('../../services/projectManagementService');
+      
+      // Crear el proyecto
+      const result = await projectManagementService.createProject(projectData);
+      
+      console.log('✅ Proyecto creado exitosamente:', result);
+      
+      // Recargar datos para mostrar el nuevo proyecto
+      await reloadData(false);
+      
+      // Mostrar notificación de éxito
+      notify.success({
+        title: 'Proyecto creado',
+        description: `"${projectData.nombre}" se creó exitosamente`
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Error creando proyecto:', error);
+      notify.error({
+        title: 'Error al crear proyecto',
+        description: error.message || 'No se pudo crear el proyecto'
+      });
+      throw error;
+    }
+  }, [reloadData, notify]);
+
+  const handleProjectUpdate = useCallback(async (projectId, updates) => {
+    try {
+      console.log('✏️ Actualizando proyecto:', projectId, updates);
+      
+      // Validar que el ID sea válido
+      if (!projectId || projectId === 'undefined' || projectId === null) {
+        console.error('❌ ID de proyecto inválido en handleProjectUpdate:', projectId);
+        notify.error({
+          title: 'Error de validación',
+          description: 'ID de proyecto inválido'
+        });
+        return;
+      }
+      
+      // Importar el servicio
+      const { projectManagementService } = await import('../../services/projectManagementService');
+      
+      // Actualizar el proyecto
+      const result = await projectManagementService.updateProject(projectId, updates);
+      
+      console.log('✅ Proyecto actualizado exitosamente:', result);
+      
+      // Recargar datos para mostrar los cambios
+      await reloadData(false);
+      
+      // Mostrar notificación de éxito
+      notify.success({
+        title: 'Proyecto actualizado',
+        description: `"${updates.nombre || 'Proyecto'}" se actualizó correctamente`
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Error actualizando proyecto:', error);
+      notify.error({
+        title: 'Error al actualizar proyecto',
+        description: error.message || 'No se pudo actualizar el proyecto'
+      });
+      throw error;
+    }
+  }, [reloadData, notify]);
+
+  const handleProjectDelete = useCallback(async (projectId) => {
+    try {
+      console.log('🗑️ Eliminando proyecto:', projectId);
+      
+      // Importar el servicio
+      const { projectManagementService } = await import('../../services/projectManagementService');
+      
+      // Eliminar el proyecto
+      const result = await projectManagementService.deleteProject(projectId);
+      
+      console.log('✅ Proyecto eliminado exitosamente:', result);
+      
+      // Recargar datos para reflejar la eliminación
+      await reloadData(false);
+      
+      // Mostrar notificación de éxito
+      notify.success({
+        title: 'Proyecto eliminado',
+        description: 'El proyecto se eliminó correctamente'
+      });
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Error eliminando proyecto:', error);
+      notify.error({
+        title: 'Error al eliminar proyecto',
+        description: error.message || 'No se pudo eliminar el proyecto'
+      });
+      throw error;
+    }
+  }, [reloadData, notify]);
 
   // 🔍 Búsqueda específica se maneja en cada pestaña
 
@@ -340,30 +462,80 @@ const ProjectManagementMain = () => {
             phases={phases}
             loading={loading.projects}
             filters={state.filters}
-            onEdit={(project) => {
-              console.log('✏️ Proyecto actualizado:', project.nombre || project.name);
-              // Actualizar el proyecto en el estado y los grupos
-              const updatedProjects = projects.map(p => 
-                p.id === project.id ? { ...p, ...project } : p
-              );
-              const updatedGroups = groups.map(group => ({
-                ...group,
-                projects: group.projects.map(p => 
-                  p.id === project.id ? { ...p, ...project } : p
-                )
-              }));
-              updateState({ projects: updatedProjects, groups: updatedGroups });
+            onEdit={async (projectId, updatesOrProject) => {
+              try {
+                // Si se pasa un ID y un objeto actualizado (desde onUpdate del modal)
+                if (typeof projectId === 'number' && updatesOrProject && typeof updatesOrProject === 'object') {
+                  console.log('🔄 Actualizando proyecto desde modal:', { projectId, updatesOrProject });
+
+                  // Actualización optimizada: solo actualizar el proyecto específico en el estado local
+                  updateState(prevState => {
+                    // Crear nuevas referencias para forzar re-renderizado
+                    const updatedProjects = [...prevState.projects].map(p =>
+                      p.id === projectId ? { ...p, ...updatesOrProject } : p
+                    );
+
+                    const updatedGroups = [...prevState.groups].map(group => ({
+                      ...group,
+                      projects: [...group.projects].map(p =>
+                        p.id === projectId ? { ...p, ...updatesOrProject } : p
+                      )
+                    }));
+
+                    const updatedProject = updatedProjects.find(p => p.id === projectId);
+
+                    console.log('🔄 Estado actualizado con nuevas referencias:', {
+                      projectId,
+                      totalProjects: updatedProjects.length,
+                      totalGroups: updatedGroups.length,
+                      updatedProject: updatedProject,
+                      updatedProjectProgress: updatedProject?.progress,
+                      projectsArrayChanged: updatedProjects !== prevState.projects,
+                      groupsArrayChanged: updatedGroups !== prevState.groups
+                    });
+
+                    return {
+                      ...prevState,
+                      projects: updatedProjects,
+                      groups: updatedGroups
+                    };
+                  });
+
+                  // Mostrar notificación de éxito aquí para asegurar que aparezca
+                  notify.success({
+                    title: 'Proyecto actualizado',
+                    description: `${updatesOrProject.nombre || 'Proyecto'} se actualizó correctamente`
+                  });
+
+                  console.log('🔔 Notificación de éxito enviada');
+
+                  console.log('✅ Proyecto actualizado localmente sin recargar toda la página');
+                  console.log('📊 Estado final:', {
+                    totalProjects: state.projects.length,
+                    totalGroups: state.groups.length
+                  });
+                }
+                // Si se pasa solo un proyecto (desde otras acciones)
+                else if (typeof projectId === 'object' && projectId.id) {
+                  console.log('✏️ Editando proyecto:', projectId.nombre || projectId.name);
+                  await handleProjectUpdate(projectId.id, projectId);
+                }
+                else {
+                  console.error('❌ Parámetros inválidos en onEdit:', { projectId, updatesOrProject });
+                }
+              } catch (error) {
+                console.error('❌ Error en onEdit:', error);
+                // El error ya se maneja en handleProjectUpdate
+              }
             }}
-            onDelete={(project) => {
-              console.log('🗑️ Proyecto eliminado:', project.nombre || project.name);
-              // Remover el proyecto del estado y los grupos
-              const updatedProjects = projects.filter(p => p.id !== project.id);
-              const updatedGroups = groups.map(group => ({
-                ...group,
-                projects: group.projects.filter(p => p.id !== project.id),
-                count: group.projects.filter(p => p.id !== project.id).length
-              })).filter(group => group.count > 0);
-              updateState({ projects: updatedProjects, groups: updatedGroups });
+            onDelete={async (project) => {
+              try {
+                console.log('🗑️ Proyecto eliminado:', project.nombre || project.name);
+                await handleProjectDelete(project.id);
+              } catch (error) {
+                console.error('❌ Error eliminando proyecto:', error);
+                // El error ya se maneja en handleProjectDelete
+              }
             }}
             onView={(project) => {
               console.log('👁️ Ver proyecto:', project.nombre || project.name);
@@ -377,12 +549,39 @@ const ProjectManagementMain = () => {
         );
       case 'Tareas':
         return (
-          <TaskBoard
-            tasks={tasks}
-            projects={projects}
-            onTaskUpdate={(task) => console.log('Update task:', task)}
-            onTaskCreate={() => updateState({ modalType: 'createTask', modalOpen: true })}
-          />
+          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* 📋 Project Selection */}
+            <div className="pm-project-selector">
+              <FormControl fullWidth>
+                <InputLabel>Selecciona un proyecto para gestionar sus tareas</InputLabel>
+                <Select
+                  value={selectedProjectForTasks?.id || ''}
+                  onChange={(e) => {
+                    const project = projects.find(p => p.id === e.target.value);
+                    setSelectedProjectForTasks(project);
+                  }}
+                  label="Selecciona un proyecto para gestionar sus tareas"
+                >
+                  {projects.map((project) => (
+                    <MenuItem key={project.id} value={project.id}>
+                      {project.nombre || project.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* 🎯 Task Management Module */}
+            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+              <TaskManagementUnified
+                projectId={selectedProjectForTasks?.id}
+                projectName={selectedProjectForTasks?.nombre || selectedProjectForTasks?.name}
+                projects={projects}
+                onProjectSelect={setSelectedProjectForTasks}
+                onClose={() => setSelectedProjectForTasks(null)}
+              />
+            </Box>
+          </Box>
         );
       case 'Sprints':
         return (
@@ -408,382 +607,192 @@ const ProjectManagementMain = () => {
   };
 
   return (
-    <ModernToastProvider>
-      <NotificationProvider>
-        <UnifiedErrorBoundary
-        onError={captureError}
-        showDetails={process.env.NODE_ENV === 'development'}
-      >
-        <Box
-        className="project-management-enterprise"
-        sx={{
-          minHeight: '100vh',
-          background: designTheme.gradients.dark,
-          py: 3
-        }}
-      >
-        <Container maxWidth="xl">
-          <UnifiedContainer variant="glass">
-            {/* 🎯 Header con título y búsqueda */}
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 4,
-                flexWrap: 'wrap',
-                gap: 2
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="h2"
-                  sx={{
-                    ...designTheme.typography.h2,
-                    ...styleUtils.createTextGradient([
-                      designTheme.colors.semantic.primary[400],
-                      designTheme.colors.semantic.primary[600],
-                      designTheme.colors.semantic.success[400]
-                    ]),
-                    mb: 1
-                  }}
-                >
-                  Gestión de Proyectos
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: designTheme.colors.semantic.neutral[300],
-                    ...designTheme.typography.body1
-                  }}
-                >
-                  Panel de control unificado para la gestión completa de proyectos
-                </Typography>
+        <Box className="project-management-module">
+          <Container maxWidth="xl" sx={{ pt: 3 }}>
+            <UnifiedContainer variant="glass">
+              {/* 🎯 Header con título y búsqueda */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 4,
+                  flexWrap: 'wrap',
+                  gap: 2
+                }}
+              >
+                <Box>
+                  <Typography
+                  variant="h3"
+                    sx={{
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    fontSize: '2.5rem',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                      mb: 1,
+                      letterSpacing: '-0.02em'
+                    }}
+                  >
+                    🚀 Gestión de Proyectos
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontSize: '1.2rem',
+                    fontWeight: 500,
+                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                  📋 Administra proyectos, tareas y equipos de trabajo
+                  </Typography>
               </Box>
-            </Box>
 
-            {/* 🧭 Navegación accesible WCAG AA */}
-            <Box sx={{ mb: 4 }}>
-              <NavTabs current={state.activeTab} onTabChange={handleTabChange} />
-            </Box>
-
-            {/* 🎬 Contenido principal con animaciones */}
-            <Box sx={{ position: 'relative' }}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={state.activeTab}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{
-                    duration: 0.3,
-                    ease: "easeInOut"
-                  }}
-                >
-                  {renderTabContent()}
-                </motion.div>
-              </AnimatePresence>
-            </Box>
-
-            {/* 🚀 FAB CONTEXTUAL - CAMBIA SEGÚN PESTAÑA */}
-            <ContextualFab 
+            {/* 🚀 CONTEXTUAL BRUTAL BUTTON - Solo en módulos específicos */}
+            {state.activeTab !== 'Dashboard' && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <ContextualBrutalButton
               activeTab={state.activeTab}
-              onAction={(actionType) => {
-                console.log(`🚀 Acción contextual: ${actionType} en pestaña: ${state.activeTab}`);
-                
-                switch (actionType) {
-                  case 'createProject':
+                  onClick={() => {
+                    console.log(`🚀 Crear desde ${state.activeTab}`);
+                    // Lógica contextual según el tab
+                    switch (state.activeTab) {
+                      case 'Proyectos':
                     updateState({ modalType: 'createProject', modalOpen: true });
                     break;
-                  case 'createTask':
-                    updateState({ modalType: 'createTask', modalOpen: true });
+                      case 'Tareas':
+                    // Disparar evento para crear nueva tarea
+                    if (selectedProjectForTasks?.id) {
+                      // Disparar evento personalizado para que TaskBoardDragDrop lo capture
+                      window.dispatchEvent(new CustomEvent('createNewTask', {
+                        detail: { projectId: selectedProjectForTasks.id, status: 'todo' }
+                      }));
+                      console.log('🎯 Evento createNewTask disparado para proyecto:', selectedProjectForTasks.id);
+                    } else {
+                      notify.warning({
+                        title: 'Selecciona un proyecto',
+                        description: 'Debes seleccionar un proyecto antes de crear una tarea'
+                      });
+                    }
                     break;
-                  case 'createSprint':
+                      case 'Sprints':
                     updateState({ modalType: 'createSprint', modalOpen: true });
                     break;
-                  case 'exportReport':
+                      case 'Analytics':
                     updateState({ modalType: 'exportReport', modalOpen: true });
                     break;
                   default:
-                    console.log('Acción no manejada:', actionType);
-                }
-              }}
-            />
+                        updateState({ modalType: 'createProject', modalOpen: true });
+                    }
+                  }}
+                  size="large"
+                />
+              </Box>
+            )}
+            </Box>
 
-            {/* 📝 Formulario de crear proyecto REAL */}
-            {state.modalOpen && state.modalType === 'createProject' && (
-              <CreateProjectForm
-                onClose={() => updateState({ modalOpen: false, modalType: null })}
-                onSuccess={(newProject) => {
-                  console.log('✅ Proyecto creado exitosamente:', newProject);
-                  // Actualizar la lista de proyectos
-                  updateState({ 
-                    modalOpen: false, 
-                    modalType: null,
-                    projects: [...state.projects, newProject]
-                  });
+          {/* 🎪 NavTabs */}
+          <NavTabs
+              activeTab={state.activeTab}
+            onTabChange={handleTabChange}
+            projects={state.projects}
+            tasks={state.tasks}
+            sprints={state.sprints}
+          />
+
+          {/* 📊 Content */}
+          <Box sx={{ mt: 3 }}>
+            {renderTabContent()}
+          </Box>
+        </UnifiedContainer>
+      </Container>
+
+      {/* 🎭 MODALES CONTEXTUALES */}
+      {state.modalOpen && (
+        <>
+          {state.modalType === 'createProject' && (
+            <CreateProjectForm
+              open={state.modalOpen}
+              onClose={() => updateState({ modalOpen: false, modalType: null })}
+              onSuccess={async (projectData) => {
+                try {
+                  console.log('📝 Proyecto creado exitosamente:', projectData);
+                  
+                  // Solo recargar datos, no crear el proyecto otra vez
+                  // porque CreateProjectForm ya lo creó
+                  await reloadData(false);
+                  
                   // Mostrar notificación de éxito
                   notify.success({
                     title: 'Proyecto creado',
-                    description: `"${newProject.name}" se guardó correctamente`
+                    description: `"${projectData.nombre}" se creó exitosamente`
                   });
-                }}
-              />
-            )}
+                  
+                  // Cerrar el modal
+                  updateState({ modalOpen: false, modalType: null });
+                } catch (error) {
+                  console.error('❌ Error en onSuccess:', error);
+                  notify.error({
+                    title: 'Error al recargar datos',
+                    description: 'El proyecto se creó pero hubo un error al actualizar la lista'
+                  });
+                }
+              }}
+            />
+          )}
 
-            {/* 📝 Modales simples para otras acciones */}
-            {state.modalOpen && state.modalType !== 'createProject' && (
-            <Box
-              sx={{
-                position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 1000,
-                  backdropFilter: 'blur(4px)'
-                }}
-                onClick={() => updateState({ modalOpen: false, modalType: null })}
-              >
-                <Box
-                  sx={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    padding: '32px',
-                    maxWidth: '500px',
-                    width: '90%',
-                    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)'
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Modal de crear tarea */}
-                  {state.modalType === 'createTask' && (
-                    <>
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-                        ✅ Crear Nueva Tarea
+          {state.modalType === 'createTask' && (
+            <SimpleModal
+              open={state.modalOpen}
+              onClose={() => updateState({ modalOpen: false, modalType: null })}
+              title="Nueva Tarea"
+            >
+              <Typography variant="body2" color="text.secondary">
+                Formulario de creación de tareas (por implementar)
                       </Typography>
-                      <Typography variant="body1" sx={{ mb: 4, color: 'gray' }}>
-                        Funcionalidad de creación de tareas próximamente. El sistema está preparado para gestionar tareas de proyecto.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <UnifiedButton
-                          variant="secondary"
-                          onClick={() => updateState({ modalOpen: false, modalType: null })}
-                        >
-                          Cerrar
-                        </UnifiedButton>
-                        <UnifiedButton
-                          variant="primary"
-                          onClick={() => {
-                            updateState({ modalOpen: false, modalType: null, activeTab: 'Tareas' });
-                          }}
-                        >
-                          Ver Tareas
-                        </UnifiedButton>
-                      </Box>
-                    </>
-                  )}
-
-                  {/* Modal de crear sprint */}
+            </SimpleModal>
+          )}
+          
                   {state.modalType === 'createSprint' && (
-                    <>
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-                        🏃 Crear Nuevo Sprint
+            <SimpleModal
+              open={state.modalOpen}
+              onClose={() => updateState({ modalOpen: false, modalType: null })}
+              title="Nuevo Sprint"
+            >
+              <Typography variant="body2" color="text.secondary">
+                Formulario de creación de sprints (por implementar)
                       </Typography>
-                      <Typography variant="body1" sx={{ mb: 4, color: 'gray' }}>
-                        Funcionalidad de creación de sprints próximamente. El sistema está preparado para gestión ágil.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <UnifiedButton
-                          variant="secondary"
-                          onClick={() => updateState({ modalOpen: false, modalType: null })}
-                        >
-                          Cerrar
-                        </UnifiedButton>
-                        <UnifiedButton
-                          variant="primary"
-                          onClick={() => {
-                            updateState({ modalOpen: false, modalType: null, activeTab: 'Sprints' });
-                          }}
-                        >
-                          Ver Sprints
-                        </UnifiedButton>
-                      </Box>
-                    </>
-                  )}
-
-                  {/* Modal de exportar reporte */}
+            </SimpleModal>
+          )}
+          
                   {state.modalType === 'exportReport' && (
-                    <>
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-                        📊 Exportar Reporte - {state.selectedProject?.nombre}
+            <SimpleModal
+              open={state.modalOpen}
+              onClose={() => updateState({ modalOpen: false, modalType: null })}
+              title="Generar Reporte"
+            >
+              <Typography variant="body2" color="text.secondary">
+                Formulario de generación de reportes (por implementar)
                       </Typography>
-                      <Typography variant="body1" sx={{ mb: 4, color: 'gray' }}>
-                        Funcionalidad de reportes próximamente. El sistema generará reportes completos de analytics.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <UnifiedButton
-                          variant="secondary"
-                          onClick={() => updateState({ modalOpen: false, modalType: null, selectedProject: null })}
-                        >
-                          Cerrar
-                        </UnifiedButton>
-                        <UnifiedButton
-                          variant="primary"
-                          onClick={() => {
-                            updateState({ modalOpen: false, modalType: null, selectedProject: null, activeTab: 'Analytics' });
-                          }}
-                        >
-                          Ver Analytics
-                        </UnifiedButton>
-                      </Box>
-                    </>
-                  )}
-
-                  {/* Modal de ver proyecto */}
-                  {state.modalType === 'viewProject' && (
-                    <>
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-                        👁️ Ver Proyecto - {state.selectedProject?.nombre}
-                      </Typography>
-                      <Box sx={{ mb: 4 }}>
-                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Descripción:</Typography>
-                        <Typography variant="body1" sx={{ mb: 3, color: 'gray' }}>
-                          {state.selectedProject?.descripcion || 'Sin descripción'}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Cliente:</Typography>
-                        <Typography variant="body1" sx={{ mb: 3, color: 'gray' }}>
-                          {state.selectedProject?.client?.nombre || 'Sin cliente'}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Estado:</Typography>
-                        <Typography variant="body1" sx={{ mb: 3, color: 'gray' }}>
-                          {state.selectedProject?.status === 'active' ? 'Activo' : 
-                           state.selectedProject?.status === 'planning' ? 'Planificación' : 
-                           state.selectedProject?.status === 'completed' ? 'Completado' : 'Sin estado'}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Progreso:</Typography>
-                        <Typography variant="body1" sx={{ mb: 3, color: 'gray' }}>
-                          {state.selectedProject?.progress || 0}%
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Equipos:</Typography>
-                        <Typography variant="body1" sx={{ color: 'gray' }}>
-                          Operaciones: {state.selectedProject?.members?.filter(m => m.team_type === 'operations').length || 0} miembros<br/>
-                          TI: {state.selectedProject?.members?.filter(m => m.team_type === 'it').length || 0} miembros
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <UnifiedButton
-                          variant="secondary"
-                          onClick={() => updateState({ modalOpen: false, modalType: null, selectedProject: null })}
-                        >
-                          Cerrar
-                        </UnifiedButton>
-                        <UnifiedButton
-                          variant="primary"
-                          onClick={() => {
-                            updateState({ modalType: 'editProject' });
-                          }}
-                        >
-                          Editar
-                        </UnifiedButton>
-                      </Box>
-                    </>
-                  )}
-
-                  {/* Modal de editar proyecto */}
-                  {state.modalType === 'editProject' && (
-                    <>
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-                        ✏️ Editar Proyecto - {state.selectedProject?.nombre}
-                      </Typography>
-                      <Typography variant="body1" sx={{ mb: 4, color: 'gray' }}>
-                        Funcionalidad de edición próximamente. El sistema permitirá modificar todos los campos del proyecto.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <UnifiedButton
-                          variant="secondary"
-                          onClick={() => updateState({ modalOpen: false, modalType: null, selectedProject: null })}
-                        >
-                          Cancelar
-                        </UnifiedButton>
-                        <UnifiedButton
-                          variant="primary"
-                          onClick={() => {
-                            console.log('💾 Guardando cambios del proyecto:', state.selectedProject?.nombre);
-                            updateState({ modalOpen: false, modalType: null, selectedProject: null });
-                            notify.success('Cambios guardados correctamente');
-                          }}
-                        >
-                          Guardar Cambios
-                        </UnifiedButton>
-                      </Box>
-                    </>
-                  )}
-
-                  {/* Modal de eliminar proyecto */}
-                  {state.modalType === 'deleteProject' && (
-                    <>
-                      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600, color: '#ef4444' }}>
-                        🗑️ Eliminar Proyecto
-                      </Typography>
-                      <Typography variant="body1" sx={{ mb: 4, color: 'gray' }}>
-                        ¿Estás seguro de que deseas eliminar el proyecto <strong>"{state.selectedProject?.nombre}"</strong>?
-                        <br/><br/>
-                        Esta acción no se puede deshacer y se eliminarán todos los datos relacionados.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <UnifiedButton
-                          variant="secondary"
-                          onClick={() => updateState({ modalOpen: false, modalType: null, selectedProject: null })}
-                        >
-                          Cancelar
-                        </UnifiedButton>
-                  <UnifiedButton
-                    variant="primary"
-                          onClick={() => {
-                            console.log('🗑️ Eliminando proyecto:', state.selectedProject?.nombre);
-                            // Remover el proyecto de la lista
-                            const updatedProjects = state.projects.filter(p => p.id !== state.selectedProject.id);
-                            updateState({ 
-                              modalOpen: false, 
-                              modalType: null, 
-                              selectedProject: null,
-                              projects: updatedProjects
-                            });
-                            notify.success('Proyecto eliminado');
-                          }}
-                          style={{ backgroundColor: '#ef4444' }}
-                        >
-                          Eliminar
-                  </UnifiedButton>
-                      </Box>
+            </SimpleModal>
+          )}
                     </>
                   )}
                 </Box>
-            </Box>
-            )}
-          </UnifiedContainer>
-        </Container>
-        </Box>
-      </UnifiedErrorBoundary>
+  );
+};
 
-      {/* 📋 PROJECT DRAWER SIMPLE */}
-      <ProjectDrawerSimple
-        open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setSelectedProject(null);
-        }}
-        project={selectedProject}
-      />
+// 🎬 COMPONENTE PRINCIPAL CON PROVIDERS
+const ProjectManagementMain = () => {
+  return (
+    <ModernToastProvider>
+      <NotificationProvider position="topRight" maxNotifications={5}>
+        <UnifiedErrorBoundary
+          onError={(error) => console.error('Error en ProjectManagement:', error)}
+          showDetails={process.env.NODE_ENV === 'development'}
+        >
+          <ProjectManagementContent />
+      </UnifiedErrorBoundary>
       </NotificationProvider>
     </ModernToastProvider>
   );

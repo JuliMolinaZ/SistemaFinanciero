@@ -20,10 +20,10 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 
-import { DataTableGrouped } from '../../components/ui/DataTableGrouped';
-import { ProjectDrawer } from '../../components/ui/ProjectDrawer';
+import DataTableGrouped from '../../components/ui/DataTableGrouped';
+import ProjectDialogWorking from '../../components/ui/ProjectDialogWorking';
 import { NotificationProvider } from '../../components/ui/NotificationSystem';
-import { useNotify } from '../../hooks/useNotify';
+import { useNotifications } from '../../hooks/useNotifications';
 import { projectManagementService, handleApiError } from '../../services/projectManagementService';
 
 // 🎯 MAIN COMPONENT
@@ -42,7 +42,16 @@ export function ProjectManagementPage() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
 
-  const notify = useNotify();
+  const { notify } = useNotifications();
+
+  // 🧪 Función de prueba para notificaciones
+  const testNotifications = () => {
+    console.log('🧪 Probando notificaciones...');
+    notify.success({
+      title: 'Notificación de prueba',
+      description: 'Esta es una notificación de éxito de prueba'
+    });
+  };
 
   // 🔄 FETCH PROJECTS
   const fetchProjects = useCallback(async (showLoading = true) => {
@@ -56,8 +65,9 @@ export function ProjectManagementPage() {
         sortOrder
       });
 
-      setProjects(data.projects);
-      setGroups(data.groups);
+      console.log('📊 Data received from API:', data);
+      setProjects(data.projects || data.data || []);
+      setGroups(data.groups || []);
     } catch (err) {
       console.error('Error fetching projects:', err);
       setError(err.message);
@@ -82,30 +92,72 @@ export function ProjectManagementPage() {
     }
   }, [notify]);
 
+  // ✨ CREATE PROJECT
+  const createProject = useCallback(async (projectData) => {
+    try {
+      console.log('🆕 Creating project:', projectData);
+      const response = await projectManagementService.createProject(projectData);
+      console.log('✅ Create response:', response);
+
+      // Manejar la respuesta correctamente
+      const projectResponse = response.data || response;
+
+      // Refrescar lista completa para incluir el nuevo proyecto
+      await fetchProjects(false);
+
+      notify.success({
+        title: '✅ Proyecto creado',
+        description: `El proyecto "${projectData.nombre}" se creó correctamente`
+      });
+
+      return projectResponse;
+    } catch (err) {
+      console.error('❌ Error creating project:', err);
+      notify.error({
+        title: '❌ Error al crear proyecto',
+        description: err.message || 'No se pudo crear el proyecto'
+      });
+      throw err;
+    }
+  }, [fetchProjects, notify]);
+
   // ✏️ UPDATE PROJECT
   const updateProject = useCallback(async (id, updates) => {
     try {
-      const updatedProject = await projectManagementService.updateProject(id, updates);
+      console.log('✏️ Updating project:', id, updates);
+      const response = await projectManagementService.updateProject(id, updates);
+      console.log('✅ Update response:', response);
+
+      // Manejar la respuesta correctamente
+      const projectData = response.data || response;
 
       // Actualizar proyecto en el estado local
       setProjects(prev =>
         prev.map(project =>
-          project.id === id ? { ...project, ...updatedProject } : project
+          project.id === id ? { ...project, ...projectData } : project
         )
       );
 
       // Actualizar proyecto seleccionado si coincide
       if (selectedProject?.id === id) {
-        setSelectedProject(updatedProject);
+        setSelectedProject(projectData);
       }
 
       // Refrescar lista para mantener agrupación correcta
       await fetchProjects(false);
 
-      return updatedProject;
+      notify.success({
+        title: '✅ Proyecto actualizado',
+        description: `El proyecto "${projectData.nombre}" se actualizó correctamente`
+      });
+
+      return projectData;
     } catch (err) {
-      console.error('Error updating project:', err);
-      handleApiError(err, notify);
+      console.error('❌ Error updating project:', err);
+      notify.error({
+        title: '❌ Error al actualizar proyecto',
+        description: err.message || 'No se pudo actualizar el proyecto'
+      });
       throw err;
     }
   }, [selectedProject, fetchProjects, notify]);
@@ -113,7 +165,13 @@ export function ProjectManagementPage() {
   // 🗑️ DELETE PROJECT
   const deleteProject = useCallback(async (id) => {
     try {
-      await projectManagementService.deleteProject(id);
+      // Obtener nombre del proyecto antes de eliminarlo
+      const projectToDelete = projects.find(p => p.id === id);
+      const projectName = projectToDelete?.nombre || `Proyecto #${id}`;
+
+      console.log('🗑️ Deleting project:', id, projectName);
+      const response = await projectManagementService.deleteProject(id);
+      console.log('✅ Delete response:', response);
 
       // Remover del estado local
       setProjects(prev => prev.filter(project => project.id !== id));
@@ -121,13 +179,21 @@ export function ProjectManagementPage() {
       // Refrescar para actualizar grupos
       await fetchProjects(false);
 
+      notify.success({
+        title: '✅ Proyecto eliminado',
+        description: `El proyecto "${projectName}" se eliminó correctamente`
+      });
+
       return true;
     } catch (err) {
-      console.error('Error deleting project:', err);
-      handleApiError(err, notify);
+      console.error('❌ Error deleting project:', err);
+      notify.error({
+        title: '❌ Error al eliminar proyecto',
+        description: err.message || 'No se pudo eliminar el proyecto'
+      });
       throw err;
     }
-  }, [fetchProjects, notify]);
+  }, [projects, fetchProjects, notify]);
 
   // 🎯 HANDLERS
   const handleViewProject = useCallback(async (project) => {
@@ -144,6 +210,16 @@ export function ProjectManagementPage() {
     }
   }, [fetchProject]);
 
+  const handleCreateProject = useCallback(() => {
+    try {
+      // Abrir drawer en modo creación
+      setSelectedProject(null);
+      setDrawerOpen(true);
+    } catch (err) {
+      console.error('Error opening create dialog:', err);
+    }
+  }, []);
+
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false);
     setSelectedProject(null);
@@ -159,8 +235,54 @@ export function ProjectManagementPage() {
 
   // 🏁 INITIAL LOAD
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+    const loadProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await projectManagementService.getProjects({
+          search: searchTerm,
+          sortBy,
+          sortOrder
+        });
+        setProjects(data.projects || data.data || []);
+        setGroups(data.groups || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError(err.message);
+        handleApiError(err, notify);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, []);
+
+  // 🔍 SEARCH AND SORT CHANGES
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const loadProjectsWithSearch = async () => {
+        try {
+          setError(null);
+          const data = await projectManagementService.getProjects({
+            search: searchTerm,
+            sortBy,
+            sortOrder
+          });
+          setProjects(data.projects || data.data || []);
+          setGroups(data.groups || []);
+        } catch (err) {
+          console.error('Error fetching projects:', err);
+          setError(err.message);
+          handleApiError(err, notify);
+        }
+      };
+
+      loadProjectsWithSearch();
+    }, 300); // Debounce search
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, sortBy, sortOrder, notify]);
 
   // 🎨 COLUMNS CONFIGURATION
   const columns = useMemo(() => [
@@ -262,14 +384,22 @@ export function ProjectManagementPage() {
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={() => {
-                  notify.info({
-                    title: 'Crear proyecto',
-                    description: 'Funcionalidad en desarrollo'
-                  });
-                }}
+                onClick={handleCreateProject}
               >
                 Nuevo Proyecto
+              </Button>
+              
+              {/* 🧪 Botón de prueba temporal */}
+              <Button
+                variant="outlined"
+                onClick={testNotifications}
+                sx={{ 
+                  borderColor: 'orange',
+                  color: 'orange',
+                  '&:hover': { borderColor: 'darkorange', color: 'darkorange' }
+                }}
+              >
+                🧪 Probar Notificaciones
               </Button>
             </Stack>
           </Stack>
@@ -310,12 +440,13 @@ export function ProjectManagementPage() {
           )}
         </Box>
 
-        {/* 🎨 PROJECT DRAWER */}
-        <ProjectDrawer
+        {/* 🎨 PROJECT DIALOG */}
+        <ProjectDialogWorking
           open={drawerOpen}
           onClose={handleCloseDrawer}
           project={selectedProject}
           onUpdate={updateProject}
+          onCreate={createProject}
           onDelete={deleteProject}
           loading={drawerLoading}
         />

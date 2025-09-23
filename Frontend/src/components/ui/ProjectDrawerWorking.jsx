@@ -499,7 +499,7 @@ const ProjectDrawerWorking = ({
     try {
       // Cargar clientes
       console.log('🔍 Cargando clientes...');
-      const clientsResponse = await fetch('http://localhost:8765/api/clientes', {
+      const clientsResponse = await fetch('http://localhost:8765/api/clients', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -898,7 +898,7 @@ const ProjectDrawerWorking = ({
                       <>
                         <Button
                           variant="ghost"
-                          onClick={handleEditToggle}
+                          onClick={onClose}
                           size="sm"
                         >
                           Cancelar

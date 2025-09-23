@@ -1090,6 +1090,133 @@
   font-family: inherit;
 }
 
+/* Estilos específicos para inputs de fecha */
+.enterprise-form-input[type="date"] {
+  position: relative;
+  cursor: pointer;
+  background: white !important;
+  color: #1f2937 !important;
+  border: 2px solid #d1d5db !important;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+  transition: all 150ms ease-out;
+}
+
+.enterprise-form-input[type="date"]:hover {
+  border-color: #3b82f6 !important;
+  background: #f8fafc !important;
+}
+
+.enterprise-form-input[type="date"]:focus {
+  border-color: #3b82f6 !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  outline: none;
+}
+
+/* Botón del calendario */
+.enterprise-form-input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 8px;
+  border-radius: 4px;
+  transition: all 150ms ease-out;
+  width: 20px;
+  height: 20px;
+}
+
+.enterprise-form-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background: #e5e7eb;
+  color: #3b82f6;
+}
+
+.enterprise-form-input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+/* Estilos para el calendario desplegado */
+.enterprise-form-input[type="date"]::-webkit-datetime-edit {
+  color: #1f2937 !important;
+  font-weight: 500;
+  background: transparent;
+}
+
+.enterprise-form-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  background: transparent;
+}
+
+.enterprise-form-input[type="date"]::-webkit-datetime-edit-text {
+  color: #1f2937 !important;
+  padding: 0 2px;
+}
+
+.enterprise-form-input[type="date"]::-webkit-datetime-edit-month-field,
+.enterprise-form-input[type="date"]::-webkit-datetime-edit-day-field,
+.enterprise-form-input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #1f2937 !important;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+/* Wrapper para inputs de fecha con icono */
+.enterprise-date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.enterprise-date-input {
+  padding-right: 40px; /* Espacio para el icono */
+}
+
+.enterprise-date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--enterprise-text-secondary);
+  pointer-events: none;
+  z-index: 1;
+  transition: all 150ms ease-out;
+}
+
+.enterprise-date-input-wrapper:hover .enterprise-date-icon {
+  color: var(--enterprise-primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.enterprise-date-input:focus + .enterprise-date-icon {
+  color: var(--enterprise-primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Mejorar la visibilidad del input de fecha */
+.enterprise-date-input {
+  background: var(--enterprise-surface-elev);
+  border: 2px solid var(--enterprise-border);
+  color: var(--enterprise-text-primary);
+  font-weight: 500;
+}
+
+.enterprise-date-input:hover {
+  border-color: var(--enterprise-primary);
+  background: var(--enterprise-surface-hover);
+}
+
+.enterprise-date-input:focus {
+  border-color: var(--enterprise-primary);
+  background: var(--enterprise-surface-elev);
+  box-shadow: 0 0 0 3px var(--enterprise-primary-bg);
+}
+
 .enterprise-form-input:focus,
 .enterprise-form-textarea:focus,
 .enterprise-form-select:focus {

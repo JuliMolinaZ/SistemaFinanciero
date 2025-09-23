@@ -1,6 +1,8 @@
 // src/modules/Clientes/ClientModule.js
 import React, { useState, useEffect, useCallback, useMemo, useTransition } from 'react';
 import axios from 'axios';
+import { useNotifications } from '../../hooks/useNotifications';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
   Container,
   Box,
@@ -287,6 +289,9 @@ const ClientModule = () => {
   const [filteredClients, setFilteredClients] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Hooks personalizados
+  const { notify, confirm } = useNotifications();
   const [editingClientId, setEditingClientId] = useState(null);
   const [originalClientData, setOriginalClientData] = useState(null); // Nuevo estado para datos originales
   const [formData, setFormData] = useState({
@@ -555,16 +560,28 @@ const ClientModule = () => {
   }, [isEditing, editingClientId, formData, API_URL, fetchClients, handleCloseDialog, originalClientData, getModifiedFields]);
 
   const handleDelete = useCallback(async (client) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al cliente "${client.nombre}"?`)) {
-      try {
+    try {
+      const confirmed = await confirm.confirmDelete(
+        `¿Estás seguro de que quieres eliminar al cliente "${client.nombre}"?`,
+        'Eliminar cliente'
+      );
+      
+      if (confirmed) {
         await axios.delete(`${API_URL}/${client.id}`);
-        setSnackbar({ open: true, message: 'Cliente eliminado exitosamente.', severity: 'success' });
+        notify.success({
+          title: 'Cliente eliminado',
+          description: 'El cliente se eliminó exitosamente'
+        });
         fetchClients();
-          } catch (error) {
-      setSnackbar({ open: true, message: 'Error al eliminar cliente.', severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Error al eliminar cliente:', error);
+      notify.error({
+        title: 'Error al eliminar cliente',
+        description: 'No se pudo eliminar el cliente'
+      });
     }
-    }
-  }, [API_URL, fetchClients]);
+  }, [API_URL, fetchClients, confirm, notify]);
 
   const handleEdit = useCallback((client) => {
     setIsEditing(true);
@@ -658,12 +675,13 @@ const ClientModule = () => {
                   onExport={async (exportData) => {
                     try {
                       // Preguntar al usuario si quiere exportar solo los filtrados o todos
-                      const exportFiltered = window.confirm(
-                        `¿Qué quieres exportar?\n\n` +
-                        `• Solo clientes filtrados (${filteredClients.length} clientes)\n` +
-                        `• Todos los clientes (${clients.length} clientes)\n\n` +
-                        `Haz clic en "Aceptar" para exportar solo los filtrados, o "Cancelar" para exportar todos.`
-                      );
+                      const exportFiltered = await confirm.confirm({
+                        title: 'Seleccionar datos para exportar',
+                        message: `¿Qué quieres exportar?\n\n• Solo clientes filtrados (${filteredClients.length} clientes)\n• Todos los clientes (${clients.length} clientes)\n\nHaz clic en "Aceptar" para exportar solo los filtrados, o "Cancelar" para exportar todos.`,
+                        confirmText: 'Solo filtrados',
+                        cancelText: 'Todos los clientes',
+                        type: 'info'
+                      });
                       
                       // Usar los datos filtrados o todos según la elección del usuario
                       const clientsData = exportFiltered ? filteredClients : clients;
@@ -1700,6 +1718,14 @@ const ClientModule = () => {
           </Snackbar>
         </motion.div>
       </AnimatePresence>
+
+      {/* 🎭 Confirm Dialog */}
+      <ConfirmDialog
+        open={confirm.confirmState.open}
+        onClose={confirm.handleCancel}
+        onConfirm={confirm.handleConfirm}
+        {...confirm.confirmState.config}
+      />
     </StyledContainer>
   );
 };
