@@ -110,7 +110,8 @@ const ProjectDialogWorking = ({
         cliente_id: safeProject.cliente_id || '',
         current_phase_id: safeProject.current_phase_id || '',
         project_manager_id: safeProject.project_manager_id || '',
-        client_color: safeProject.client?.color || '#3B82F6'
+        client_color: safeProject.client?.color || '#3B82F6',
+        members: safeProject.members || []
       });
     }
   }, [safeProject]);
@@ -153,7 +154,8 @@ const ProjectDialogWorking = ({
         cliente_id: safeProject.cliente_id || '',
         current_phase_id: safeProject.current_phase_id || '',
         project_manager_id: safeProject.project_manager_id || '',
-        client_color: safeProject.client?.color || '#3B82F6'
+        client_color: safeProject.client?.color || '#3B82F6',
+        members: safeProject.members || []
       });
     }
     setIsEditing(!isEditing);
@@ -197,6 +199,39 @@ const ProjectDialogWorking = ({
     } finally {
       setSaving(false);
     }
+  };
+
+  // Handle adding a member to the project
+  const handleAddMember = (userId) => {
+    const user = users.find(u => u.id === parseInt(userId));
+    if (user && !editData.members.some(m => m.user_id === user.id || m.id === user.id)) {
+      const newMember = {
+        user_id: user.id,
+        role_id: 1,
+        team_type: 'operations',
+        user: {
+          id: user.id,
+          name: user.name
+        },
+        role: {
+          id: 1,
+          name: 'Miembro'
+        }
+      };
+      
+      setEditData(prev => ({
+        ...prev,
+        members: [...prev.members, newMember]
+      }));
+    }
+  };
+
+  // Handle removing a member from the project
+  const handleRemoveMember = (memberId) => {
+    setEditData(prev => ({
+      ...prev,
+      members: prev.members.filter(m => (m.id || m.user_id) !== memberId)
+    }));
   };
 
   return (
@@ -311,8 +346,8 @@ const ProjectDialogWorking = ({
                     maxHeight: '150px',
                     overflowY: 'auto'
                   }}>
-                    {safeProject.members && safeProject.members.length > 0 ? (
-                      safeProject.members.map((member) => (
+                    {editData.members && editData.members.length > 0 ? (
+                      editData.members.map((member) => (
                         <div key={member.id || member.user_id} style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -350,9 +385,7 @@ const ProjectDialogWorking = ({
                               fontSize: '14px',
                               fontWeight: 'bold'
                             }}
-                            onClick={() => {
-                              // TODO: Implement member removal
-                              }}
+                            onClick={() => handleRemoveMember(member.id || member.user_id)}
                           >
                             ×
                           </button>
@@ -384,14 +417,14 @@ const ProjectDialogWorking = ({
                       }}
                       onChange={(e) => {
                         if (e.target.value) {
-                          // TODO: Implement member addition
+                          handleAddMember(e.target.value);
                           e.target.value = '';
                         }
                       }}
                     >
                       <option value="">Agregar miembro del equipo...</option>
                       {users
-                        .filter(user => !safeProject.members?.some(m => m.user_id === user.id || m.id === user.id))
+                        .filter(user => !editData.members?.some(m => m.user_id === user.id || m.id === user.id))
                         .map(user => (
                           <option key={user.id} value={user.id} style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>
                             {user.name}

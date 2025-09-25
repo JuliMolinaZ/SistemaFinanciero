@@ -229,38 +229,106 @@ const ProjectFormModal = ({
   };
 
   // Funciones para gestionar usuarios del proyecto
-  const addUserToProject = (user) => {
-    const newMember = {
-      id: user.id,
-      user_id: user.id,
-      user: {
+  const addUserToProject = async (user) => {
+    if (!project?.id) {
+      // Si es creación de proyecto, agregar localmente
+      const newMember = {
         id: user.id,
-        name: user.name,
-        email: user.email
-      },
-      role: {
-        name: user.role || 'Miembro'
-      },
-      team_type: user.role === 'Desarrollador' ? 'development' : 'other' // Clasificar por rol
-    };
-    
-    setFormData(prev => {
-      const updatedMembers = [...prev.members, newMember];
-      return {
-        ...prev,
-        members: updatedMembers
+        user_id: user.id,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email
+        },
+        role: {
+          name: user.role || 'Miembro'
+        },
+        team_type: user.role === 'Desarrollador' ? 'development' : 'operations'
       };
-    });
+
+      setFormData(prev => ({
+        ...prev,
+        members: [...prev.members, newMember]
+      }));
+      return;
+    }
+
+    // Si es edición de proyecto, usar API real
+    try {
+      const response = await fetch(`http://localhost:8765/api/management-projects/${project.id}/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: user.id,
+          team_type: user.role === 'Desarrollador' ? 'development' : 'operations',
+          role_id: 1 // Rol por defecto
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error agregando miembro');
+      }
+
+      const result = await response.json();
+
+      // Actualizar formData con los miembros actualizados
+      setFormData(prev => ({
+        ...prev,
+        members: result.data.members || []
+      }));
+
+      console.log('✅ Miembro agregado exitosamente:', user.name);
+
+    } catch (error) {
+      console.error('❌ Error agregando miembro:', error);
+      alert(`Error agregando miembro: ${error.message}`);
+    }
   };
 
-  const removeUserFromProject = (userId) => {
-    setFormData(prev => {
-      const updatedMembers = prev.members.filter(m => (m.user_id || m.id) !== userId);
-      return {
+  const removeUserFromProject = async (userId) => {
+    if (!project?.id) {
+      // Si es creación de proyecto, remover localmente
+      setFormData(prev => ({
         ...prev,
-        members: updatedMembers
-      };
-    });
+        members: prev.members.filter(m => (m.user_id || m.id) !== userId)
+      }));
+      return;
+    }
+
+    // Si es edición de proyecto, usar API real
+    try {
+      // Encontrar el member ID desde el user_id
+      const member = formData.members.find(m => (m.user_id || m.id) === userId);
+      if (!member) {
+        throw new Error('Miembro no encontrado');
+      }
+
+      const response = await fetch(`http://localhost:8765/api/management-projects/${project.id}/members/${member.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error eliminando miembro');
+      }
+
+      // Actualizar formData removiendo el miembro
+      setFormData(prev => ({
+        ...prev,
+        members: prev.members.filter(m => (m.user_id || m.id) !== userId)
+      }));
+
+      console.log('✅ Miembro removido exitosamente');
+
+    } catch (error) {
+      console.error('❌ Error removiendo miembro:', error);
+      alert(`Error removiendo miembro: ${error.message}`);
+    }
   };
 
   // Función auxiliar para crear campos de formulario

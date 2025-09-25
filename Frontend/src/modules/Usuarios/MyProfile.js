@@ -280,23 +280,38 @@ const MyProfile = () => {
           formDataToSend.append('position', formData.position.trim() || '');
           formDataToSend.append('hire_date', formData.hire_date || '');
           
-          // Convertir base64 a blob
+          // Convertir base64 a blob para enviar como archivo
+          console.log('🔄 Procesando nueva imagen para subir...');
           const fetchResponse = await fetch(formData.avatar);
           const blob = await fetchResponse.blob();
-          
+
+          console.log('📷 Información de la imagen:', {
+            blobSize: (blob.size / 1024).toFixed(2) + 'KB',
+            blobType: blob.type
+          });
+
           // Determinar extensión del archivo basado en el tipo MIME
           const mimeType = formData.avatar.split(';')[0].split(':')[1];
           let extension = 'jpg';
           if (mimeType.includes('png')) extension = 'png';
           else if (mimeType.includes('gif')) extension = 'gif';
           else if (mimeType.includes('webp')) extension = 'webp';
-          
+
           formDataToSend.append('avatar', blob, `avatar.${extension}`);
-          
+
+          console.log('🚀 Enviando FormData with imagen al servidor...');
+
           response = await axios.put(`/api/user-registration/update-profile/${profileData.id}`, formDataToSend, {
             headers: {
               'Content-Type': 'multipart/form-data'
-            }
+            },
+            timeout: 30000 // 30 segundos de timeout para subida de imagen
+          });
+
+          console.log('✅ Respuesta del servidor (con imagen):', {
+            status: response.status,
+            success: response.data?.success,
+            newAvatarUrl: response.data?.data?.avatar
           });
 
         } catch (formDataError) {
@@ -334,7 +349,14 @@ const MyProfile = () => {
       if (isSuccess) {
         // Preparar datos para actualizar el contexto
         const newAvatarUrl = response.data.data?.avatar || formData.avatar;
-        
+
+        console.log('🎉 Perfil actualizado exitosamente:', {
+          previousAvatar: originalData.avatar,
+          newAvatarUrl: newAvatarUrl,
+          wasImageUpload: formData.avatar?.startsWith('data:image/'),
+          responseData: response.data.data
+        });
+
         const updateData = {
           name: formData.name.trim(),
           phone: formData.phone.trim() || null,
@@ -343,16 +365,28 @@ const MyProfile = () => {
           hire_date: formData.hire_date || null,
           avatar: newAvatarUrl
         };
-        
+
         // Usar la función del contexto para actualizar el perfil
         updateUserProfile(updateData);
-        
+
         // Actualizar datos originales con la nueva URL del avatar
         setOriginalData({ ...formData, avatar: newAvatarUrl });
+
+        // Actualizar también el formData para mostrar la nueva imagen inmediatamente
+        setFormData(prev => ({
+          ...prev,
+          avatar: newAvatarUrl
+        }));
+
         setHasChanges(false);
         setEditing(false);
-        
-        showSnackbar('Perfil actualizado exitosamente', 'success');
+
+        // Mostrar mensaje específico para avatar
+        if (formData.avatar?.startsWith('data:image/')) {
+          showSnackbar('✅ Perfil actualizado y foto de perfil guardada exitosamente', 'success');
+        } else {
+          showSnackbar('✅ Perfil actualizado exitosamente', 'success');
+        }
       } else {
         const errorMessage = response.data?.message || 'Error al actualizar el perfil';
         showSnackbar(errorMessage, 'error');
@@ -399,18 +433,43 @@ const MyProfile = () => {
   const handleAvatarChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Validar tamaño del archivo (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showSnackbar('La imagen debe ser menor a 5MB', 'error');
+        return;
+      }
+
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        showSnackbar('Solo se permiten archivos de imagen', 'error');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        handleInputChange('avatar', reader.result);
+        console.log('📷 Nueva imagen seleccionada:', {
+          fileName: file.name,
+          fileSize: (file.size / 1024).toFixed(2) + 'KB',
+          fileType: file.type
+        });
+
+        // Actualizar el formData con la nueva imagen
+        setFormData(prev => ({
+          ...prev,
+          avatar: reader.result
+        }));
+
         setAvatarDialog(false);
-        
+
+        // FORZAR que hasChanges sea true inmediatamente
+        setHasChanges(true);
+
         // Activar modo edición automáticamente cuando se selecciona una imagen
         if (!editing) {
           setEditing(true);
-          showSnackbar('Imagen seleccionada. Haz clic en "Guardar" para confirmar los cambios.', 'info');
-        } else {
-          showSnackbar('Imagen seleccionada correctamente', 'success');
         }
+
+        showSnackbar('✅ Imagen seleccionada. El botón "Guardar" ya está disponible.', 'success');
       };
       reader.readAsDataURL(file);
     }

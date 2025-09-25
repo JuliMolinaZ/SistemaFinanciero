@@ -338,11 +338,167 @@ const ProjectFormDialog = ({
             </select>
           </div>
 
-          {/* Equipos - Simplificado para el modal */}
+          {/* Equipos - Con funcionalidad real */}
           <div className="enterprise-form-section">
             <h3 className="enterprise-form-section-title">Equipos de Trabajo</h3>
+
+            {/* Mostrar miembros actuales */}
+            {(selectedOperationsUsers.length > 0 || selectedItUsers.length > 0) && (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {selectedOperationsUsers.map((user, index) => (
+                    <div
+                      key={`ops-${user.id}-${index}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <span style={{ color: '#10b981', fontWeight: '500' }}>
+                        {user.name} (Operaciones)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedOperationsUsers(prev =>
+                            prev.filter((_, i) => i !== index)
+                          );
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {selectedItUsers.map((user, index) => (
+                    <div
+                      key={`it-${user.id}-${index}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '6px 12px',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(59, 130, 246, 0.2)',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <span style={{ color: '#3b82f6', fontWeight: '500' }}>
+                        {user.name} (IT)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedItUsers(prev =>
+                            prev.filter((_, i) => i !== index)
+                          );
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Selectores de equipo */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label className="enterprise-form-label">Equipo de Operaciones</label>
+                <select
+                  onChange={(e) => {
+                    const userId = parseInt(e.target.value);
+                    if (userId) {
+                      const user = users.find(u => u.id === userId);
+                      if (user && !selectedOperationsUsers.find(u => u.id === userId)) {
+                        setSelectedOperationsUsers(prev => [...prev, user]);
+                      }
+                      e.target.value = '';
+                    }
+                  }}
+                  className="enterprise-form-select"
+                  style={{ fontSize: '14px' }}
+                >
+                  <option value="">Agregar usuario...</option>
+                  {users
+                    .filter(user =>
+                      !selectedOperationsUsers.find(selected => selected.id === user.id) &&
+                      !selectedItUsers.find(selected => selected.id === user.id)
+                    )
+                    .map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="enterprise-form-label">Equipo de IT</label>
+                <select
+                  onChange={(e) => {
+                    const userId = parseInt(e.target.value);
+                    if (userId) {
+                      const user = users.find(u => u.id === userId);
+                      if (user && !selectedItUsers.find(u => u.id === userId)) {
+                        setSelectedItUsers(prev => [...prev, user]);
+                      }
+                      e.target.value = '';
+                    }
+                  }}
+                  className="enterprise-form-select"
+                  style={{ fontSize: '14px' }}
+                >
+                  <option value="">Agregar usuario...</option>
+                  {users
+                    .filter(user =>
+                      !selectedOperationsUsers.find(selected => selected.id === user.id) &&
+                      !selectedItUsers.find(selected => selected.id === user.id)
+                    )
+                    .map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
             <p className="enterprise-form-section-description">
-              {isEdit ? 'Los equipos se pueden modificar desde la vista detallada.' : 'Los equipos se pueden asignar después de crear el proyecto.'}
+              Los miembros podrán ser asignados a tareas y recibirán notificaciones por email.
             </p>
           </div>
 

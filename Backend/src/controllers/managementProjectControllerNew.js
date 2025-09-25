@@ -65,7 +65,7 @@ const getAllProjects = async (req, res) => {
     // Obtener miembros para cada proyecto
     for (let i = 0; i < projects.length; i++) {
       const projectId = projects[i].id;
-      const members = await prisma.$queryRaw`
+      const projectMembers = await prisma.$queryRaw`
         SELECT
           m.id,
           m.user_id,
@@ -80,7 +80,7 @@ const getAllProjects = async (req, res) => {
       `;
 
       // Convertir miembros al formato esperado
-      projects[i].members = members.map(member => ({
+      projects[i].members = projectMembers.map(member => ({
         id: Number(member.id),
         user_id: Number(member.user_id),
         role_id: Number(member.role_id),
@@ -199,7 +199,7 @@ const getProjectById = async (req, res) => {
     const projectData = project[0];
 
     // Obtener miembros del proyecto
-    const members = await prisma.$queryRaw`
+    const projectMembers = await prisma.$queryRaw`
       SELECT
         m.id,
         m.user_id,
@@ -214,7 +214,7 @@ const getProjectById = async (req, res) => {
     `;
 
     // Convertir miembros al formato esperado
-    const formattedMembers = members.map(member => ({
+    const formattedMembers = projectMembers.map(member => ({
       id: Number(member.id),
       user_id: Number(member.user_id),
       role_id: Number(member.role_id),
@@ -503,7 +503,8 @@ const updateProject = async (req, res) => {
       start_date,
       end_date,
       current_phase_id,
-      client_color
+      client_color,
+      members
     } = req.body;
 
     // Verificar que el proyecto existe
@@ -595,6 +596,57 @@ const updateProject = async (req, res) => {
       }
     }
 
+    // Manejar miembros del proyecto si se enviaron
+    if (members !== undefined) {
+      try {
+        // Primero, marcar todos los miembros existentes como inactivos
+        await prisma.$executeRaw`
+          UPDATE management_project_members 
+          SET is_active = false, updated_at = NOW()
+          WHERE project_id = ${parseInt(id)}
+        `;
+
+        // Luego, agregar los nuevos miembros
+        if (members && members.length > 0) {
+          for (const member of members) {
+            try {
+              // Verificar que el usuario existe
+              const userExists = await prisma.$queryRaw`
+                SELECT id FROM users WHERE id = ${parseInt(member.user_id)} LIMIT 1
+              `;
+
+              if (userExists.length > 0) {
+                // Insertar o reactivar el miembro
+                await prisma.$executeRaw`
+                  INSERT INTO management_project_members (
+                    project_id, user_id, role_id, team_type, is_active, created_at, updated_at
+                  ) VALUES (
+                    ${parseInt(id)},
+                    ${parseInt(member.user_id)},
+                    ${parseInt(member.role_id || 1)},
+                    ${member.team_type || 'operations'},
+                    true,
+                    NOW(),
+                    NOW()
+                  )
+                  ON DUPLICATE KEY UPDATE
+                    role_id = VALUES(role_id),
+                    team_type = VALUES(team_type),
+                    is_active = true,
+                    updated_at = NOW()
+                `;
+              }
+            } catch (memberError) {
+              console.error('❌ Error al actualizar miembro:', memberError);
+            }
+          }
+        }
+      } catch (membersError) {
+        console.error('❌ Error al manejar miembros:', membersError);
+        // No fallar la actualización del proyecto por este error
+      }
+    }
+
     // Obtener el proyecto actualizado con información del cliente
     const updatedProject = await prisma.$queryRaw`
       SELECT
@@ -619,6 +671,38 @@ const updateProject = async (req, res) => {
     `;
 
     const projectData = updatedProject[0];
+
+    // Obtener todos los miembros activos del proyecto
+    const projectMembers = await prisma.$queryRaw`
+      SELECT
+        m.id,
+        m.user_id,
+        m.role_id,
+        m.team_type,
+        u.name as user_name,
+        r.name as role_name
+      FROM management_project_members m
+      LEFT JOIN users u ON m.user_id = u.id
+      LEFT JOIN project_roles r ON m.role_id = r.id
+      WHERE m.project_id = ${parseInt(id)} AND m.is_active = true
+    `;
+
+    // Convertir miembros al formato esperado
+    const formattedMembers = projectMembers.map(member => ({
+      id: Number(member.id),
+      user_id: Number(member.user_id),
+      role_id: Number(member.role_id),
+      team_type: member.team_type,
+      user: {
+        id: Number(member.user_id),
+        name: member.user_name || `Usuario #${member.user_id}`
+      },
+      role: {
+        id: Number(member.role_id),
+        name: member.role_name || `Rol #${member.role_id}`
+      }
+    }));
+
     const convertedProject = {
       ...projectData,
       id: Number(projectData.id),
@@ -639,7 +723,7 @@ const updateProject = async (req, res) => {
         id: Number(projectData.methodology_id),
         name: 'Metodología #' + projectData.methodology_id
       } : null,
-      members: []
+      members: formattedMembers
     };
 
     res.json({
@@ -739,7 +823,7 @@ const addProjectMember = async (req, res) => {
 
     // Verificar que el proyecto existe
     const existingProject = await prisma.$queryRaw`
-      SELECT id FROM management_projects WHERE id = ${parseInt(id)}
+      SELECT id, nombre FROM management_projects WHERE id = ${parseInt(id)}
     `;
 
     if (existingProject.length === 0) {
@@ -751,7 +835,7 @@ const addProjectMember = async (req, res) => {
 
     // Verificar que el usuario existe
     const existingUser = await prisma.$queryRaw`
-      SELECT id, name FROM users WHERE id = ${parseInt(user_id)}
+      SELECT id, name, email FROM users WHERE id = ${parseInt(user_id)}
     `;
 
     if (existingUser.length === 0) {
@@ -775,7 +859,7 @@ const addProjectMember = async (req, res) => {
 
     // Verificar que el miembro no esté ya asignado
     const existingMember = await prisma.$queryRaw`
-      SELECT id FROM management_project_members 
+      SELECT id FROM management_project_members
       WHERE project_id = ${parseInt(id)} AND user_id = ${parseInt(user_id)} AND is_active = true
     `;
 
@@ -800,6 +884,93 @@ const addProjectMember = async (req, res) => {
         NOW()
       )
     `;
+
+    // Enviar notificación por email al nuevo miembro
+    try {
+      const { sendEmail } = require('../services/emailService');
+
+      const emailData = {
+        to: existingUser[0].email,
+        subject: `🎉 Has sido agregado al proyecto: ${existingProject[0].nombre}`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <!-- Header -->
+            <div style="text-align: center; padding: 40px 30px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+              <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 20px; border-radius: 50%; margin-bottom: 20px;">
+                <div style="font-size: 48px;">🎉</div>
+              </div>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                ¡Nuevo Proyecto Asignado!
+              </h1>
+              <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.9;">
+                Has sido agregado como miembro del equipo
+              </p>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 30px;">
+              <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.2);">
+                <h2 style="margin: 0 0 15px; font-size: 24px; color: #ffffff; font-weight: 600;">
+                  📋 ${existingProject[0].nombre}
+                </h2>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                  <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                    ${existingRole[0].name || 'Miembro'}
+                  </span>
+                  <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    ${team_type || 'operations'}
+                  </span>
+                </div>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                <p style="margin: 0; line-height: 1.6; color: rgba(255,255,255,0.9);">
+                  <strong>¡Hola ${existingUser[0].name}!</strong> 👋<br><br>
+                  Has sido agregado como miembro del proyecto <strong>"${existingProject[0].nombre}"</strong>.
+                  Ahora puedes acceder al sistema de gestión de proyectos para:
+                </p>
+
+                <div style="margin: 20px 0;">
+                  <div style="display: flex; align-items: center; margin: 10px 0; color: rgba(255,255,255,0.9);">
+                    <span style="margin-right: 10px;">📋</span>
+                    Ver y gestionar tareas asignadas
+                  </div>
+                  <div style="display: flex; align-items: center; margin: 10px 0; color: rgba(255,255,255,0.9);">
+                    <span style="margin-right: 10px;">👥</span>
+                    Colaborar con el equipo del proyecto
+                  </div>
+                  <div style="display: flex; align-items: center; margin: 10px 0; color: rgba(255,255,255,0.9);">
+                    <span style="margin-right: 10px;">📊</span>
+                    Seguir el progreso del proyecto
+                  </div>
+                  <div style="display: flex; align-items: center; margin: 10px 0; color: rgba(255,255,255,0.9);">
+                    <span style="margin-right: 10px;">💬</span>
+                    Comunicarte con otros miembros
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background: rgba(0,0,0,0.2); padding: 25px 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
+              <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.7);">
+                Este email fue generado automáticamente por el <strong>Sistema de Gestión de Proyectos</strong>
+              </p>
+              <p style="margin: 10px 0 0; font-size: 12px; color: rgba(255,255,255,0.5);">
+                RunSolutions - Gestión Profesional de Proyectos
+              </p>
+            </div>
+          </div>
+        `
+      };
+
+      await sendEmail(emailData);
+      console.log(`✉️ Email enviado a ${existingUser[0].email} por agregación al proyecto ${existingProject[0].nombre}`);
+
+    } catch (emailError) {
+      console.warn('⚠️ Error enviando email de notificación:', emailError.message);
+      // No fallar la operación por el email, solo registrar el warning
+    }
 
     // Obtener el proyecto actualizado con todos los miembros
     const updatedProject = await prisma.$queryRaw`
@@ -826,7 +997,7 @@ const addProjectMember = async (req, res) => {
     const projectData = updatedProject[0];
 
     // Obtener todos los miembros del proyecto
-    const members = await prisma.$queryRaw`
+    const projectMembers = await prisma.$queryRaw`
       SELECT
         m.id,
         m.user_id,
@@ -841,7 +1012,7 @@ const addProjectMember = async (req, res) => {
     `;
 
     // Convertir miembros al formato esperado
-    const formattedMembers = members.map(member => ({
+    const formattedMembers = projectMembers.map(member => ({
       id: Number(member.id),
       user_id: Number(member.user_id),
       role_id: Number(member.role_id),
@@ -881,7 +1052,7 @@ const addProjectMember = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Miembro agregado exitosamente',
+      message: 'Miembro agregado exitosamente y notificación enviada',
       data: convertedProject
     });
   } catch (error) {
@@ -914,7 +1085,7 @@ const getProjectMembers = async (req, res) => {
     }
 
     // Obtener todos los miembros del proyecto
-    const members = await prisma.$queryRaw`
+    const projectMembers = await prisma.$queryRaw`
       SELECT
         m.id,
         m.user_id,
@@ -931,7 +1102,7 @@ const getProjectMembers = async (req, res) => {
     `;
 
     // Convertir miembros al formato esperado
-    const formattedMembers = members.map(member => ({
+    const formattedMembers = projectMembers.map(member => ({
       id: Number(member.id),
       user_id: Number(member.user_id),
       role_id: Number(member.role_id),
@@ -1032,7 +1203,7 @@ const removeProjectMember = async (req, res) => {
     const projectData = updatedProject[0];
 
     // Obtener todos los miembros activos del proyecto
-    const members = await prisma.$queryRaw`
+    const projectMembers = await prisma.$queryRaw`
       SELECT
         m.id,
         m.user_id,
@@ -1047,7 +1218,7 @@ const removeProjectMember = async (req, res) => {
     `;
 
     // Convertir miembros al formato esperado
-    const formattedMembers = members.map(member => ({
+    const formattedMembers = projectMembers.map(member => ({
       id: Number(member.id),
       user_id: Number(member.user_id),
       role_id: Number(member.role_id),

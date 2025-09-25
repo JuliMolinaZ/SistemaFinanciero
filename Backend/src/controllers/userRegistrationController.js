@@ -1540,9 +1540,44 @@ exports.updateUserProfile = async (req, res) => {
 
     updateData.profile_complete = Boolean(isProfileComplete);
 
+    console.log('📝 Actualizando usuario con datos:', {
+      userId: id,
+      hasNewAvatar: !!req.file,
+      avatarPath: avatarPath,
+      updateData: {
+        ...updateData,
+        avatar: updateData.avatar ? 'AVATAR_SET' : 'NO_AVATAR'
+      }
+    });
+
+    // Actualizar el usuario en la base de datos
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: updateData,
+      include: {
+        roles: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            level: true
+          }
+        }
+      }
+    });
+
+    console.log('✅ Usuario actualizado exitosamente:', {
+      userId: updatedUser.id,
+      avatarPath: updatedUser.avatar,
+      profileComplete: updatedUser.profile_complete
+    });
+
+    // Log successful operation
+    logDatabaseOperation('UPDATE', 'users', Date.now() - start, true);
+
     // Construir URL completa del avatar
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://sigma.runsolutions-services.com' 
+    const baseUrl = process.env.NODE_ENV === 'production'
+      ? 'https://sigma.runsolutions-services.com'
       : `http://localhost:${process.env.PORT || 8765}`;
     const fullAvatarUrl = updatedUser.avatar ? `${baseUrl}${updatedUser.avatar}` : null;
 
