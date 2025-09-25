@@ -253,12 +253,23 @@ const ProjectFormModal = ({
       return;
     }
 
-    // Si es edición de proyecto, usar API real
+    // Si es edición de proyecto, usar API real con autenticación
     try {
-      const response = await fetch(`http://localhost:8765/api/management-projects/${project.id}/members`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+      
+      // Obtener token de Firebase
+      const { auth } = await import('../../../firebase');
+      const token = await auth.currentUser?.getIdToken();
+      
+      if (!token) {
+        throw new Error('No se pudo obtener el token de autenticación');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/management-projects/${project.id}/members`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-firebase-token': token
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -299,7 +310,7 @@ const ProjectFormModal = ({
       return;
     }
 
-    // Si es edición de proyecto, usar API real
+    // Si es edición de proyecto, usar API real con autenticación
     try {
       // Encontrar el member ID desde el user_id
       const member = formData.members.find(m => (m.user_id || m.id) === userId);
@@ -307,8 +318,21 @@ const ProjectFormModal = ({
         throw new Error('Miembro no encontrado');
       }
 
-      const response = await fetch(`http://localhost:8765/api/management-projects/${project.id}/members/${member.id}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+      
+      // Obtener token de Firebase
+      const { auth } = await import('../../../firebase');
+      const token = await auth.currentUser?.getIdToken();
+      
+      if (!token) {
+        throw new Error('No se pudo obtener el token de autenticación');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/management-projects/${project.id}/members/${member.id}`, {
         method: 'DELETE',
+        headers: {
+          'x-firebase-token': token
+        },
         credentials: 'include'
       });
 
