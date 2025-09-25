@@ -101,28 +101,17 @@ exports.getUserById = async (req, res) => {
 exports.createUser = async (req, res) => {
   const start = Date.now();
   try {
-    const { firebase_uid, email, name, role, avatar, password } = req.body;
-    
-    // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { firebase_uid },
-          { email }
-        ]
+    // 🚨 BLOQUEO DE SEGURIDAD: Solo usuarios invitados pueden registrarse
+    return res.status(403).json({
+      success: false,
+      message: 'Acceso denegado: Solo usuarios invitados pueden registrarse',
+      error: 'INVITATION_REQUIRED',
+      details: {
+        reason: 'Este endpoint ha sido deshabilitado por seguridad',
+        action: 'Los usuarios deben ser invitados por el administrador',
+        redirectTo: '/api/user-registration/complete-profile'
       }
     });
-
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'El usuario ya existe',
-        errors: [{
-          field: existingUser.firebase_uid === firebase_uid ? 'firebase_uid' : 'email',
-          message: 'Ya existe un usuario con estos datos'
-        }]
-      });
-    }
 
     // Hashear contraseña si se proporciona
     let hashedPassword = null;

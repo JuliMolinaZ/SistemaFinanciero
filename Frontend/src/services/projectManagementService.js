@@ -1,6 +1,8 @@
 // 🌐 PROJECT MANAGEMENT API SERVICE - ULTRA PROFESIONAL
 // ====================================================
 
+import { authGet, authPost, authPut, authDelete } from '../utils/authAxios';
+
 // 🌐 API Configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
 const API_ENDPOINTS = {
@@ -19,46 +21,18 @@ class ApiError extends Error {
   }
 }
 
-const createRequest = (method = 'GET', body = null) => {
-  const config = {
-    method,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
-
-  if (body) {
-    config.body = JSON.stringify(body);
-  }
-
-  return config;
-};
-
 // 🎯 PROJECT MANAGEMENT SERVICE
 export const projectManagementService = {
   // 📋 GET ALL PROJECTS (with grouping)
   async getProjects({ search, sortBy = 'end_date', sortOrder = 'asc' } = {}) {
     try {
-      let url = `${API_BASE_URL}${API_ENDPOINTS.projects}`;
+      let url = API_ENDPOINTS.projects;
       if (search) {
         url += `?search=${encodeURIComponent(search)}`;
       }
 
-      const response = await fetch(url, createRequest('GET'));
-
-      let data;
-      try {
-        data = await response.json();
-      } catch (parseError) {
-        console.error('❌ Error parsing JSON:', parseError);
-        throw new Error('Error de conexión con el servidor');
-      }
-
-      if (!response.ok) {
-        console.error('❌ API Error:', response.status, data);
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
+      const response = await authGet(url);
+      const data = response.data;
 
       // Procesar los datos del backend
       let projects = [];
@@ -134,9 +108,9 @@ export const projectManagementService = {
           updated_at: project.updated_at
         }));
       } else {
-        // Si no hay datos, usar datos mock para desarrollo
-
-        projects = this.getMockProjects();
+        // Si no hay datos, devolver array vacío
+        console.log('ℹ️ No se encontraron proyectos en la base de datos');
+        projects = [];
       }
 
       // Crear grupos localmente basados en los proyectos
@@ -169,15 +143,12 @@ export const projectManagementService = {
       };
     } catch (error) {
       console.error('❌ Error fetching projects:', error);
-      
-      // En caso de error, devolver datos mock para que la aplicación funcione
-      const mockProjects = this.getMockProjects();
-      const mockGroups = this.createMockGroups(mockProjects);
 
+      // En caso de error, devolver datos vacíos
       return {
-        projects: mockProjects,
-        groups: mockGroups,
-        meta: { total: mockProjects.length, groupCount: mockGroups.length }
+        projects: [],
+        groups: [],
+        meta: { total: 0, groupCount: 0 }
       };
     }
   },
@@ -185,15 +156,8 @@ export const projectManagementService = {
   // 📋 GET PROJECT BY ID
   async getProject(id) {
     try {
-      const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
-      const response = await fetch(url, createRequest('GET'));
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      return data;
+      const response = await authGet(`${API_ENDPOINTS.projects}/${id}`);
+      return response.data;
     } catch (error) {
       console.error('Error fetching project:', error);
       throw error;
@@ -203,15 +167,8 @@ export const projectManagementService = {
   // ✨ CREATE PROJECT
   async createProject(projectData) {
     try {
-      const url = `${API_BASE_URL}${API_ENDPOINTS.projects}`;
-      const response = await fetch(url, createRequest('POST', projectData));
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      return data;
+      const response = await authPost(API_ENDPOINTS.projects, projectData);
+      return response.data;
     } catch (error) {
       console.error('Error creating project:', error);
       throw error;
@@ -227,17 +184,8 @@ export const projectManagementService = {
         throw new Error('ID de proyecto inválido');
       }
 
-      const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
-
-      const response = await fetch(url, createRequest('PUT', updates));
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('❌ Update error:', response.status, data);
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      return data.data || data; // Devolver data.data si existe, sino data
+      const response = await authPut(`${API_ENDPOINTS.projects}/${id}`, updates);
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error updating project:', error);
       throw error;
@@ -247,17 +195,8 @@ export const projectManagementService = {
   // 🗑️ DELETE PROJECT
   async deleteProject(id) {
     try {
-      const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
-
-      const response = await fetch(url, createRequest('DELETE'));
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('❌ Delete error:', response.status, data);
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      return data; // La respuesta de delete no tiene data.data
+      const response = await authDelete(`${API_ENDPOINTS.projects}/${id}`);
+      return response.data;
     } catch (error) {
       console.error('Error deleting project:', error);
       throw error;

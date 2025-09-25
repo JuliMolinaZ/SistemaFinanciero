@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { verifyAuth } = require('../middlewares/auth');
 const {
   getAllProjects,
   getProjectById,
@@ -64,32 +65,31 @@ router.get('/dashboard-stats', async (req, res) => {
 });
 
 // Obtener todos los proyectos de gestión
-// TEMPORALMENTE SIN MIDDLEWARE DE AUDITORÍA PARA EVITAR BUCLES INFINITOS
-router.get('/', getAllProjects);
+router.get('/', verifyAuth, getAllProjects);
 
 // Obtener un proyecto de gestión por ID (debe ir DESPUÉS de rutas específicas)
-router.get('/:id', getProjectById);
+router.get('/:id', verifyAuth, getProjectById);
 
 // Crear un nuevo proyecto de gestión
-router.post('/', createProject);
+router.post('/', verifyAuth, createProject);
 
 // Actualizar un proyecto de gestión
-router.put('/:id', updateProject);
+router.put('/:id', verifyAuth, updateProject);
 
 // Eliminar un proyecto de gestión
-router.delete('/:id', deleteProject);
+router.delete('/:id', verifyAuth, deleteProject);
 
 // ========================================
 // RUTAS DE MIEMBROS DE PROYECTOS
 // ========================================
 
 // Obtener miembros de un proyecto
-router.get('/:id/members', getProjectMembers);
+router.get('/:id/members', verifyAuth, getProjectMembers);
 
 // Agregar miembro a un proyecto
-router.post('/:id/members', addProjectMember);
+router.post('/:id/members', verifyAuth, addProjectMember);
 
 // Remover miembro de un proyecto
-router.delete('/:id/members/:memberId', removeProjectMember);
+router.delete('/:id/members/:memberId', verifyAuth, removeProjectMember);
 
 module.exports = router;

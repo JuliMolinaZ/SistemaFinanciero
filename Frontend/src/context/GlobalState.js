@@ -1,6 +1,6 @@
 // src/context/GlobalState.js
 import React, { createContext, useState, useEffect } from 'react';
-import { auth } from '../firebase';
+import { auth, signOut } from '../firebase';
 import axios from 'axios';
 import AuthErrorModal from '../components/AuthErrorModal';
 import { authGet } from '../utils/authAxios';
@@ -541,6 +541,24 @@ export const GlobalProvider = ({ children }) => {
                 data: createError.response?.data,
                 message: createError.message
               });
+
+              // 🚨 BLOQUEO DE SEGURIDAD: Si el usuario no está invitado (403), logout inmediato
+              if (createError.response?.status === 403) {
+                console.log("❌ Usuario no invitado - cerrando sesión automáticamente");
+                alert("❌ Acceso denegado: No has sido invitado a esta plataforma. Contacta al administrador.");
+
+                // Logout inmediato
+                await signOut(auth);
+                setCurrentUser(null);
+                setProfileData(null);
+                setProfileComplete(false);
+                setAuthLoading(false);
+
+                // Redireccionar al login
+                window.location.href = '/login';
+                return;
+              }
+
               alert("No se pudo crear tu perfil. Intenta nuevamente más tarde.");
               setProfileData(null);
               setProfileComplete(false);

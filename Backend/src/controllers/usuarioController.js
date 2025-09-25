@@ -420,18 +420,18 @@ exports.createUser = async (req, res) => {
   const start = Date.now();
   try {
     const { firebase_uid, email, name, role, avatar, password } = req.body;
-    
-    // Validación optimizada
-    if (!firebase_uid || !email || !name) {
-      return res.status(400).json({
-        success: false,
-        message: 'Datos requeridos faltantes',
-        errors: [{
-          field: !firebase_uid ? 'firebase_uid' : !email ? 'email' : 'name',
-          message: 'Campo requerido'
-        }]
-      });
-    }
+
+    // 🚨 BLOQUEO DE SEGURIDAD: Solo usuarios invitados pueden registrarse
+    return res.status(403).json({
+      success: false,
+      message: 'Acceso denegado: Solo usuarios invitados pueden registrarse',
+      error: 'INVITATION_REQUIRED',
+      details: {
+        reason: 'Este endpoint ha sido deshabilitado por seguridad',
+        action: 'Los usuarios deben ser invitados por el administrador',
+        redirectTo: '/api/user-registration/complete-profile'
+      }
+    });
 
     // Verificar si el usuario ya existe con Prisma
     const existingUser = await prisma.user.findFirst({

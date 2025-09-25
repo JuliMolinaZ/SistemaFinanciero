@@ -120,11 +120,48 @@ const sendEmail = async (emailData) => {
       console.log('⚠️ SMTP no configurado (credenciales no encontradas)');
     }
 
-    // 3. SI TODO FALLA, SIMULAR ENVÍO EN DESARROLLO
-    if (process.env.NODE_ENV === 'development') {
+    // 3. SI TODO FALLA, INTENTAR MODO DE COMPATIBILIDAD
+    console.log('⚠️ Intentando envío en modo de compatibilidad con configuración básica...');
 
+    // Intento final con configuración más simple
+    try {
+      const nodemailer = require('nodemailer');
+      const simpleTransporter = nodemailer.createTransporter({
+        service: 'gmail',
+        auth: {
+          user: process.env.SMTP_USER || process.env.GMAIL_USER,
+          pass: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD
+        }
+      });
+
+      const result = await simpleTransporter.sendMail({
+        from: process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>',
+        to: emailData.to,
+        subject: emailData.subject,
+        html: emailData.html,
+        text: emailData.text || emailData.html.replace(/<[^>]*>/g, '')
+      });
+
+      console.log('✅ Email enviado exitosamente en modo de compatibilidad');
+      return {
+        success: true,
+        messageId: result.messageId,
+        response: 'Email enviado via modo de compatibilidad Gmail',
+        provider: 'gmail-fallback'
+      };
+    } catch (fallbackError) {
+      console.error('❌ Modo de compatibilidad también falló:', fallbackError.message);
+      errors.push(`Gmail-Fallback: ${fallbackError.message}`);
+    }
+
+    // 4. SIMULAR SOLO SI REALMENTE NO HAY MANERA DE ENVIAR
+    if (process.env.NODE_ENV === 'development' && !process.env.FORCE_EMAIL_SEND) {
+      console.log('📧 Simulando envío de email en desarrollo:');
+      console.log('   📬 Para:', emailData.to);
+      console.log('   📋 Asunto:', emailData.subject);
       console.log('   📝 Contenido HTML:', emailData.html.substring(0, 100) + '...');
       console.log('⚠️ ERRORES DE PROVEEDORES:', errors.join(', '));
+      console.log('💡 Tip: Agrega FORCE_EMAIL_SEND=true al .env para enviar emails reales en desarrollo');
 
       return {
         success: true,
