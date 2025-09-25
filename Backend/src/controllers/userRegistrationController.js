@@ -1,13 +1,11 @@
 // controllers/userRegistrationController.js - Controlador para registro de usuarios por Super Admin
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../../lib/prisma');
 const { logDatabaseOperation, logAuth } = require('../middlewares/logger');
 const { auditEvent, AUDIT_ACTIONS } = require('../middlewares/audit');
 const { verifyFirebaseToken } = require('../config/firebase');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
-const prisma = new PrismaClient();
 
 // Configuración de multer para subida de archivos
 const storage = multer.diskStorage({
@@ -1274,7 +1272,7 @@ exports.createUserFromFirebase = async (req, res) => {
   try {
 
     const { firebase_uid, email, name, role, avatar } = req.body;
-    
+
     // Validaciones básicas
     if (!firebase_uid || !email || !name) {
       return res.status(400).json({
@@ -1284,6 +1282,27 @@ exports.createUserFromFirebase = async (req, res) => {
           field: !firebase_uid ? 'firebase_uid' : !email ? 'email' : 'name',
           message: 'Campo requerido'
         }]
+      });
+    }
+
+    // 🚨 VALIDACIÓN CRÍTICA: Solo usuarios invitados pueden registrarse
+    const invitedUser = await prisma.user.findFirst({
+      where: {
+        email: email.trim().toLowerCase(),
+        is_first_login: true,
+        profile_complete: false
+      }
+    });
+
+    if (!invitedUser) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acceso denegado: No has sido invitado a la plataforma',
+        error: 'INVITATION_REQUIRED',
+        details: {
+          reason: 'Solo usuarios invitados por el administrador pueden acceder al sistema',
+          action: 'Contacta al administrador del sistema para recibir una invitación'
+        }
       });
     }
 
@@ -1298,7 +1317,7 @@ exports.createUserFromFirebase = async (req, res) => {
     });
 
     if (existingUser) {
-      // Si existe pero no tiene firebase_uid, actualizarlo
+      // Si existe pero no tiene firebase_uid, actualizarlo (caso de usuario invitado)
       if (existingUser.email === email.trim().toLowerCase() && !existingUser.firebase_uid) {
 
         const updatedUser = await prisma.user.update({
@@ -1323,7 +1342,7 @@ exports.createUserFromFirebase = async (req, res) => {
 
         return res.status(200).json({
           success: true,
-          message: 'Usuario actualizado exitosamente',
+          message: 'Usuario invitado autenticado exitosamente',
           data: {
             id: updatedUser.id,
             firebase_uid: updatedUser.firebase_uid,
@@ -1347,79 +1366,14 @@ exports.createUserFromFirebase = async (req, res) => {
       });
     }
 
-    // Buscar rol por defecto si no se especifica
-    let roleToAssign = role || 'Desarrollador'; // Cambiar a Desarrollador para que tenga acceso a Gestión de Proyectos
-    const roleExists = await prisma.role.findFirst({
-      where: { name: roleToAssign }
-    });
-
-    if (!roleExists) {
-      // Usar rol por defecto si no existe el especificado
-      const defaultRole = await prisma.role.findFirst({
-        where: { name: 'Desarrollador' }
-      });
-      roleToAssign = defaultRole ? 'Desarrollador' : 'usuario';
-    }
-
-    // Crear nuevo usuario
-    const newUser = await prisma.user.create({
-      data: {
-        firebase_uid: firebase_uid,
-        email: email.trim().toLowerCase(),
-        name: name,
-        role: roleToAssign,
-        avatar: avatar || '',
-        is_active: true,
-        is_first_login: true,
-        profile_complete: false,
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      include: {
-        roles: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            level: true
-          }
-        }
-      }
-    });
-
-    // Registrar en auditoría
-    try {
-      await auditEvent({
-        userId: firebase_uid,
-        userEmail: email,
-        action: AUDIT_ACTIONS.CREATE,
-        tableName: 'users',
-        recordId: newUser.id,
-        details: {
-          action: 'Usuario creado desde Firebase Auth',
-          email: newUser.email,
-          role: newUser.role
-        }
-      });
-    } catch (auditError) {
-
-    }
-
-    logDatabaseOperation('INSERT', 'users', Date.now() - start, true);
-    logAuth('create_firebase', newUser.id, true, req.ip, req.get('User-Agent'));
-
-    res.status(201).json({
-      success: true,
-      message: 'Usuario creado exitosamente',
-      data: {
-        id: newUser.id,
-        firebase_uid: newUser.firebase_uid,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-        avatar: newUser.avatar,
-        profile_complete: newUser.profile_complete,
-        roles: newUser.roles
+    // 🚨 NUNCA DEBE LLEGAR AQUÍ - Bloquear creación de usuarios no invitados
+    return res.status(403).json({
+      success: false,
+      message: 'Acceso denegado: Solo usuarios invitados pueden registrarse',
+      error: 'INVITATION_REQUIRED',
+      details: {
+        reason: 'El sistema solo permite el acceso a usuarios previamente invitados',
+        action: 'Contacta al administrador del sistema para recibir una invitación oficial'
       }
     });
 
