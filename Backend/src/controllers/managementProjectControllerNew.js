@@ -857,18 +857,58 @@ const addProjectMember = async (req, res) => {
       });
     }
 
-    // Verificar que el miembro no esté ya asignado
+    // Verificar que el miembro no esté ya asignado con el mismo team_type
+    // La clave única es: project_id + user_id + team_type
+    console.log('🔍 Checking for existing member:', {
+      projectId: parseInt(id),
+      userId: parseInt(user_id),
+      teamType: team_type || 'operations'
+    });
+
     const existingMember = await prisma.$queryRaw`
       SELECT id FROM management_project_members
-      WHERE project_id = ${parseInt(id)} AND user_id = ${parseInt(user_id)} AND is_active = true
+      WHERE project_id = ${parseInt(id)}
+        AND user_id = ${parseInt(user_id)}
+        AND team_type = ${team_type || 'operations'}
+        AND is_active = true
     `;
 
+    console.log('🔍 Existing member query result:', existingMember);
+
     if (existingMember.length > 0) {
+      console.log('❌ Duplicate member found, returning error');
       return res.status(400).json({
         success: false,
-        message: 'El usuario ya está asignado a este proyecto'
+        message: `El usuario ya está asignado a este proyecto en el equipo de ${team_type || 'operations'}`
       });
     }
+
+    // Also check with a different approach to be extra sure
+    const alternativeCheck = await prisma.managementProjectMember.findFirst({
+      where: {
+        project_id: parseInt(id),
+        user_id: parseInt(user_id),
+        team_type: team_type || 'operations',
+        is_active: true
+      }
+    });
+
+    console.log('🔍 Alternative check result:', alternativeCheck);
+
+    if (alternativeCheck) {
+      console.log('❌ Duplicate member found via alternative check, returning error');
+      return res.status(400).json({
+        success: false,
+        message: `El usuario ya está asignado a este proyecto en el equipo de ${team_type || 'operations'}`
+      });
+    }
+
+    console.log('✅ Miembro validation passed:', {
+      projectId: id,
+      userId: user_id,
+      teamType: team_type || 'operations',
+      roleId: role_id
+    });
 
     // Agregar el miembro al proyecto
     await prisma.$queryRaw`

@@ -3,7 +3,24 @@
 // =====================================================
 
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+
+// Crear instancia de Prisma específica para notificaciones
+let prisma;
+
+try {
+  prisma = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+    errorFormat: 'minimal',
+  });
+
+  // Verificar que la instancia se creó correctamente
+  console.log('✅ Prisma client initialized for notifications controller');
+  console.log('🔍 SystemNotification model available:', !!prisma.systemNotification);
+
+} catch (error) {
+  console.error('❌ Error initializing Prisma client for notifications:', error);
+  throw error;
+}
 
 /**
  * Función auxiliar para convertir userId (puede ser Firebase UID o ID numérico) a ID numérico
@@ -56,6 +73,22 @@ const getUserNotifications = async (req, res) => {
 
     if (unread_only === 'true') {
       where.is_read = false;
+    }
+
+    // Debug: Verificar que prisma.systemNotification existe
+    console.log('🔍 Debug - Prisma systemNotification:', {
+      exists: !!prisma.systemNotification,
+      isFunction: typeof prisma.systemNotification?.findMany === 'function',
+      prismaModels: Object.keys(prisma).filter(key => key !== '_' && typeof prisma[key] === 'object'),
+      systemNotificationKeys: prisma.systemNotification ? Object.keys(prisma.systemNotification) : 'undefined'
+    });
+
+    if (!prisma.systemNotification) {
+      throw new Error('SystemNotification model not found in Prisma client');
+    }
+
+    if (typeof prisma.systemNotification.findMany !== 'function') {
+      throw new Error('systemNotification.findMany is not a function');
     }
 
     // Obtener notificaciones con paginación
