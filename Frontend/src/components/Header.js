@@ -26,6 +26,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlobalContext } from '../context/GlobalState';
 import { auth } from '../firebase';
+import NotificationsDropdown from './NotificationsDropdown';
+import WebSocketConnection from './WebSocketConnection';
 
 const Header = () => {
   const { profileData, setCurrentUser, setProfileComplete, setProfileData } =
@@ -33,7 +35,6 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [logo, setLogo] = useState('SigmaBlack.jpeg');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [notifications, setNotifications] = useState(3);
   const navigate = useNavigate();
 
   // Actualizar tiempo cada segundo
@@ -242,25 +243,12 @@ const Header = () => {
             style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
           >
             {/* Notificaciones */}
-            <Tooltip title="Notificaciones" arrow>
-              <IconButton
-                sx={{
-                  color: 'rgba(255,255,255,0.9)',
-                  background: 'rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.2)',
-                    transform: 'scale(1.1)',
-                  },
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                <Badge badgeContent={notifications} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
+            <NotificationsDropdown variant="header" />
+
+            {/* Estado de conexión WebSocket (deshabilitado temporalmente) */}
+            {false && process.env.NODE_ENV === 'development' && (
+              <WebSocketConnection showStatus={true} />
+            )}
 
             {/* Perfil del usuario */}
             {profileData && (
@@ -369,50 +357,59 @@ const Header = () => {
                 Mi Perfil
               </MenuItem>
               
-              <MenuItem
-                onClick={() => {
-                  navigate('/');
-                  handleMenuClose();
-                }}
-                sx={{
-                  color: 'rgba(255,255,255,0.9)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.1)',
-                  },
-                  py: 1.5,
-                }}
-              >
-                <DashboardIcon sx={{ mr: 2, color: '#00d4aa' }} />
-                Dashboard
-              </MenuItem>
+              {/* Solo mostrar Dashboard para roles que no sean desarrollador u operador */}
+              {profileData?.role && !['desarrollador', 'operador'].includes(profileData.role.toLowerCase()) && (
+                <MenuItem
+                  onClick={() => {
+                    navigate('/');
+                    handleMenuClose();
+                  }}
+                  sx={{
+                    color: 'rgba(255,255,255,0.9)',
+                    '&:hover': {
+                      background: 'rgba(255,255,255,0.1)',
+                    },
+                    py: 1.5,
+                  }}
+                >
+                  <DashboardIcon sx={{ mr: 2, color: '#00d4aa' }} />
+                  Dashboard
+                </MenuItem>
+              )}
               
-              <MenuItem
-                onClick={() => { /* Acción Configuración */ }}
-                sx={{
-                  color: 'rgba(255,255,255,0.9)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.1)',
-                  },
-                  py: 1.5,
-                }}
-              >
-                <SettingsIcon sx={{ mr: 2, color: '#f093fb' }} />
-                Configuración
-              </MenuItem>
+              {/* Solo mostrar Configuración para roles que no sean desarrollador u operador */}
+              {profileData?.role && !['desarrollador', 'operador'].includes(profileData.role.toLowerCase()) && (
+                <MenuItem
+                  onClick={() => { /* Acción Configuración */ }}
+                  sx={{
+                    color: 'rgba(255,255,255,0.9)',
+                    '&:hover': {
+                      background: 'rgba(255,255,255,0.1)',
+                    },
+                    py: 1.5,
+                  }}
+                >
+                  <SettingsIcon sx={{ mr: 2, color: '#f093fb' }} />
+                  Configuración
+                </MenuItem>
+              )}
               
-              <MenuItem
-                onClick={() => { /* Acción Soporte */ }}
-                sx={{
-                  color: 'rgba(255,255,255,0.9)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.1)',
-                  },
-                  py: 1.5,
-                }}
-              >
-                <SupportIcon sx={{ mr: 2, color: '#ffa726' }} />
-                Soporte
-              </MenuItem>
+              {/* Solo mostrar Soporte para roles que no sean desarrollador u operador */}
+              {profileData?.role && !['desarrollador', 'operador'].includes(profileData.role.toLowerCase()) && (
+                <MenuItem
+                  onClick={() => { /* Acción Soporte */ }}
+                  sx={{
+                    color: 'rgba(255,255,255,0.9)',
+                    '&:hover': {
+                      background: 'rgba(255,255,255,0.1)',
+                    },
+                    py: 1.5,
+                  }}
+                >
+                  <SupportIcon sx={{ mr: 2, color: '#ffa726' }} />
+                  Soporte
+                </MenuItem>
+              )}
               
               <MenuItem
                 onClick={handleLogout}
@@ -437,5 +434,4 @@ const Header = () => {
 };
 
 export default Header;
-
 

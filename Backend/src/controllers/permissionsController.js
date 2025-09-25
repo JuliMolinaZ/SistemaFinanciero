@@ -12,12 +12,9 @@ const prisma = new PrismaClient();
  */
 const configureDevOperatorPermissions = async (req, res) => {
   try {
-    console.log('🔐 Configurando permisos para DESARROLLADOR y OPERADOR...');
-    console.log('📋 Solo pueden acceder a: Gestión de Proyectos y Mi Perfil');
 
     // Obtener todos los módulos del sistema
     const modules = await prisma.modules.findMany();
-    console.log(`📦 Encontrados ${modules.length} módulos en el sistema`);
 
     // Obtener los roles DESARROLLADOR y OPERADOR
     const roles = await prisma.roles.findMany({
@@ -35,8 +32,6 @@ const configureDevOperatorPermissions = async (req, res) => {
       });
     }
 
-    console.log(`👥 Encontrados ${roles.length} roles:`, roles.map(r => r.name));
-
     // Módulos permitidos para DESARROLLADOR y OPERADOR
     const allowedModules = [
       'project_management',  // Gestión de Proyectos
@@ -44,13 +39,10 @@ const configureDevOperatorPermissions = async (req, res) => {
       'dashboard'           // Dashboard (para navegación básica)
     ];
 
-    console.log('✅ Módulos permitidos:', allowedModules);
-
     const results = [];
 
     // Configurar permisos para cada rol
     for (const role of roles) {
-      console.log(`\n🔧 Configurando permisos para rol: ${role.name}`);
 
       for (const module of modules) {
         const isAllowed = allowedModules.includes(module.name);
@@ -79,7 +71,7 @@ const configureDevOperatorPermissions = async (req, res) => {
             where: { id: existingPermission.id },
             data: permissions
           });
-          console.log(`   ✅ Actualizado: ${module.name} - Read: ${permissions.can_read}, Create: ${permissions.can_create}, Update: ${permissions.can_update}`);
+
         } else {
           // Crear nuevo permiso
           result = await prisma.permissions.create({
@@ -89,7 +81,7 @@ const configureDevOperatorPermissions = async (req, res) => {
               ...permissions
             }
           });
-          console.log(`   ➕ Creado: ${module.name} - Read: ${permissions.can_read}, Create: ${permissions.can_create}, Update: ${permissions.can_update}`);
+
         }
 
         results.push({
@@ -100,8 +92,6 @@ const configureDevOperatorPermissions = async (req, res) => {
         });
       }
     }
-
-    console.log('\n🎉 ¡Permisos configurados exitosamente!');
 
     res.json({
       success: true,

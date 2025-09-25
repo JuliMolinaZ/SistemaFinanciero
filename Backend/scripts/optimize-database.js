@@ -3,7 +3,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function optimizeDatabase() {
-  console.log('🔧 Iniciando optimización de base de datos...');
 
   try {
     // Crear índices para mejorar performance de consultas frecuentes usando sintaxis MySQL correcta
@@ -42,14 +41,13 @@ async function optimizeDatabase() {
       `CREATE INDEX idx_sprints_project_status ON Sprint(project_id, status);`
     ];
 
-    console.log('📊 Creando índices de optimización...');
     for (const [index, query] of optimizations.entries()) {
       try {
         await prisma.$executeRawUnsafe(query);
-        console.log(`✅ Índice ${index + 1}/${optimizations.length} creado`);
+
       } catch (error) {
         if (error.message.includes('already exists')) {
-          console.log(`ℹ️  Índice ${index + 1} ya existe`);
+
         } else {
           console.error(`❌ Error creando índice ${index + 1}:`, error.message);
         }
@@ -57,11 +55,11 @@ async function optimizeDatabase() {
     }
 
     // Actualizar estadísticas de la base de datos
-    console.log('📈 Actualizando estadísticas de la base de datos...');
+
     await prisma.$executeRaw`ANALYZE TABLE Project, Task, Sprint, ProjectMember, TimeEntry, Comment;`;
 
     // Verificar fragmentación de tablas
-    console.log('🔍 Verificando fragmentación de tablas...');
+
     const tableStats = await prisma.$queryRaw`
       SELECT
         table_name,
@@ -73,9 +71,6 @@ async function optimizeDatabase() {
       AND table_name IN ('Project', 'Task', 'Sprint', 'ProjectMember', 'User', 'Client');
     `;
 
-    console.log('📋 Estadísticas de tablas:');
-    console.table(tableStats);
-
     // Optimizar tablas si hay mucha fragmentación
     const fragmentedTables = tableStats.filter(table =>
       table['Free Space (MB)'] > 5 &&
@@ -83,11 +78,11 @@ async function optimizeDatabase() {
     );
 
     if (fragmentedTables.length > 0) {
-      console.log('🔧 Optimizando tablas fragmentadas...');
+
       for (const table of fragmentedTables) {
         try {
           await prisma.$executeRawUnsafe(`OPTIMIZE TABLE ${table.table_name};`);
-          console.log(`✅ Tabla ${table.table_name} optimizada`);
+
         } catch (error) {
           console.error(`❌ Error optimizando tabla ${table.table_name}:`, error.message);
         }
@@ -95,7 +90,7 @@ async function optimizeDatabase() {
     }
 
     // Configurar variables de optimización de MySQL
-    console.log('⚙️  Aplicando configuraciones de optimización...');
+
     const mysqlOptimizations = [
       `SET GLOBAL innodb_buffer_pool_size = 256M;`,
       `SET GLOBAL query_cache_size = 64M;`,
@@ -107,13 +102,11 @@ async function optimizeDatabase() {
     for (const optimization of mysqlOptimizations) {
       try {
         await prisma.$executeRawUnsafe(optimization);
-        console.log(`✅ Configuración aplicada: ${optimization.split('=')[0].trim()}`);
+
       } catch (error) {
-        console.log(`ℹ️  Configuración no aplicada (permisos): ${optimization.split('=')[0].trim()}`);
+
       }
     }
-
-    console.log('🎉 Optimización de base de datos completada exitosamente!');
 
     // Generar reporte de optimización
     const reportData = {
@@ -129,9 +122,6 @@ async function optimizeDatabase() {
       ]
     };
 
-    console.log('📊 Reporte de optimización:');
-    console.log(JSON.stringify(reportData, null, 2));
-
   } catch (error) {
     console.error('❌ Error durante la optimización:', error);
     throw error;
@@ -144,7 +134,7 @@ async function optimizeDatabase() {
 if (require.main === module) {
   optimizeDatabase()
     .then(() => {
-      console.log('✅ Proceso de optimización finalizado');
+
       process.exit(0);
     })
     .catch(error => {

@@ -4,12 +4,11 @@ const prisma = new PrismaClient();
 
 async function insertSampleImpuestos() {
   try {
-    console.log('🚀 Iniciando inserción de datos de prueba...');
-    
+
     // Verificar si ya hay datos
     const existingCount = await prisma.$queryRaw`SELECT COUNT(*) as total FROM impuestos_imss`;
     if (existingCount[0].total > 0) {
-      console.log(`✅ Ya existen ${existingCount[0].total} registros en la tabla`);
+
       return;
     }
     
@@ -129,9 +128,7 @@ async function insertSampleImpuestos() {
         comentarios: 'Cuotas patronales IMSS - VENCIDO'
       }
     ];
-    
-    console.log(`📝 Insertando ${sampleData.length} registros de prueba...`);
-    
+
     for (const data of sampleData) {
       await prisma.$executeRaw`
         INSERT INTO impuestos_imss (
@@ -143,29 +140,23 @@ async function insertSampleImpuestos() {
           ${data.periodo}, ${data.estado}, ${data.fecha_pago || null}, ${data.comentarios}
         )
       `;
-      console.log(`✅ Impuesto insertado: ${data.concepto}`);
+
     }
-    
-    console.log('✅ Datos de ejemplo insertados exitosamente');
-    
+
     // Verificar la inserción
     const finalCount = await prisma.$queryRaw`SELECT COUNT(*) as total FROM impuestos_imss`;
-    console.log(`📊 Total de registros en la tabla: ${finalCount[0].total}`);
-    
+
     // Mostrar estadísticas por estado
     const statsByStatus = await prisma.$queryRaw`
       SELECT estado, COUNT(*) as total, SUM(monto_total) as monto_total
       FROM impuestos_imss 
       GROUP BY estado
     `;
-    
-    console.log('\n📊 Estadísticas por estado:');
+
     statsByStatus.forEach(stat => {
-      console.log(`  ${stat.estado}: ${stat.total} registros - $${stat.monto_total.toFixed(2)}`);
+
     });
-    
-    console.log('\n🎉 Proceso completado exitosamente');
-    
+
   } catch (error) {
     console.error('❌ Error durante la inserción:', error);
     throw error;
@@ -178,7 +169,7 @@ async function insertSampleImpuestos() {
 if (require.main === module) {
   insertSampleImpuestos()
     .then(() => {
-      console.log('✅ Script ejecutado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

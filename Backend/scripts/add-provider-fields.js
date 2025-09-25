@@ -2,15 +2,12 @@ const { prisma } = require('../src/config/database');
 
 async function addProviderFields() {
   try {
-    console.log('🔍 Verificando campos de la tabla proveedores...');
-    
+
     // Verificar la estructura actual
     const currentStructure = await prisma.$queryRaw`
       DESCRIBE proveedores
     `;
-    
-    console.log('📋 Estructura actual:', currentStructure);
-    
+
     // Lista de campos que necesitamos agregar
     const fieldsToAdd = [
       {
@@ -53,7 +50,7 @@ async function addProviderFields() {
               DEFAULT 'producto' 
               COMMENT '${field.description}'
             `;
-            console.log(`✅ Campo ${field.name} agregado correctamente`);
+
           } else if (field.name === 'estado') {
             await prisma.$executeRaw`
               ALTER TABLE proveedores 
@@ -61,7 +58,7 @@ async function addProviderFields() {
               DEFAULT 'activo' 
               COMMENT '${field.description}'
             `;
-            console.log(`✅ Campo ${field.name} agregado correctamente`);
+
           }
         } else {
           // Para campos normales
@@ -72,11 +69,11 @@ async function addProviderFields() {
             ${field.default ? `DEFAULT '${field.default}'` : ''}
             COMMENT '${field.description}'
           `;
-          console.log(`✅ Campo ${field.name} agregado correctamente`);
+
         }
       } catch (error) {
         if (error.message.includes('Duplicate column name')) {
-          console.log(`ℹ️ Campo ${field.name} ya existe, saltando...`);
+
         } else {
           console.error(`❌ Error al agregar campo ${field.name}:`, error.message);
         }
@@ -87,9 +84,7 @@ async function addProviderFields() {
     const finalStructure = await prisma.$queryRaw`
       DESCRIBE proveedores
     `;
-    
-    console.log('📋 Estructura final:', finalStructure);
-    
+
     // Actualizar algunos registros existentes con valores por defecto
     try {
       await prisma.$executeRaw`
@@ -97,21 +92,17 @@ async function addProviderFields() {
         SET tipo_proveedor = 'producto' 
         WHERE tipo_proveedor IS NULL
       `;
-      console.log('✅ Valores por defecto para tipo_proveedor actualizados');
-      
+
       await prisma.$executeRaw`
         UPDATE proveedores 
         SET estado = 'activo' 
         WHERE estado IS NULL
       `;
-      console.log('✅ Valores por defecto para estado actualizados');
-      
+
     } catch (error) {
-      console.log('ℹ️ No se pudieron actualizar valores por defecto:', error.message);
+
     }
-    
-    console.log('🎉 Migración de campos de proveedores completada exitosamente');
-    
+
   } catch (error) {
     console.error('❌ Error durante la migración:', error);
   } finally {

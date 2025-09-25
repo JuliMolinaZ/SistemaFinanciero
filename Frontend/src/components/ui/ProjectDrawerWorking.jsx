@@ -207,7 +207,6 @@ const ProjectDrawerWorking = ({
   const drawerRef = useRef(null);
   const toast = useModernToast();
   const [containerBounds, setContainerBounds] = useState(null);
-  
 
   // 🔒 Scroll management completamente libre - NO bloquear nada
   useEffect(() => {
@@ -224,7 +223,7 @@ const ProjectDrawerWorking = ({
       const updateBounds = () => {
         const bounds = detectModuleContainer();
         setContainerBounds(bounds);
-        console.log('🎯 Drawer reposicionado:', bounds);
+
       };
 
       // Detectar inmediatamente y con múltiples intentos para asegurar DOM cargado
@@ -242,7 +241,7 @@ const ProjectDrawerWorking = ({
 
       // Observar cambios en el sidebar (usar MutationObserver para detectar cambios de clase)
       const sidebarObserver = new MutationObserver(() => {
-        console.log('🔄 Cambio detectado en sidebar, reposicionando drawer...');
+
         setTimeout(updateBounds, 50);
       });
 
@@ -276,11 +275,9 @@ const ProjectDrawerWorking = ({
 
   // 🎯 Detectar el área real del contenido del módulo
   const detectModuleContainer = () => {
-    console.log('🔍 Iniciando detección del contenedor del módulo...');
 
     // 1. Detectar información del sidebar para calcular área disponible
     const sidebarInfo = detectSidebarState();
-    console.log('📏 Estado del sidebar detectado:', sidebarInfo);
 
     // 2. Buscar el contenedor del módulo de gestión de proyectos en orden de especificidad
     const selectors = [
@@ -318,279 +315,7 @@ const ProjectDrawerWorking = ({
 
     if (moduleContainer) {
       const rect = moduleContainer.getBoundingClientRect();
-      console.log(`📐 Contenedor encontrado con selector: ${selectorUsed}`);
-      console.log('📊 Dimensiones del contenedor:', {
-        element: moduleContainer.tagName + (moduleContainer.className ? '.' + moduleContainer.className.split(' ').join('.') : ''),
-        x: Math.round(rect.x),
-        y: Math.round(rect.y),
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-        centerX: Math.round(rect.x + rect.width / 2),
-        centerY: Math.round(rect.y + rect.height / 2)
-      });
 
-      // Ajustar el centro considerando el área real disponible (evitar header y sidebar)
-      const adjustedBounds = adjustForLayoutElements(rect, sidebarInfo);
-
-      return adjustedBounds;
-    }
-
-    // Fallback: calcular área disponible basada en layout conocido
-    console.log('⚠️ No se encontró contenedor específico, usando cálculo de fallback');
-    return calculateFallbackBounds(sidebarInfo);
-  };
-
-  // 🔍 Detectar el estado actual del sidebar
-  const detectSidebarState = () => {
-    const headerHeight = 80; // Header fijo conocido
-    let sidebarWidth = 0;
-    let sidebarState = 'hidden';
-
-    // Buscar el sidebar
-    const sidebarSelectors = [
-      '[class*="sidebar"]',
-      '[class*="Sidebar"]',
-      'aside',
-      'nav[class*="nav"]',
-      '.MuiDrawer-root',
-      '[class*="drawer"]'
-    ];
-
-    for (const selector of sidebarSelectors) {
-      const sidebar = document.querySelector(selector);
-      if (sidebar) {
-        const rect = sidebar.getBoundingClientRect();
-        const styles = window.getComputedStyle(sidebar);
-
-        // Determinar si el sidebar está visible y su ancho
-        if (styles.display !== 'none' && styles.visibility !== 'hidden' && rect.width > 10) {
-          sidebarWidth = rect.width;
-
-          // Determinar estado basado en ancho
-          if (rect.width > 250) {
-            sidebarState = 'expanded';
-          } else if (rect.width > 50) {
-            sidebarState = 'collapsed';
-          } else {
-            sidebarState = 'hidden';
-          }
-
-          console.log(`📋 Sidebar encontrado: ${selector}, ancho: ${rect.width}px, estado: ${sidebarState}`);
-          break;
-        }
-      }
-    }
-
-    return {
-      width: sidebarWidth,
-      state: sidebarState,
-      headerHeight
-    };
-  };
-
-  // 🎯 Ajustar bounds considerando header y sidebar
-  const adjustForLayoutElements = (containerRect, sidebarInfo) => {
-    // Calcular el área real disponible para el contenido
-    const availableLeft = Math.max(containerRect.x, sidebarInfo.width);
-    const availableTop = Math.max(containerRect.y, sidebarInfo.headerHeight);
-    const availableRight = Math.min(containerRect.x + containerRect.width, window.innerWidth);
-    const availableBottom = Math.min(containerRect.y + containerRect.height, window.innerHeight);
-
-    const availableWidth = availableRight - availableLeft;
-    const availableHeight = availableBottom - availableTop;
-
-    // Calcular el ancho máximo seguro del drawer (80% del área disponible, max 650px)
-    const maxDrawerWidth = Math.min(availableWidth * 0.8, 650);
-
-    // Calcular los límites seguros para el centro del drawer
-    const safeLeftLimit = availableLeft + (maxDrawerWidth / 2) + 20;
-    const safeRightLimit = availableRight - (maxDrawerWidth / 2) - 20;
-    const safeTopLimit = availableTop + 200; // Mitad de altura mínima del drawer
-    const safeBottomLimit = availableBottom - 200;
-
-    // Centro propuesto
-    let centerX = availableLeft + availableWidth / 2;
-    let centerY = availableTop + availableHeight / 2;
-
-    // Ajustar si está fuera de los límites seguros
-    centerX = Math.max(safeLeftLimit, Math.min(centerX, safeRightLimit));
-    centerY = Math.max(safeTopLimit, Math.min(centerY, safeBottomLimit));
-
-    const adjustedBounds = {
-      centerX: Math.round(centerX),
-      centerY: Math.round(centerY),
-      width: Math.round(availableWidth),
-      height: Math.round(availableHeight),
-      maxDrawerWidth: Math.round(maxDrawerWidth),
-      sidebarState: sidebarInfo.state,
-      sidebarWidth: sidebarInfo.width,
-      availableArea: {
-        left: availableLeft,
-        top: availableTop,
-        right: availableRight,
-        bottom: availableBottom
-      },
-      safeLimits: {
-        left: safeLeftLimit,
-        right: safeRightLimit,
-        top: safeTopLimit,
-        bottom: safeBottomLimit
-      }
-    };
-
-    console.log('🎯 Área ajustada para layout:', adjustedBounds);
-    console.log('🔢 Cálculos de posicionamiento:', {
-      'Centro original': { x: availableLeft + availableWidth / 2, y: availableTop + availableHeight / 2 },
-      'Centro ajustado': { x: centerX, y: centerY },
-      'Ancho máximo drawer': maxDrawerWidth,
-      'Límites seguros': { left: safeLeftLimit, right: safeRightLimit },
-      'Área disponible': { width: availableWidth, height: availableHeight }
-    });
-    return adjustedBounds;
-  };
-
-  // 📐 Calcular bounds de fallback cuando no se encuentra contenedor específico
-  const calculateFallbackBounds = (sidebarInfo) => {
-    const availableLeft = sidebarInfo.width;
-    const availableTop = sidebarInfo.headerHeight;
-    const availableWidth = window.innerWidth - sidebarInfo.width;
-    const availableHeight = window.innerHeight - sidebarInfo.headerHeight;
-
-    // Calcular ancho máximo seguro
-    const maxDrawerWidth = Math.min(availableWidth * 0.8, 650);
-
-    // Límites seguros para el fallback
-    const safeLeftLimit = availableLeft + (maxDrawerWidth / 2) + 20;
-    const safeRightLimit = window.innerWidth - (maxDrawerWidth / 2) - 20;
-    const safeTopLimit = availableTop + 200;
-    const safeBottomLimit = window.innerHeight - 200;
-
-    let centerX = availableLeft + availableWidth / 2;
-    let centerY = availableTop + availableHeight / 2;
-
-    // Ajustar a límites seguros
-    centerX = Math.max(safeLeftLimit, Math.min(centerX, safeRightLimit));
-    centerY = Math.max(safeTopLimit, Math.min(centerY, safeBottomLimit));
-
-    const fallbackBounds = {
-      centerX: Math.round(centerX),
-      centerY: Math.round(centerY),
-      width: Math.round(availableWidth),
-      height: Math.round(availableHeight),
-      maxDrawerWidth: Math.round(maxDrawerWidth),
-      sidebarState: sidebarInfo.state,
-      sidebarWidth: sidebarInfo.width,
-      fallback: true
-    };
-
-    console.log('🔄 Bounds de fallback calculados:', fallbackBounds);
-    return fallbackBounds;
-  };
-
-  // 📋 Cargar datos de clientes y fases cuando se abre el drawer
-  useEffect(() => {
-    if (open && isEditing) {
-      loadClientsAndPhases();
-    }
-  }, [open, isEditing]);
-
-  const loadClientsAndPhases = async () => {
-    setLoadingData(true);
-    try {
-      // Cargar clientes
-      console.log('🔍 Cargando clientes...');
-      const clientsResponse = await fetch('http://localhost:8765/api/clients', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (clientsResponse.ok) {
-        const clientsData = await clientsResponse.json();
-        console.log('✅ Clientes cargados:', clientsData);
-        setAvailableClients(clientsData.data || clientsData || []);
-      } else {
-        console.error('❌ Error cargando clientes:', clientsResponse.status);
-        // Datos mock como fallback
-        setAvailableClients([
-          { id: 1, nombre: 'Cliente Ejemplo 1', color: '#3B82F6' },
-          { id: 2, nombre: 'Cliente Ejemplo 2', color: '#10B981' },
-          { id: 3, nombre: 'Cliente Ejemplo 3', color: '#F59E0B' }
-        ]);
-      }
-
-      // Cargar fases
-      console.log('🔍 Cargando fases...');
-      const phasesResponse = await fetch('http://localhost:8765/api/phases', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (phasesResponse.ok) {
-        const phasesData = await phasesResponse.json();
-        console.log('✅ Fases cargadas:', phasesData);
-        setAvailablePhases(phasesData.data || phasesData || []);
-      } else {
-        console.error('❌ Error cargando fases:', phasesResponse.status);
-        // Datos mock como fallback
-        setAvailablePhases([
-          { id: 1, nombre: 'Planificación' },
-          { id: 2, nombre: 'Desarrollo' },
-          { id: 3, nombre: 'Testing' },
-          { id: 4, nombre: 'Despliegue' },
-          { id: 5, nombre: 'Completado' }
-        ]);
-      }
-    } catch (error) {
-      console.error('Error cargando datos:', error);
-      // Usar datos mock en caso de error
-      setAvailableClients([
-        { id: 1, nombre: 'Cliente Ejemplo 1', color: '#3B82F6' },
-        { id: 2, nombre: 'Cliente Ejemplo 2', color: '#10B981' },
-        { id: 3, nombre: 'Cliente Ejemplo 3', color: '#F59E0B' }
-      ]);
-      setAvailablePhases([
-        { id: 1, nombre: 'Planificación' },
-        { id: 2, nombre: 'Desarrollo' },
-        { id: 3, nombre: 'Testing' },
-        { id: 4, nombre: 'Despliegue' },
-        { id: 5, nombre: 'Completado' }
-      ]);
-      
-      toast.error({
-        title: 'Error de conexión',
-        description: 'Usando datos de ejemplo. Verifica la conexión al servidor.'
-      });
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
-  // Initialize edit data when project changes
-  useEffect(() => {
-    if (project) {
-      setEditData({
-        nombre: project.nombre || '',
-        descripcion: project.descripcion || '',
-        status: project.status || 'planning',
-        priority: project.priority || 'medium',
-        progress: project.progress || 0,
-        start_date: project.start_date || '',
-        end_date: project.end_date || '',
-        cliente_id: project.cliente_id || '',
-        current_phase_id: project.current_phase_id || '',
-        client_color: project.client?.color || '#3B82F6' // Color por defecto azul
-      });
-    }
-  }, [project]);
-
-  // Reset states when drawer closes
-  useEffect(() => {
-    if (!open) {
-      setActiveTab('overview');
       setIsEditing(false);
       setShowDeleteConfirm(false);
     } else {
@@ -635,7 +360,7 @@ const ProjectDrawerWorking = ({
       const data = await response.json();
       
       if (data.success) {
-        console.log('✅ Proyecto actualizado:', data.data);
+
         setIsEditing(false);
         onUpdate?.(data.data);
         toast.success({
@@ -675,7 +400,7 @@ const ProjectDrawerWorking = ({
       const data = await response.json();
       
       if (data.success) {
-        console.log('✅ Campo actualizado:', field, value);
+
         onUpdate?.(data.data);
         toast.success({
           title: field === 'progress' ? 'Progreso actualizado' : 'Campo actualizado',
@@ -708,7 +433,7 @@ const ProjectDrawerWorking = ({
       const data = await response.json();
       
       if (data.success) {
-        console.log('✅ Proyecto eliminado:', data.data);
+
         onDelete?.(project);
         onClose();
         toast.success({

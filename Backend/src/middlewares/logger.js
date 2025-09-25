@@ -154,7 +154,7 @@ const cleanupOldLogs = () => {
       
       if (stats.mtime < thirtyDaysAgo) {
         fs.unlinkSync(filePath);
-        console.log(`Deleted old log file: ${file}`);
+
       }
     });
   });

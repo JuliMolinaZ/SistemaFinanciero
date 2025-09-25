@@ -9,7 +9,7 @@ const ProjectRedirect = ({ children }) => {
   // Si es desarrollador u operador, redirigir al módulo moderno
   if (profileData?.role?.toLowerCase() === 'desarrollador' ||
       profileData?.role?.toLowerCase() === 'operador') {
-    console.log('🔄 Redirigiendo desarrollador/operador desde /proyectos a /project-management');
+
     return <Navigate to="/project-management" replace />;
   }
 

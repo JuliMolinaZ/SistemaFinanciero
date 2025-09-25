@@ -61,14 +61,11 @@ async function migrateExistingProjects() {
       select: { id: true, nombre: true }
     });
 
-    console.log(`Found ${projectsWithoutPhases.length} projects without phases`);
-
     for (const project of projectsWithoutPhases) {
-      console.log(`Creating phases for project: ${project.nombre || project.id}`);
+
       await createDefaultPhases(project.id);
     }
 
-    console.log('Migration completed successfully');
   } catch (error) {
     console.error('Migration failed:', error);
     throw error;

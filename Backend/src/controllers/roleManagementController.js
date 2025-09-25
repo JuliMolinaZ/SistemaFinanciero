@@ -11,8 +11,7 @@ const prisma = new PrismaClient();
 
 exports.getAllRoles = async (req, res) => {
   try {
-    console.log('🔍 Obteniendo todos los roles del sistema...');
-    
+
     const roles = await prisma.roles.findMany({
       where: { is_active: true },
       include: {
@@ -23,8 +22,6 @@ exports.getAllRoles = async (req, res) => {
       orderBy: { level: 'asc' }
     });
 
-    console.log(`✅ ${roles.length} roles obtenidos exitosamente`);
-    
     res.json({
       success: true,
       data: roles,
@@ -49,8 +46,7 @@ exports.getAllRoles = async (req, res) => {
 exports.getRoleById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`🔍 Obteniendo rol con ID: ${id}...`);
-    
+
     const role = await prisma.roles.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -68,8 +64,6 @@ exports.getRoleById = async (req, res) => {
       });
     }
 
-    console.log(`✅ Rol obtenido exitosamente: ${role.name}`);
-    
     res.json({
       success: true,
       data: role,
@@ -93,8 +87,7 @@ exports.getRoleById = async (req, res) => {
 exports.createRole = async (req, res) => {
   try {
     const { name, description, level } = req.body;
-    console.log('🔍 Creando nuevo rol...', { name, description, level });
-    
+
     // Validaciones
     if (!name || !level) {
       return res.status(400).json({
@@ -126,8 +119,6 @@ exports.createRole = async (req, res) => {
         updated_at: new Date()
       }
     });
-
-    console.log(`✅ Rol creado exitosamente: ${newRole.name}`);
 
     // Registrar en auditoría
     await auditEvent({
@@ -167,8 +158,7 @@ exports.updateRole = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, level, is_active } = req.body;
-    console.log(`🔍 Actualizando rol con ID: ${id}...`, req.body);
-    
+
     // Verificar que el rol existe
     const existingRole = await prisma.roles.findUnique({
       where: { id: parseInt(id) }
@@ -206,8 +196,6 @@ exports.updateRole = async (req, res) => {
         updated_at: new Date()
       }
     });
-
-    console.log(`✅ Rol actualizado exitosamente: ${updatedRole.name}`);
 
     // Registrar en auditoría
     await auditEvent({
@@ -247,8 +235,7 @@ exports.updateRole = async (req, res) => {
 exports.deleteRole = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`🔍 Eliminando rol con ID: ${id}...`);
-    
+
     // Verificar que el rol existe
     const existingRole = await prisma.roles.findUnique({
       where: { id: parseInt(id) },
@@ -287,8 +274,6 @@ exports.deleteRole = async (req, res) => {
       where: { id: parseInt(id) }
     });
 
-    console.log(`✅ Rol eliminado exitosamente: ${existingRole.name}`);
-
     // Registrar en auditoría
     await auditEvent({
       userId: req.user?.id || null,
@@ -323,15 +308,12 @@ exports.deleteRole = async (req, res) => {
 
 exports.getAllModules = async (req, res) => {
   try {
-    console.log('🔍 Obteniendo todos los módulos del sistema...');
-    
+
     const modules = await prisma.systemModules.findMany({
       where: { is_active: true },
       orderBy: { name: 'asc' }
     });
 
-    console.log(`✅ ${modules.length} módulos obtenidos exitosamente`);
-    
     res.json({
       success: true,
       data: modules,
@@ -356,14 +338,11 @@ exports.getAllModules = async (req, res) => {
 exports.getRolePermissions = async (req, res) => {
   try {
     const { roleId } = req.params;
-    console.log(`🔍 Obteniendo permisos del rol con ID: ${roleId}...`);
-    
+
     const permissions = await prisma.rolePermissions.findMany({
       where: { role_id: parseInt(roleId) }
     });
 
-    console.log(`✅ ${permissions.length} permisos obtenidos para el rol`);
-    
     res.json({
       success: true,
       data: permissions,
@@ -389,8 +368,7 @@ exports.updateRolePermissions = async (req, res) => {
   try {
     const { roleId } = req.params;
     const { permissions } = req.body;
-    console.log(`🔍 Actualizando permisos del rol con ID: ${roleId}...`, permissions);
-    
+
     // Verificar que el rol existe
     const existingRole = await prisma.roles.findUnique({
       where: { id: parseInt(roleId) }
@@ -451,8 +429,6 @@ exports.updateRolePermissions = async (req, res) => {
       permissionUpdates.push(updatedPermission);
     }
 
-    console.log(`✅ ${permissionUpdates.length} permisos actualizados para el rol ${existingRole.name}`);
-
     // Registrar en auditoría
     await auditEvent({
       userId: req.user?.id || null,
@@ -491,8 +467,7 @@ exports.updateRolePermissions = async (req, res) => {
 exports.getCurrentUserPermissions = async (req, res) => {
   try {
     const userId = req.user?.id;
-    console.log(`🔍 Obteniendo permisos del usuario con ID: ${userId}...`);
-    
+
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -589,9 +564,7 @@ exports.checkUserPermission = async (req, res) => {
   try {
     const { module, action } = req.query;
     const userId = req.user?.id;
-    
-    console.log(`🔍 Verificando permiso: ${action} en módulo ${module} para usuario ${userId}...`);
-    
+
     if (!userId || !module || !action) {
       return res.status(400).json({
         success: false,
@@ -702,8 +675,7 @@ exports.checkUserPermission = async (req, res) => {
 exports.getUserPermissionsByFirebaseUID = async (req, res) => {
   try {
     const { firebaseUid } = req.params;
-    console.log(`🔍 Obteniendo permisos del usuario con Firebase UID: ${firebaseUid}...`);
-    
+
     if (!firebaseUid) {
       return res.status(400).json({
         success: false,
@@ -729,8 +701,6 @@ exports.getUserPermissionsByFirebaseUID = async (req, res) => {
         message: 'Usuario no encontrado'
       });
     }
-
-    console.log(`✅ Usuario encontrado: ${user.name} con rol: ${user.roles?.name}`);
 
     // Si es Super Administrador, tiene todos los permisos
     if (user.roles?.name === 'Super Administrador') {
@@ -780,8 +750,6 @@ exports.getUserPermissionsByFirebaseUID = async (req, res) => {
         can_approve: perm.can_approve
       };
     });
-
-    console.log(`✅ Permisos obtenidos: ${permissions.length} módulos`);
 
     res.json({
       success: true,

@@ -9,11 +9,11 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const databaseConfigs = {
   // CONFIGURACIÓN REMOTA (ACTIVA)
   remote: {
-    host: '198.23.62.251',
-    port: 3306,
-    user: 'runsolutions_runite',
-    password: 'KuHh4AW1v2QJS3',
-    database: 'runsolutions_runite'
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'sistema_financiero'
   },
 
   // CONFIGURACIÓN LOCAL (para desarrollo)
@@ -27,11 +27,11 @@ const databaseConfigs = {
 
   // CONFIGURACIÓN ALTERNATIVA (comentada)
   alternative: {
-    host: '64.23.225.99',
-    port: 3306,
-    user: 'root',
-    password: 'o70#%s$nyK2TnU',
-    database: 'runite'
+    host: process.env.ALT_DB_HOST || 'localhost',
+    port: process.env.ALT_DB_PORT || 3306,
+    user: process.env.ALT_DB_USER || 'root',
+    password: process.env.ALT_DB_PASSWORD || '',
+    database: process.env.ALT_DB_NAME || 'runite'
   }
 };
 
@@ -85,12 +85,7 @@ function switchDatabaseConfig(configName) {
   
   const config = databaseConfigs[configName];
   const databaseUrl = generateDatabaseUrl(config);
-  
-  console.log(`🔄 Cambiando a configuración: ${configName}`);
-  console.log(`📍 Host: ${config.host}:${config.port}`);
-  console.log(`🗄️  Base de datos: ${config.database}`);
-  console.log(`👤 Usuario: ${config.user}`);
-  
+
   return {
     ...config,
     url: databaseUrl
@@ -99,19 +94,12 @@ function switchDatabaseConfig(configName) {
 
 // Función para mostrar configuraciones disponibles
 function showAvailableConfigs() {
-  console.log('\n📋 CONFIGURACIONES DISPONIBLES:');
-  console.log('====================================================');
-  
+
   Object.keys(databaseConfigs).forEach(configName => {
     const config = databaseConfigs[configName];
-    console.log(`\n🔧 ${configName.toUpperCase()}:`);
-    console.log(`   📍 Host: ${config.host}:${config.port}`);
-    console.log(`   🗄️  Base de datos: ${config.database}`);
-    console.log(`   👤 Usuario: ${config.user}`);
+
   });
-  
-  console.log('\n📝 Para cambiar configuración:');
-  console.log('   node scripts/switch-database.js [nombre_configuracion]');
+
 }
 
 // Función para probar conexión
@@ -120,9 +108,7 @@ async function testConnection(configName = 'remote') {
   if (!config) {
     throw new Error(`Configuración '${configName}' no encontrada`);
   }
-  
-  console.log(`🔍 Probando conexión a: ${config.host}:${config.port}`);
-  
+
   try {
     const mysql = require('mysql2/promise');
     const connection = await mysql.createConnection({
@@ -132,8 +118,7 @@ async function testConnection(configName = 'remote') {
       password: config.password,
       database: config.database
     });
-    
-    console.log('✅ Conexión exitosa');
+
     await connection.end();
     return true;
   } catch (error) {
@@ -159,18 +144,13 @@ if (require.main === module) {
   
   // Probar conexión actual
   const currentConfig = getActiveConfig();
-  console.log('\n🔍 CONFIGURACIÓN ACTUAL:');
-  console.log(`📍 Host: ${currentConfig.host}:${currentConfig.port}`);
-  console.log(`🗄️  Base de datos: ${currentConfig.database}`);
-  console.log(`👤 Usuario: ${currentConfig.user}`);
-  
+
   // Probar conexión
   testConnection('remote').then(success => {
     if (success) {
-      console.log('\n🎉 ¡La base de datos remota está funcionando correctamente!');
+
     } else {
-      console.log('\n⚠️  No se pudo conectar a la base de datos remota');
-      console.log('Verifica la configuración y la conectividad de red');
+
     }
   });
 }

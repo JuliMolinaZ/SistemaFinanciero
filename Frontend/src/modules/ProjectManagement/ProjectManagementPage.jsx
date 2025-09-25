@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 
 import DataTableGrouped from '../../components/ui/DataTableGrouped';
-import ProjectDialogWorking from '../../components/ui/ProjectDialogWorking';
+import ProjectFormModal from './components/ProjectFormModal';
 import { NotificationProvider } from '../../components/ui/NotificationSystem';
 import { useNotifications } from '../../hooks/useNotifications';
 import { projectManagementService, handleApiError } from '../../services/projectManagementService';
@@ -46,7 +46,7 @@ export function ProjectManagementPage() {
 
   // 🧪 Función de prueba para notificaciones
   const testNotifications = () => {
-    console.log('🧪 Probando notificaciones...');
+
     notify.success({
       title: 'Notificación de prueba',
       description: 'Esta es una notificación de éxito de prueba'
@@ -65,7 +65,6 @@ export function ProjectManagementPage() {
         sortOrder
       });
 
-      console.log('📊 Data received from API:', data);
       setProjects(data.projects || data.data || []);
       setGroups(data.groups || []);
     } catch (err) {
@@ -95,9 +94,8 @@ export function ProjectManagementPage() {
   // ✨ CREATE PROJECT
   const createProject = useCallback(async (projectData) => {
     try {
-      console.log('🆕 Creating project:', projectData);
+
       const response = await projectManagementService.createProject(projectData);
-      console.log('✅ Create response:', response);
 
       // Manejar la respuesta correctamente
       const projectResponse = response.data || response;
@@ -124,9 +122,8 @@ export function ProjectManagementPage() {
   // ✏️ UPDATE PROJECT
   const updateProject = useCallback(async (id, updates) => {
     try {
-      console.log('✏️ Updating project:', id, updates);
+
       const response = await projectManagementService.updateProject(id, updates);
-      console.log('✅ Update response:', response);
 
       // Manejar la respuesta correctamente
       const projectData = response.data || response;
@@ -169,9 +166,7 @@ export function ProjectManagementPage() {
       const projectToDelete = projects.find(p => p.id === id);
       const projectName = projectToDelete?.nombre || `Proyecto #${id}`;
 
-      console.log('🗑️ Deleting project:', id, projectName);
       const response = await projectManagementService.deleteProject(id);
-      console.log('✅ Delete response:', response);
 
       // Remover del estado local
       setProjects(prev => prev.filter(project => project.id !== id));
@@ -440,15 +435,27 @@ export function ProjectManagementPage() {
           )}
         </Box>
 
-        {/* 🎨 PROJECT DIALOG */}
-        <ProjectDialogWorking
-          open={drawerOpen}
+        {/* 🎨 PROJECT FORM MODAL - CON DISEÑO DEL FORMULARIO DE TAREAS */}
+        <ProjectFormModal
+          isOpen={drawerOpen}
           onClose={handleCloseDrawer}
           project={selectedProject}
-          onUpdate={updateProject}
-          onCreate={createProject}
-          onDelete={deleteProject}
-          loading={drawerLoading}
+          mode="view"
+          onSave={async (updatedData) => {
+            try {
+              await updateProject?.(selectedProject?.id, updatedData);
+            } catch (error) {
+              console.error('Error actualizando proyecto:', error);
+            }
+          }}
+          onDelete={async (projectId) => {
+            try {
+              await deleteProject?.(selectedProject);
+              handleCloseDrawer();
+            } catch (error) {
+              console.error('Error eliminando proyecto:', error);
+            }
+          }}
         />
 
         {/* 🔄 LOADING BACKDROP */}

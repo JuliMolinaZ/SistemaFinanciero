@@ -6,7 +6,7 @@ const safeRequire = (path, routeName) => {
   try {
     return require(path);
   } catch (error) {
-    console.warn(`⚠️ No se pudo cargar la ruta ${routeName}:`, error.message);
+
     // Retornar un router vacío
     const emptyRouter = express.Router();
     emptyRouter.get('/', (req, res) => {
@@ -21,7 +21,7 @@ const safeRequire = (path, routeName) => {
 };
 
 // Importar todas las rutas de forma segura
-console.log('🚀 Iniciando carga de rutas...');
+
 const authRoutes = safeRequire('./auth', 'auth');
 const userRoutes = safeRequire('./usuarios', 'usuarios');
 const clientRoutes = safeRequire('./clients', 'clients');
@@ -37,9 +37,9 @@ const cotizacionRoutes = safeRequire('./cotizaciones', 'cotizaciones');
 const assetRoutes = safeRequire('./assets', 'assets');
 const complementoPagoRoutes = safeRequire('./complementosPago', 'complementosPago');
 const emitidaRoutes = safeRequire('./emitidas', 'emitidas');
-console.log('🔄 Cargando flowRecoveryRoutes...');
+
 const flowRecoveryRoutes = require('./flowRecoveryV2');
-console.log('🔄 flowRecoveryRoutes cargado:', flowRecoveryRoutes ? '✅' : '❌');
+
 const permisoRoutes = safeRequire('./permisos', 'permisos');
 const recuperacionRoutes = safeRequire('./recuperacion', 'recuperacion');
 const rolRoutes = safeRequire('./roles', 'roles');
@@ -48,7 +48,7 @@ const managementProjectsRoutes = safeRequire('./managementProjects', 'management
 const managementTasksRoutes = safeRequire('./managementTasks', 'managementTasks');
 const testTaskNotificationsRoutes = safeRequire('./testTaskNotifications', 'testTaskNotifications');
 const testUserTasksRoutes = safeRequire('./testUserTasks', 'testUserTasks');
-console.log('✅ Todas las rutas importadas');
+const notificationsRoutes = safeRequire('./notifications', 'notifications');
 
 // Configurar rutas
 router.use('/auth', authRoutes);
@@ -75,6 +75,7 @@ router.use('/management-projects', managementProjectsRoutes);
 router.use('/management-tasks', managementTasksRoutes);
 router.use('/test-task-notifications', testTaskNotificationsRoutes);
 router.use('/test-user-tasks', testUserTasksRoutes);
+router.use('/notifications', notificationsRoutes);
 
 // Ruta de salud del sistema
 router.get('/health', (req, res) => {

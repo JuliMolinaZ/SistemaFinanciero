@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 
 async function createManagementTables() {
   try {
-    console.log('🚀 Iniciando creación de tablas de gestión de proyectos...');
 
     // 1. Crear tabla principal de proyectos de gestión
     await prisma.$executeRaw`
@@ -36,7 +35,6 @@ async function createManagementTables() {
         INDEX idx_management_projects_end_date (end_date)
       )
     `;
-    console.log('✅ Tabla management_projects creada');
 
     // 2. Crear tabla de miembros de proyectos de gestión
     await prisma.$executeRaw`
@@ -58,7 +56,6 @@ async function createManagementTables() {
         INDEX idx_management_project_members_team_type (team_type)
       )
     `;
-    console.log('✅ Tabla management_project_members creada');
 
     // 3. Crear tabla de fases de proyectos de gestión
     await prisma.$executeRaw`
@@ -78,7 +75,6 @@ async function createManagementTables() {
         INDEX idx_management_project_phases_position (position)
       )
     `;
-    console.log('✅ Tabla management_project_phases creada');
 
     // 4. Crear tabla de sprints de gestión
     await prisma.$executeRaw`
@@ -97,7 +93,6 @@ async function createManagementTables() {
         INDEX idx_management_sprints_status (status)
       )
     `;
-    console.log('✅ Tabla management_sprints creada');
 
     // 5. Crear tabla de tareas de gestión
     await prisma.$executeRaw`
@@ -122,7 +117,6 @@ async function createManagementTables() {
         INDEX idx_management_tasks_status (status)
       )
     `;
-    console.log('✅ Tabla management_tasks creada');
 
     // 6. Verificar la creación
     const tables = [
@@ -138,14 +132,11 @@ async function createManagementTables() {
         SELECT COUNT(*) as count FROM information_schema.tables 
         WHERE table_schema = DATABASE() AND table_name = ${table}
       `;
-      console.log(`📊 Tabla ${table}: ${result[0].count > 0 ? 'EXISTE' : 'NO EXISTE'}`);
+
     }
 
-    console.log('🎉 Todas las tablas de gestión de proyectos creadas exitosamente');
-    
     // 7. Insertar datos de ejemplo
-    console.log('📝 Insertando datos de ejemplo...');
-    
+
     await prisma.managementProject.create({
       data: {
         nombre: 'Sistema E-commerce Gestión',
@@ -166,8 +157,6 @@ async function createManagementTables() {
       }
     });
 
-    console.log('✅ Datos de ejemplo insertados');
-
   } catch (error) {
     console.error('❌ Error creando tablas de gestión:', error);
     throw error;
@@ -180,7 +169,7 @@ async function createManagementTables() {
 if (require.main === module) {
   createManagementTables()
     .then(() => {
-      console.log('✅ Script ejecutado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

@@ -27,12 +27,8 @@ const uploadLimiter = createRateLimiter(60 * 60 * 1000, 10); // 10 uploads por h
 // Middleware de sanitización
 const sanitizeInput = (req, res, next) => {
   if (req.method === 'PUT' && req.url.includes('/api/projects/')) {
-    console.log('🔍 SANITIZE - Body ANTES de sanitizar:', req.body);
-    console.log('🔍 SANITIZE - Tipo de body:', typeof req.body);
-    console.log('🔍 SANITIZE - Keys del body:', Object.keys(req.body));
+
   }
-
-
 
   // Sanitizar body
   if (req.body) {
@@ -53,11 +49,8 @@ const sanitizeInput = (req, res, next) => {
   }
 
   if (req.method === 'PUT' && req.url.includes('/api/projects/')) {
-    console.log('🔍 SANITIZE - Body DESPUÉS de sanitizar:', req.body);
-    console.log('🔍 SANITIZE - Keys del body:', Object.keys(req.body));
+
   }
-
-
 
   next();
 };
@@ -66,8 +59,7 @@ const sanitizeInput = (req, res, next) => {
 const validateContentType = (req, res, next) => {
   // Solo validar Content-Type para métodos que envían datos
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-    console.log('🔍 MIDDLEWARE - Validando Content-Type para método:', req.method);
-    
+
     const contentType = req.headers['content-type'];
     
     // Permitir application/json y multipart/form-data (para archivos)
@@ -75,7 +67,7 @@ const validateContentType = (req, res, next) => {
     const isValidContentType = allowedContentTypes.some(type => contentType && contentType.includes(type));
     
     if (!contentType || !isValidContentType) {
-      console.log('❌ MIDDLEWARE - Content-Type inválido, bloqueando petición');
+
       return res.status(400).json({
         success: false,
         message: 'Content-Type debe ser application/json o multipart/form-data',
@@ -85,8 +77,7 @@ const validateContentType = (req, res, next) => {
         }]
       });
     }
-    
-    console.log('✅ MIDDLEWARE - Content-Type válido, continuando');
+
   }
   next();
 };

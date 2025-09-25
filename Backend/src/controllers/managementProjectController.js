@@ -30,8 +30,7 @@ const convertBigIntToNumber = (obj) => {
 // 📋 Obtener todos los proyectos de gestión - AGRUPADOS POR CLIENTE
 const getAllProjects = async (req, res) => {
   try {
-    console.log('🔍 getAllProjects - Gestión con agrupación por cliente');
-    
+
     const { search } = req.query;
 
     // Query SQL directo para evitar problemas de esquema
@@ -134,8 +133,6 @@ const getAllProjects = async (req, res) => {
       return a.clientName.localeCompare(b.clientName);
     });
 
-    console.log(`✅ Proyectos obtenidos: ${formattedProjects.length} en ${groups.length} grupos`);
-
     res.json({
       success: true,
       message: 'Proyectos obtenidos exitosamente',
@@ -162,7 +159,6 @@ const getAllProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 getProjectById - ID:', id);
 
     const projectResult = await prisma.$queryRaw`
       SELECT 
@@ -202,8 +198,6 @@ const getProjectById = async (req, res) => {
       members: [] // Por ahora vacío
     };
 
-    console.log('✅ Proyecto encontrado:', formattedProject.nombre);
-
     res.json({
       success: true,
       message: 'Proyecto obtenido exitosamente',
@@ -223,8 +217,7 @@ const getProjectById = async (req, res) => {
 // ➕ Crear proyecto
 const createProject = async (req, res) => {
   try {
-    console.log('🔍 createProject - Datos:', req.body);
-    
+
     const {
       nombre,
       descripcion,
@@ -277,8 +270,6 @@ const createProject = async (req, res) => {
 
     const createdProject = convertBigIntToNumber(createdProjectResult[0]);
 
-    console.log('✅ Proyecto creado:', createdProject.nombre);
-
     res.status(201).json({
       success: true,
       message: 'Proyecto creado exitosamente',
@@ -316,7 +307,6 @@ const createProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 updateProject - ID:', id, 'Datos:', req.body);
 
     // Construir la query UPDATE dinámicamente
     const updates = [];
@@ -393,8 +383,6 @@ const updateProject = async (req, res) => {
 
     const updatedProject = convertBigIntToNumber(updatedProjectResult[0]);
 
-    console.log('✅ Proyecto actualizado:', updatedProject.nombre);
-
     res.json({
       success: true,
       message: 'Proyecto actualizado exitosamente',
@@ -432,7 +420,6 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 deleteProject - ID:', id);
 
     // Verificar que existe
     const existingProject = await prisma.$queryRaw`
@@ -450,8 +437,6 @@ const deleteProject = async (req, res) => {
     await prisma.$executeRaw`
       DELETE FROM management_projects WHERE id = ${parseInt(id)}
     `;
-
-    console.log('✅ Proyecto eliminado:', existingProject[0].nombre);
 
     res.json({
       success: true,

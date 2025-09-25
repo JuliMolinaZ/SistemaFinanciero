@@ -152,9 +152,9 @@ exports.createEmitida = async (req, res) => {
 // Actualizar una factura emitida
 exports.updateEmitida = async (req, res) => {
   try {
-    console.log('🔍 INICIO UPDATE - Iniciando actualización...');
+
     const { id } = req.params;
-    console.log('🔍 UPDATE - ID recibido:', id);
+
     const { 
       rfcReceptor, 
       razonSocial, 
@@ -182,8 +182,6 @@ exports.updateEmitida = async (req, res) => {
       });
     }
 
-
-
     // Procesar archivos subidos
     const facturasPDF = req.files?.facturasPDF ? req.files.facturasPDF.map(file => file.filename) : [];
     const facturasXML = req.files?.facturasXML ? req.files.facturasXML.map(file => file.filename) : [];
@@ -191,7 +189,6 @@ exports.updateEmitida = async (req, res) => {
     const complementosPDF = req.files?.complementosPDF ? req.files.complementosPDF.map(file => file.filename) : [];
     const complementosXML = req.files?.complementosXML ? req.files.complementosXML.map(file => file.filename) : [];
 
-    console.log('🔍 UPDATE - Iniciando operación de base de datos...');
     const emitida = await prisma.emitidas.update({
       where: { id: parseInt(id) },
       data: {
@@ -214,7 +211,6 @@ exports.updateEmitida = async (req, res) => {
         complementosXML: complementosXML.length > 0 ? complementosXML : emitidaExistente.complementosXML
       }
     });
-    console.log('🔍 UPDATE - Base de datos actualizada exitosamente');
 
     res.json({
       success: true,

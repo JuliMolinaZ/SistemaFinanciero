@@ -36,9 +36,9 @@ export const usePermissions = () => {
         const defaultPermissions = getDefaultPermissionsByRole(profileData.role);
         setPermissions(defaultPermissions);
         setIsSuperAdmin(profileData.role === 'Super Administrador');
-        console.log('✅ Permisos cargados para rol:', profileData.role);
+
       } else {
-        console.log('⚠️ No se pudo obtener rol del usuario');
+
       }
       
     } catch (error) {
@@ -142,21 +142,17 @@ export const usePermissions = () => {
 
   // Verificar si el usuario tiene un permiso específico
   const hasPermission = (module, action) => {
-    console.log(`🔍 hasPermission(${module}, ${action})`);
-    console.log(`🔍 isSuperAdmin: ${isSuperAdmin}`);
-    console.log(`🔍 permissions:`, permissions);
-    
+
     if (isSuperAdmin) {
-      console.log(`✅ Super Admin - Acceso permitido`);
+
       return true;
     }
     
     // Buscar en la nueva estructura de permisos
     const permission = permissions[module];
-    console.log(`🔍 Permission encontrado para ${module}:`, permission);
-    
+
     if (!permission) {
-      console.log(`❌ No hay permisos configurados para ${module}`);
+
       return false;
     }
 
@@ -183,17 +179,14 @@ export const usePermissions = () => {
       default:
         result = false;
     }
-    
-    console.log(`🔍 Resultado para ${module}.${action}: ${result}`);
+
     return result;
   };
 
   // Verificar si el usuario puede ver un módulo
   const canViewModule = (module) => {
     const result = hasPermission(module, 'read');
-    console.log(`🔍 canViewModule(${module}): ${result}`);
-    console.log(`🔍 Permisos actuales:`, permissions);
-    console.log(`🔍 Módulo solicitado: ${module}`);
+
     return result;
   };
 

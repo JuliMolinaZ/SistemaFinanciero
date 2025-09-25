@@ -103,11 +103,6 @@ const SortableTaskCard = ({ task, onEdit, onDelete, users }) => {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  console.log(`🎯 SortableTaskCard ${task.id}:`, {
-    isDragging,
-    taskStatus: task.status
-  });
-
   return (
     <div
       ref={setNodeRef}
@@ -167,9 +162,7 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  
-  console.log('🎯 TaskManagement renderizado con:', { projectId, projectName });
-  
+
   // Estados principales
   const [tasks, setTasks] = useState([]);
   const [tasksByStatus, setTasksByStatus] = useState({
@@ -384,32 +377,17 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
     try {
       setLoading(true);
       const response = await taskManagementService.getTasksByProject(projectId);
-      
-      console.log('🔍 Respuesta completa del backend:', response);
-      
+
       if (response.success) {
-        console.log('🔍 Datos de tareas:', response.data);
-        console.log('🔍 Tipo de tasks:', typeof response.data.tasks, Array.isArray(response.data.tasks));
-        console.log('🔍 Tipo de tasksByStatus:', typeof response.data.tasksByStatus);
-        
-        // Asegurar que tasks sea un array
-        const tasksArray = Array.isArray(response.data.tasks) ? response.data.tasks : [];
-        
-        // Asegurar que tasksByStatus sea un objeto con arrays
-        const tasksByStatusObj = response.data.tasksByStatus || {};
-        Object.keys(tasksByStatusObj).forEach(status => {
-          if (!Array.isArray(tasksByStatusObj[status])) {
-            tasksByStatusObj[status] = [];
-          }
+        setTasks(response.data);
+      } else {
+        notify.error({
+          title: 'Error',
+          description: 'No se pudieron cargar las tareas'
         });
-        
-        setTasks(tasksArray);
-        setTasksByStatus(tasksByStatusObj);
-        console.log('✅ Tareas cargadas:', tasksArray.length);
       }
     } catch (error) {
-      console.error('❌ Error cargando tareas:', error);
-      setError('Error al cargar las tareas');
+      console.error('Error loading tasks:', error);
       notify.error({
         title: 'Error',
         description: 'No se pudieron cargar las tareas'
@@ -426,7 +404,7 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
       
       if (response.success) {
         setUsers(response.data);
-        console.log('✅ Usuarios cargados:', response.data.length);
+
       }
     } catch (error) {
       console.error('❌ Error cargando usuarios:', error);
@@ -437,22 +415,20 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
-    console.log('🔄 Drag end event:', event);
-
     if (!over) {
-      console.log('❌ No hay destino, cancelando drag');
+
       return;
     }
 
     if (active.id === over.id) {
-      console.log('❌ Mismo lugar, cancelando drag');
+
       return;
     }
 
     // Obtener información de la tarea activa
     const activeTask = tasks.find(task => task.id === active.id);
     if (!activeTask) {
-      console.log('❌ Tarea activa no encontrada');
+
       return;
     }
 
@@ -474,19 +450,16 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
 
     const taskId = parseInt(active.id);
 
-    console.log('🔄 Moviendo tarea:', { taskId, from: activeTask.status, to: newStatus });
-
     // Solo proceder si el estado cambió
     if (activeTask.status === newStatus) {
-      console.log('❌ Mismo estado, cancelando drag');
+
       return;
     }
 
     try {
       // Actualizar en el backend
       const response = await taskManagementService.updateTask(taskId, { status: newStatus });
-      console.log('✅ Respuesta del backend:', response);
-      
+
       // Actualizar estado local inmediatamente para feedback visual
       const newTasksByStatus = { ...tasksByStatus };
       
@@ -506,8 +479,7 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
       // Actualizar estados
         newTasksByStatus[activeTask.status] = sourceTasks;
         newTasksByStatus[newStatus] = destTasks;
-      
-        console.log('🔄 Nuevo estado:', newTasksByStatus);
+
       setTasksByStatus(newTasksByStatus);
         
         // También actualizar el array de tareas principal para mantener sincronización
@@ -515,9 +487,7 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
           task.id === taskId ? updatedTask : task
         );
         setTasks(updatedTasks);
-        
-        console.log('🔄 Tareas actualizadas:', updatedTasks.length);
-      
+
       notify.success({
         title: 'Tarea actualizada',
         description: `Tarea movida a ${getStatusLabel(newStatus)}`
@@ -629,22 +599,16 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
 
   // Filtrar tareas
   const getFilteredTasks = (taskList) => {
-    console.log('🔍 getFilteredTasks llamado con:', {
-      taskList,
-      taskListType: typeof taskList,
-      isArray: Array.isArray(taskList),
-      length: Array.isArray(taskList) ? taskList.length : 'N/A'
-    });
-    
+
     // Asegurar que taskList sea un array
     if (!Array.isArray(taskList)) {
-      console.warn('⚠️ taskList no es un array:', taskList, 'Tipo:', typeof taskList);
+
       return [];
     }
     
     // Asegurar que taskList no sea null o undefined
     if (taskList === null || taskList === undefined) {
-      console.warn('⚠️ taskList es null o undefined');
+
       return [];
     }
     
@@ -652,7 +616,7 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
       const filtered = taskList.filter(task => {
         // Asegurar que task sea un objeto válido
         if (!task || typeof task !== 'object') {
-          console.warn('⚠️ Task inválido:', task);
+
           return false;
         }
         
@@ -661,19 +625,10 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
         const matchesSearch = filters.search === '' || 
           (task.title && task.title.toLowerCase().includes(filters.search.toLowerCase())) ||
           (task.description && task.description.toLowerCase().includes(filters.search.toLowerCase()));
-        
-        console.log(`🔍 Filtros para tarea ${task.id}:`, {
-          task: task.title,
-          matchesPriority,
-          matchesAssignee,
-          matchesSearch,
-          filters
-        });
-        
+
         return matchesPriority && matchesAssignee && matchesSearch;
       });
-      
-      console.log('✅ Tareas filtradas:', filtered.length, 'de', taskList.length);
+
       return filtered;
     } catch (error) {
       console.error('❌ Error en getFilteredTasks:', error);
@@ -711,18 +666,9 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
   // Verificar si hay tareas en el array principal también
   const hasTasks = totalTasks > 0 || (Array.isArray(tasks) && tasks.length > 0);
 
-  console.log('🔍 Verificando estado vacío:');
-  console.log('🔍 totalTasks:', totalTasks);
-  console.log('🔍 tasksByStatus:', tasksByStatus);
-  console.log('🔍 tasks:', tasks);
-  console.log('🔍 showTaskForm:', showTaskForm);
-  console.log('🔍 projectId:', projectId);
-  console.log('🔍 loading:', loading);
-  console.log('🔍 error:', error);
-
   // Mostrar estado vacío solo cuando realmente no hay tareas y no está cargando
   if (!hasTasks && !loading && projectId) {
-    console.log('🎯 RENDERIZANDO ESTADO VACÍO - hasTasks:', hasTasks, 'loading:', loading, 'projectId:', projectId);
+
     return (
       <div style={{ 
         height: '100vh', 
@@ -1002,13 +948,6 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
     );
   }
 
-  console.log('🎯 RENDERIZANDO TABLERO NORMAL - hasTasks:', hasTasks, 'totalTasks:', totalTasks, 'loading:', loading);
-  console.log('🔍 DEBUGGING DETALLADO:');
-  console.log('  - tasksByStatus:', tasksByStatus);
-  console.log('  - Object.entries(tasksByStatus):', Object.entries(tasksByStatus));
-  console.log('  - tasks array:', tasks);
-  console.log('  - projectId:', projectId);
-  
   return (
     <div 
       className="kanban-board"
@@ -1297,13 +1236,7 @@ const TaskManagement = ({ projectId, projectName, onClose, projects = [], onProj
             }}
           >
             {Object.entries(tasksByStatus).map(([status, taskList]) => {
-              console.log(`🔍 Procesando columna ${status}:`, {
-                status,
-                taskList,
-                taskListLength: Array.isArray(taskList) ? taskList.length : 'No es array',
-                taskListType: typeof taskList
-              });
-              
+
               const getColumnStyle = (status) => {
                 const styles = {
                   todo: {

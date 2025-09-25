@@ -1652,6 +1652,61 @@
   contain: layout style;
 }
 
+/* 🎨 BOTONES ELEGANTES - DISEÑO ULTRA PROFESIONAL */
+.pure-project-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  z-index: 10;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  opacity: 1; /* TEMPORALMENTE VISIBLE PARA VERIFICAR */
+  transform: translateY(0); /* TEMPORALMENTE SIN TRANSFORMACIÓN */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pure-project-card:hover .pure-project-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Contenedor de botones elegantes - ULTRA ELEGANTE */
+.elegant-actions-container {
+  opacity: 1; /* TEMPORALMENTE VISIBLE PARA VERIFICAR */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pure-project-card:hover .elegant-actions-container {
+  opacity: 1;
+}
+
+/* Estilos para los botones individuales - ULTRA SUTILES */
+.elegant-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.elegant-action-button:hover {
+  transform: scale(1.08) translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.elegant-action-button:active {
+  transform: scale(0.96) translateY(0);
+}
+
 /* 🎨 THEME VARIATIONS */
 @media (prefers-color-scheme: light) {
   .pure-dashboard[data-auto-theme="true"] {

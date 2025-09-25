@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Configuración de Firebase - usar window.env o process.env según disponibilidad
+// ⚠️ SINCRONIZADO CON BACKEND - Proyecto: runsolutions-financiero
 const firebaseConfig = {
   apiKey: window.env?.REACT_APP_FIREBASE_API_KEY || process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyBDK3sGMTZO5ha9EGPRfcHER_ZTOZe8ZqE",
   authDomain: window.env?.REACT_APP_FIREBASE_AUTH_DOMAIN || process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "runsolutions-financiero.firebaseapp.com",
@@ -13,19 +14,7 @@ const firebaseConfig = {
   measurementId: window.env?.REACT_APP_FIREBASE_MEASUREMENT_ID || process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-REM9RBGG2Z",
 };
 
-console.log('🔥 FIREBASE - Configuración cargada:', {
-  apiKey: firebaseConfig.apiKey ? 'Configurado' : 'NO configurado',
-  authDomain: firebaseConfig.authDomain ? 'Configurado' : 'NO configurado',
-  projectId: firebaseConfig.projectId ? 'Configurado' : 'NO configurado',
-  storageBucket: firebaseConfig.storageBucket ? 'Configurado' : 'NO configurado',
-  messagingSenderId: firebaseConfig.messagingSenderId ? 'Configurado' : 'NO configurado',
-  appId: firebaseConfig.appId ? 'Configurado' : 'NO configurado',
-  measurementId: firebaseConfig.measurementId ? 'Configurado' : 'NO configurado'
-});
-
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-
-console.log('🔥 FIREBASE - Aplicación inicializada correctamente');

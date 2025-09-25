@@ -5,7 +5,6 @@ import React from 'react';
 import { X } from 'lucide-react';
 
 const TaskManagementSimple = ({ projectId, projectName, onClose }) => {
-  console.log('🎯 TaskManagementSimple renderizado con:', { projectId, projectName });
 
   return (
     <div className="h-full flex flex-col bg-gray-50">

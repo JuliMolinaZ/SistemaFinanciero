@@ -67,9 +67,9 @@ const FloatingMenuButton = ({ onClick, isOpen }) => {
       transition={{ duration: 0.3, type: "spring", stiffness: 260, damping: 20 }}
       style={{
         position: 'fixed',
-        top: 20,
+        top: 100, // Cambiado de 20 a 100 para evitar superposición con el header
         left: 20,
-        zIndex: 1300,
+        zIndex: 1200, // Reducido de 1300 a 1200 para estar debajo del header
       }}
     >
       <Fab

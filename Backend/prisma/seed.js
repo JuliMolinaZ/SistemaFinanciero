@@ -3,12 +3,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando inserción de datos iniciales...');
 
   try {
     // Crear roles básicos
-    console.log('👑 Creando roles básicos...');
-    
+
     const roles = [
       { name: 'juan carlos' },
       { name: 'administrador' },
@@ -25,15 +23,14 @@ async function main() {
         await prisma.roles.create({
           data: role
         });
-        console.log(`✅ Rol creado: ${role.name}`);
+
       } else {
-        console.log(`ℹ️  Rol ya existe: ${role.name}`);
+
       }
     }
 
     // Crear permisos básicos
-    console.log('🔐 Creando permisos básicos...');
-    
+
     const permisos = [
       { modulo: 'usuarios', acceso_administrador: true },
       { modulo: 'roles', acceso_administrador: true },
@@ -65,15 +62,14 @@ async function main() {
         await prisma.permisos.create({
           data: permiso
         });
-        console.log(`✅ Permiso creado: ${permiso.modulo}`);
+
       } else {
-        console.log(`ℹ️  Permiso ya existe: ${permiso.modulo}`);
+
       }
     }
 
     // Crear usuario administrador por defecto si no existe
-    console.log('👤 Verificando usuario administrador...');
-    
+
     const adminUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -93,22 +89,15 @@ async function main() {
           avatar: null
         }
       });
-      console.log('✅ Usuario administrador creado');
+
     } else {
-      console.log('ℹ️  Usuario administrador ya existe');
+
     }
 
-    console.log('\n🎉 ¡Datos iniciales insertados exitosamente!');
-    
     // Mostrar resumen
     const userCount = await prisma.user.count();
     const rolesCount = await prisma.roles.count();
     const permisosCount = await prisma.permisos.count();
-    
-    console.log('\n📊 RESUMEN:');
-    console.log(`   👥 Usuarios: ${userCount}`);
-    console.log(`   👑 Roles: ${rolesCount}`);
-    console.log(`   🔐 Permisos: ${permisosCount}`);
 
   } catch (error) {
     console.error('❌ Error insertando datos iniciales:', error);
@@ -123,5 +112,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-    console.log('\n🔌 Conexión a la base de datos cerrada');
+
   }); 

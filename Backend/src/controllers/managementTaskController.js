@@ -6,19 +6,21 @@ const prisma = new PrismaClient();
 const { 
   sendTaskAssignmentNotification, 
   sendTaskStatusChangeNotification, 
-  sendTaskCreatedNotification 
+  sendTaskCreatedNotification,
+  sendTaskReviewNotification
 } = require('../services/taskNotificationService');
 
 /**
  * Obtener tareas asignadas a un usuario específico
+ * Incluye tareas asignadas al usuario Y tareas creadas por el usuario que están en revisión
  */
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    console.log('🔍 Obteniendo tareas del usuario:', userId);
-
-    // Usar la misma consulta que funciona en getTasksByProject pero filtrar por usuario
+    // Consulta que incluye:
+    // 1. Tareas asignadas al usuario
+    // 2. Tareas creadas por el usuario que están en estado 'review'
     const tasks = await prisma.$queryRaw`
       SELECT
         t.id,
@@ -33,24 +35,37 @@ const getTasksByUser = async (req, res) => {
         t.project_id,
         t.sprint_id,
         t.phase_id,
+        t.created_by,
         u.name as assignee_name,
         u.email as assignee_email,
         p.nombre as project_name,
-        'Administrador' as created_by_name
+        COALESCE(creator.name, 'Usuario del Sistema') as created_by_name,
+        CASE 
+          WHEN t.assigned_to = ${parseInt(userId)} THEN 'assigned'
+          WHEN t.created_by = ${parseInt(userId)} AND t.status = 'review' THEN 'created_for_review'
+          ELSE 'other'
+        END as task_type
       FROM management_tasks t
       LEFT JOIN users u ON t.assigned_to = u.id
-      LEFT JOIN projects p ON t.project_id = p.id
-      WHERE t.assigned_to = ${parseInt(userId)}
-      ORDER BY t.created_at DESC
+      LEFT JOIN management_projects p ON t.project_id = p.id
+      LEFT JOIN users creator ON t.created_by = creator.id
+      WHERE (
+        t.assigned_to = ${parseInt(userId)} 
+        OR (t.created_by = ${parseInt(userId)} AND t.status = 'review')
+      )
+      ORDER BY 
+        CASE 
+          WHEN t.status = 'review' AND t.created_by = ${parseInt(userId)} THEN 0
+          ELSE 1
+        END,
+        t.created_at DESC
     `;
-
-    console.log(`✅ Encontradas ${tasks.length} tareas para el usuario ${userId}`);
 
     res.json({
       success: true,
       data: tasks,
       total: tasks.length,
-      message: `Tareas del usuario obtenidas correctamente`
+      message: `Tareas del usuario obtenidas correctamente (incluye tareas en revisión creadas por el usuario)`
     });
 
   } catch (error) {
@@ -69,9 +84,7 @@ const getTasksByUser = async (req, res) => {
 const getTasksByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-    
-    console.log('🔍 Obteniendo tareas del proyecto:', projectId);
-    
+
     const tasks = await prisma.$queryRaw`
       SELECT
         t.id,
@@ -86,10 +99,13 @@ const getTasksByProject = async (req, res) => {
         t.project_id,
         t.sprint_id,
         t.phase_id,
+        t.created_by,
         u.name as assignee_name,
-        u.email as assignee_email
+        u.email as assignee_email,
+        COALESCE(creator.name, 'Usuario del Sistema') as created_by_name
       FROM management_tasks t
       LEFT JOIN users u ON t.assigned_to = u.id
+      LEFT JOIN users creator ON t.created_by = creator.id
       WHERE t.project_id = ${parseInt(projectId)}
       ORDER BY t.created_at DESC
     `;
@@ -116,6 +132,8 @@ const getTasksByProject = async (req, res) => {
         project_id: Number(task.project_id),
         sprint_id: task.sprint_id ? Number(task.sprint_id) : null,
         phase_id: task.phase_id,
+        created_by: task.created_by ? Number(task.created_by) : null,
+        created_by_name: task.created_by_name,
         assignee: task.assigned_to ? {
           id: Number(task.assigned_to),
           name: task.assignee_name,
@@ -127,8 +145,6 @@ const getTasksByProject = async (req, res) => {
         tasksByStatus[task.status].push(taskData);
       }
     });
-
-    console.log('✅ Tareas obtenidas:', tasks.length);
 
     res.json({
       success: true,
@@ -154,6 +170,28 @@ const getTasksByProject = async (req, res) => {
  */
 const createTask = async (req, res) => {
   try {
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
     const {
       project_id,
       sprint_id,
@@ -164,8 +202,6 @@ const createTask = async (req, res) => {
       assigned_to,
       due_date
     } = req.body;
-
-    console.log('📝 Creando nueva tarea:', { project_id, title, priority });
 
     // Validar que el proyecto existe
     const project = await prisma.$queryRaw`
@@ -185,7 +221,7 @@ const createTask = async (req, res) => {
     const newTask = await prisma.$queryRaw`
       INSERT INTO management_tasks (
         project_id, sprint_id, phase_id, title, description, 
-        status, priority, assigned_to, due_date, created_at, updated_at
+        status, priority, assigned_to, due_date, created_by, created_at, updated_at
       ) VALUES (
         ${parseInt(project_id)},
         ${sprint_id ? parseInt(sprint_id) : null},
@@ -196,6 +232,7 @@ const createTask = async (req, res) => {
         ${priority},
         ${assigned_to ? parseInt(assigned_to) : null},
         ${due_date ? new Date(due_date) : null},
+        ${user.id},
         NOW(),
         NOW()
       )
@@ -243,8 +280,6 @@ const createTask = async (req, res) => {
       } : null
     };
 
-    console.log('✅ Tarea creada:', taskData.id);
-
     // Enviar notificación por email si hay un usuario asignado
     if (taskData.assignee) {
       try {
@@ -254,11 +289,11 @@ const createTask = async (req, res) => {
         `;
         
         if (project.length > 0) {
-          console.log('📧 Enviando notificación de asignación a:', taskData.assignee.email);
+
           await sendTaskAssignmentNotification(taskData, taskData.assignee, project[0]);
         }
       } catch (emailError) {
-        console.warn('⚠️ No se pudo enviar notificación de asignación:', emailError.message);
+
       }
     }
 
@@ -294,8 +329,6 @@ const updateTask = async (req, res) => {
       sprint_id,
       phase_id
     } = req.body;
-
-    console.log('✏️ Actualizando tarea:', taskId, { status, priority });
 
     // Verificar que la tarea existe
     const existingTask = await prisma.$queryRaw`
@@ -399,8 +432,6 @@ const updateTask = async (req, res) => {
       } : null
     };
 
-    console.log('✅ Tarea actualizada:', taskData.id);
-
     // Enviar notificaciones por email
     if (taskData.assignee) {
       try {
@@ -412,12 +443,13 @@ const updateTask = async (req, res) => {
         if (project.length > 0) {
           // Si cambió el estado, enviar notificación de cambio de estado
           if (status !== undefined) {
-            // Obtener el estado anterior
+            // Obtener el estado anterior y el creador
             const oldTask = await prisma.$queryRaw`
-              SELECT status FROM management_tasks WHERE id = ${parseInt(taskId)} LIMIT 1
+              SELECT status, created_by FROM management_tasks WHERE id = ${parseInt(taskId)} LIMIT 1
             `;
             
             if (oldTask.length > 0 && oldTask[0].status !== status) {
+              // Notificar al usuario asignado sobre el cambio de estado
               await sendTaskStatusChangeNotification(
                 taskData, 
                 oldTask[0].status, 
@@ -425,6 +457,23 @@ const updateTask = async (req, res) => {
                 taskData.assignee, 
                 project[0]
               );
+
+              // Si la tarea va a estado "review", notificar al creador
+              if (status === 'review' && oldTask[0].created_by) {
+                // Obtener información del creador
+                const creator = await prisma.$queryRaw`
+                  SELECT id, name, email FROM users WHERE id = ${parseInt(oldTask[0].created_by)} LIMIT 1
+                `;
+                
+                if (creator.length > 0) {
+                  await sendTaskReviewNotification(
+                    taskData,
+                    creator[0],
+                    taskData.assignee,
+                    project[0]
+                  );
+                }
+              }
             }
           }
           
@@ -437,13 +486,12 @@ const updateTask = async (req, res) => {
             
             // Solo enviar notificación si realmente cambió el asignado
             if (oldTask.length > 0 && oldTask[0].assigned_to !== (assigned_to ? parseInt(assigned_to) : null)) {
-              console.log('📧 Enviando notificación de nueva asignación a:', taskData.assignee.email);
               await sendTaskAssignmentNotification(taskData, taskData.assignee, project[0]);
             }
           }
         }
       } catch (emailError) {
-        console.warn('⚠️ No se pudo enviar notificación:', emailError.message);
+        console.error('❌ Error enviando notificaciones:', emailError);
       }
     }
 
@@ -470,11 +518,31 @@ const deleteTask = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    console.log('🗑️ Eliminando tarea:', taskId);
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
 
-    // Verificar que la tarea existe
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
+    // Verificar que la tarea existe y obtener el creador
     const existingTask = await prisma.$queryRaw`
-      SELECT id, title FROM management_tasks WHERE id = ${parseInt(taskId)} LIMIT 1
+      SELECT id, title, created_by FROM management_tasks WHERE id = ${parseInt(taskId)} LIMIT 1
     `;
 
     if (existingTask.length === 0) {
@@ -484,12 +552,20 @@ const deleteTask = async (req, res) => {
       });
     }
 
+    const task = existingTask[0];
+
+    // Verificar permisos: solo el creador puede eliminar
+    if (task.created_by !== user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tienes permisos para eliminar esta tarea. Solo el creador puede eliminarla.'
+      });
+    }
+
     // Eliminar la tarea
     await prisma.$executeRaw`
       DELETE FROM management_tasks WHERE id = ${parseInt(taskId)}
     `;
-
-    console.log('✅ Tarea eliminada:', existingTask[0].title);
 
     res.json({
       success: true,
@@ -513,8 +589,6 @@ const getAvailableUsers = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    console.log('👥 Obteniendo usuarios disponibles para el proyecto:', projectId);
-
     const users = await prisma.$queryRaw`
       SELECT DISTINCT
         u.id,
@@ -537,8 +611,6 @@ const getAvailableUsers = async (req, res) => {
       department: user.department,
       position: user.position
     }));
-
-    console.log('✅ Usuarios obtenidos:', userList.length);
 
     res.json({
       success: true,
@@ -569,14 +641,6 @@ const testEmailNotification = async (req, res) => {
       });
     }
 
-    console.log('🧪 Iniciando prueba de email a:', email);
-    console.log('🔧 Variables de entorno:');
-    console.log('   NODE_ENV:', process.env.NODE_ENV);
-    console.log('   GMAIL_USER:', process.env.GMAIL_USER);
-    console.log('   GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '***configurado***' : 'NO CONFIGURADO');
-    console.log('   SMTP_USER:', process.env.SMTP_USER);
-    console.log('   SMTP_PASS:', process.env.SMTP_PASS ? '***configurado***' : 'NO CONFIGURADO');
-
     // Datos de prueba
     const testTask = {
       id: 999,
@@ -600,11 +664,7 @@ const testEmailNotification = async (req, res) => {
       nombre: 'Proyecto SIGMA de Prueba'
     };
 
-    console.log('📧 Enviando notificación de asignación...');
-    
     const result = await sendTaskAssignmentNotification(testTask, testAssignee, testProject);
-    
-    console.log('✅ Resultado del envío:', result);
 
     res.json({
       success: true,

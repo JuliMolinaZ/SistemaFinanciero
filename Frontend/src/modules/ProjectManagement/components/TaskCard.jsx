@@ -1,7 +1,7 @@
 // 🎯 TASK CARD - TARJETA DE TAREA
 // ===============================
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -11,10 +11,28 @@ import {
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline';
 import { useConfirm } from '../../../hooks/useConfirm';
+import { GlobalContext } from '../../../context/GlobalState';
 
 const TaskCard = ({ task, onEdit, onDelete, users }) => {
   const { confirmDelete } = useConfirm();
+  const { profileData } = useContext(GlobalContext);
   const [showMenu, setShowMenu] = useState(false);
+
+  // 🔐 Verificar si el usuario actual puede eliminar esta tarea
+  const canDeleteTask = () => {
+    // Si no hay información del usuario o de la tarea, no permitir
+    if (!profileData || !task) {
+      return false;
+    }
+
+    // Si la tarea no tiene created_by, no permitir eliminar
+    if (!task.created_by) {
+      return false;
+    }
+
+    // Solo el creador puede eliminar la tarea
+    return profileData.id === task.created_by;
+  };
 
   // Obtener información del asignado
   const assignee = users?.find(user => user.id === task.assigned_to);
@@ -125,34 +143,36 @@ const TaskCard = ({ task, onEdit, onDelete, users }) => {
                   <PencilIcon style={{ width: '16px', height: '16px', marginRight: '12px' }} />
                   ✏️ Editar
                 </button>
-                <button
-                  onClick={() => {
-                    handleDelete();
-                    setShowMenu(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
-                    padding: '12px 16px',
-                    fontSize: '14px',
-                    color: '#dc2626',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.backgroundColor = '#fef2f2';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <TrashIcon style={{ width: '16px', height: '16px', marginRight: '12px' }} />
-                  🗑️ Eliminar
-                </button>
+                {canDeleteTask() && (
+                  <button
+                    onClick={() => {
+                      handleDelete();
+                      setShowMenu(false);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      color: '#dc2626',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.backgroundColor = '#fef2f2';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <TrashIcon style={{ width: '16px', height: '16px', marginRight: '12px' }} />
+                    🗑️ Eliminar
+                  </button>
+                )}
               </div>
             </div>
           )}

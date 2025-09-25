@@ -67,20 +67,9 @@ exports.createProject = async (req, res) => {
 exports.updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    console.log('🔍 BACKEND - ==========================================');
-    console.log('🔍 BACKEND - ACTUALIZACIÓN DE PROYECTO INICIADA');
-    console.log('🔍 BACKEND - ID del proyecto:', id);
-    console.log('🔍 BACKEND - req.body completo:', req.body);
-    console.log('🔍 BACKEND - Tipo de req.body:', typeof req.body);
-    console.log('🔍 BACKEND - req.body.keys:', Object.keys(req.body));
-    console.log('🔍 BACKEND - req.body.length:', req.body ? Object.keys(req.body).length : 'undefined');
-    console.log('🔍 BACKEND - req.headers:', req.headers);
-    
+
     const { nombre, cliente_id, monto_sin_iva, monto_con_iva, phase_id, estado, descripcion } = req.body;
-    
-    console.log('🔍 BACKEND - Campos extraídos:', { nombre, cliente_id, monto_sin_iva, monto_con_iva, phase_id, estado, descripcion });
-    
+
     // Construir objeto de datos solo con los campos enviados
     const updateData = {};
     
@@ -91,11 +80,7 @@ exports.updateProject = async (req, res) => {
     if (phase_id !== undefined) updateData.phase_id = phase_id ? parseInt(phase_id) : null;
     if (estado !== undefined) updateData.estado = estado;
     if (descripcion !== undefined) updateData.descripcion = descripcion;
-    
-    console.log('🔍 BACKEND - Datos a actualizar:', updateData);
-    console.log('🔍 BACKEND - Total de campos a actualizar:', Object.keys(updateData).length);
-    console.log('🔍 BACKEND - ==========================================');
-    
+
     const project = await prisma.project.update({
       where: { id: parseInt(id) },
       data: updateData

@@ -6,14 +6,15 @@ const prisma = new PrismaClient();
 
 /**
  * Obtener tareas asignadas a un usuario específico
+ * Incluye tareas asignadas al usuario Y tareas creadas por el usuario que están en revisión
  */
 const getTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    console.log('🔍 V2 - Obteniendo tareas del usuario:', userId);
-
-    // Consulta con nombres de proyecto y creador
+    // Consulta que incluye:
+    // 1. Tareas asignadas al usuario
+    // 2. Tareas creadas por el usuario que están en estado 'review'
     const tasks = await prisma.$queryRaw`
       SELECT
         t.id,
@@ -28,25 +29,37 @@ const getTasksByUser = async (req, res) => {
         t.project_id,
         t.sprint_id,
         t.phase_id,
+        t.created_by,
         u.name as assignee_name,
         u.email as assignee_email,
         p.nombre as project_name,
-        COALESCE(creator.name, 'Sistema') as created_by_name
+        COALESCE(creator.name, 'Sistema') as created_by_name,
+        CASE 
+          WHEN t.assigned_to = ${parseInt(userId)} THEN 'assigned'
+          WHEN t.created_by = ${parseInt(userId)} AND t.status = 'review' THEN 'created_for_review'
+          ELSE 'other'
+        END as task_type
       FROM management_tasks t
       LEFT JOIN users u ON t.assigned_to = u.id
       LEFT JOIN management_projects p ON t.project_id = p.id
       LEFT JOIN users creator ON t.created_by = creator.id
-      WHERE t.assigned_to = ${parseInt(userId)}
-      ORDER BY t.created_at DESC
+      WHERE (
+        t.assigned_to = ${parseInt(userId)} 
+        OR (t.created_by = ${parseInt(userId)} AND t.status = 'review')
+      )
+      ORDER BY 
+        CASE 
+          WHEN t.status = 'review' AND t.created_by = ${parseInt(userId)} THEN 0
+          ELSE 1
+        END,
+        t.created_at DESC
     `;
-
-    console.log(`✅ V2 - Encontradas ${tasks.length} tareas para el usuario ${userId}`);
 
     res.json({
       success: true,
       data: tasks,
       total: tasks.length,
-      message: `Tareas del usuario obtenidas correctamente`
+      message: `Tareas del usuario obtenidas correctamente (incluye tareas en revisión creadas por el usuario)`
     });
 
   } catch (error) {
@@ -65,8 +78,6 @@ const getTasksByUser = async (req, res) => {
 const getRealTasksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    console.log('🔍 V2 - Obteniendo tareas reales del usuario:', userId);
 
     // Consulta para obtener tareas del sistema principal usando Prisma ORM
     const tasks = await prisma.task.findMany({
@@ -104,8 +115,6 @@ const getRealTasksByUser = async (req, res) => {
       project_name: task.project?.name || null
     }));
 
-    console.log(`✅ V2 - Encontradas ${mappedTasks.length} tareas reales para el usuario ${userId}`);
-
     res.json({
       success: true,
       data: mappedTasks,
@@ -128,7 +137,6 @@ const getRealTasksByUser = async (req, res) => {
  */
 const getAllTasksDebug = async (req, res) => {
   try {
-    console.log('🧪 DEBUG - Obteniendo TODAS las tareas...');
 
     const allTasks = await prisma.$queryRaw`
       SELECT
@@ -142,9 +150,8 @@ const getAllTasksDebug = async (req, res) => {
       ORDER BY t.created_at DESC
     `;
 
-    console.log(`🧪 DEBUG - Total tareas encontradas:`, allTasks.length);
     allTasks.forEach(task => {
-      console.log(`🧪 Tarea ${task.id}: "${task.title}" -> Usuario ${task.assigned_to} (${task.assignee_name})`);
+
     });
 
     res.json({

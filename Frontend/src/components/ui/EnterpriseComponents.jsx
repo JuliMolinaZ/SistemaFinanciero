@@ -242,7 +242,6 @@ export function SidePanel({ metrics, className = '', ...props }) {
         <div className="enterprise-button-group">
           <button
             className="enterprise-button enterprise-button--primary"
-            onClick={() => console.log('New project')}
           >
             <Plus className="enterprise-button-icon" />
             Nuevo Proyecto
@@ -250,7 +249,6 @@ export function SidePanel({ metrics, className = '', ...props }) {
           
           <button
             className="enterprise-button enterprise-button--outline"
-            onClick={() => console.log('Manage teams')}
           >
             <Users className="enterprise-button-icon" />
             Gestionar Equipos
@@ -258,7 +256,6 @@ export function SidePanel({ metrics, className = '', ...props }) {
           
           <button
             className="enterprise-button enterprise-button--ghost"
-            onClick={() => console.log('View reports')}
           >
             <BarChart3 className="enterprise-button-icon" />
             Ver Reportes

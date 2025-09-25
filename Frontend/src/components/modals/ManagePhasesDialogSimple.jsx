@@ -61,8 +61,7 @@ const ManagePhasesDialogSimple = ({
       
       setPhases(defaultPhases);
       setCurrentPhaseId(defaultPhases[1].id); // Desarrollo como fase actual
-      
-      console.log('✅ Fases cargadas para proyecto:', projectId, defaultPhases.length);
+
     } catch (error) {
       console.error('Error loading phases:', error);
     } finally {
@@ -99,8 +98,7 @@ const ManagePhasesDialogSimple = ({
 
       setPhases(prev => [...prev, newPhaseData]);
       setNewPhase({ name: '', isAdding: false });
-      
-      console.log('✅ Fase agregada:', newPhaseData.name);
+
       alert('✅ Fase agregada exitosamente');
     } catch (error) {
       console.error('Error adding phase:', error);
@@ -127,8 +125,7 @@ const ManagePhasesDialogSimple = ({
         )
       );
       setEditingPhase(null);
-      
-      console.log('✅ Fase actualizada:', newName);
+
       alert('✅ Fase actualizada exitosamente');
     } catch (error) {
       console.error('Error updating phase:', error);
@@ -157,8 +154,7 @@ const ManagePhasesDialogSimple = ({
       setSaving(true);
       try {
         setPhases(prev => prev.filter(p => p.id !== phaseId));
-        
-        console.log('✅ Fase eliminada:', phase.name);
+
         alert('✅ Fase eliminada exitosamente');
       } catch (error) {
         console.error('Error deleting phase:', error);

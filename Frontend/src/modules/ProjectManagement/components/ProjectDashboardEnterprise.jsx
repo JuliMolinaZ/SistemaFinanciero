@@ -734,7 +734,7 @@ const ProjectDashboardEnterprise = ({
   }, []);
 
   const handleExport = useCallback(() => {
-    console.log('Exportar datos');
+
   }, []);
 
   if (loading) {

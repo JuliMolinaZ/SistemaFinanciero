@@ -19,8 +19,7 @@ try {
   validateContentType = middlewares.validateContentType;
   validatePayloadSize = middlewares.validatePayloadSize;
 } catch (error) {
-  console.warn('⚠️ Algunos middlewares no están disponibles, usando middlewares básicos');
-  
+
   // Middlewares básicos de respaldo
   requestLogger = (req, res, next) => next();
   errorLogger = (err, req, res, next) => next(err);
@@ -37,7 +36,7 @@ let routes;
 try {
   routes = require('./routes/index-safe');
 } catch (error) {
-  console.warn('⚠️ No se pudo cargar las rutas, usando rutas básicas');
+
   routes = express.Router();
   routes.get('/health', (req, res) => {
     res.json({ status: 'OK', message: 'Servidor funcionando' });

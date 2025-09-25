@@ -36,7 +36,7 @@ const colors = {
 
 // Función para imprimir con colores
 const log = (message, color = 'reset') => {
-  console.log(`${colors[color]}${message}${colors.reset}`);
+
 };
 
 // Función para imprimir progreso

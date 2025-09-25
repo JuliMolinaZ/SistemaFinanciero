@@ -45,11 +45,6 @@ const ProjectMetrics = ({
 
   // 📊 Cálculo de métricas reales desde datos de proyectos
   const calculateRealMetrics = useCallback(() => {
-    console.log('📊 Calculando métricas desde datos reales:', {
-      totalProjects: projects.length,
-      totalTasks: tasks.length,
-      selectedProject: localSelectedProject
-    });
 
     if (!projects.length) {
       return null;
@@ -142,14 +137,14 @@ const ProjectMetrics = ({
         }
       }
     } catch (err) {
-      console.warn('⚠️ API no disponible, usando cálculos locales:', err.message);
+
     }
 
     // Usar cálculos locales como fallback
     const calculatedMetrics = calculateRealMetrics();
     if (calculatedMetrics) {
       setMetrics(calculatedMetrics);
-      console.log('✅ Métricas calculadas desde datos locales:', calculatedMetrics);
+
     } else {
       // Fallback a datos mock básicos
       setMetrics({

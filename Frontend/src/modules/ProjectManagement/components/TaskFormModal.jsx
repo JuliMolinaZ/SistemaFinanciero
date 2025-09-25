@@ -39,9 +39,6 @@ const TaskFormModal = ({ isOpen, onClose, onSave, task = null, projectId, users 
     { id: 4, name: 'Ana Martín', email: 'ana@empresa.com' }
   ];
 
-  console.log('👥 TaskFormModal - usuarios disponibles:', availableUsers.length);
-  console.log('👥 TaskFormModal - usuario actual:', currentUser);
-
   useEffect(() => {
     if (task) {
       // Buscar el usuario asignado en la lista de usuarios disponibles
@@ -53,14 +50,6 @@ const TaskFormModal = ({ isOpen, onClose, onSave, task = null, projectId, users 
       } else if (task.assignee && typeof task.assignee === 'number') {
         assigneeId = task.assignee;
       }
-
-      console.log('✏️ TaskFormModal - cargando tarea para edición:', {
-        taskId: task.id,
-        title: task.title,
-        assigned_to: task.assigned_to,
-        assignee: task.assignee,
-        assigneeId
-      });
 
       setFormData({
         title: task.title || '',
@@ -74,7 +63,7 @@ const TaskFormModal = ({ isOpen, onClose, onSave, task = null, projectId, users 
         tags: task.tags?.join(', ') || ''
       });
     } else {
-      console.log('✨ TaskFormModal - formulario para nueva tarea');
+
       setFormData({
         title: '',
         description: '',
@@ -132,14 +121,6 @@ const TaskFormModal = ({ isOpen, onClose, onSave, task = null, projectId, users 
         story_points: formData.story_points ? parseInt(formData.story_points) : null,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : []
       };
-
-      console.log('💾 TaskFormModal - enviando datos:', {
-        isEdit: !!task,
-        taskId: task?.id,
-        assignee_id: taskData.assignee_id,
-        assigned_to: taskData.assigned_to,
-        availableUsers: availableUsers.length
-      });
 
       if (task) {
         await onSave({ ...task, ...taskData });
@@ -414,7 +395,6 @@ const TaskFormModal = ({ isOpen, onClose, onSave, task = null, projectId, users 
               {formData.description.length}/1000 caracteres
             </p>
           </div>
-
 
           {/* Two Column Layout */}
           <div style={{

@@ -31,7 +31,6 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 const AuthForm = () => {
 
-  
   const { setCurrentUser, setProfileComplete } = useContext(GlobalContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -546,5 +545,4 @@ const AuthForm = () => {
 };
 
 export default AuthForm;
-
 

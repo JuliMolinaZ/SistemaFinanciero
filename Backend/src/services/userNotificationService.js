@@ -10,8 +10,7 @@ const { sendEmail } = require('./emailService');
  */
 const sendUserInvitationNotification = async (user, invitedBy) => {
   try {
-    console.log('📧 Enviando notificación de invitación a:', user.email);
-    
+
     const emailData = {
       to: user.email,
       subject: `🎉 SIGMA - ¡Bienvenido al equipo!`,
@@ -294,7 +293,7 @@ const sendUserInvitationNotification = async (user, invitedBy) => {
     };
 
     const result = await sendEmail(emailData);
-    console.log('✅ Notificación de invitación enviada exitosamente a:', user.email);
+
     return result;
 
   } catch (error) {
@@ -308,8 +307,7 @@ const sendUserInvitationNotification = async (user, invitedBy) => {
  */
 const sendUserWelcomeNotification = async (user) => {
   try {
-    console.log('📧 Enviando email de bienvenida a:', user.email);
-    
+
     const emailData = {
       to: user.email,
       subject: `🎉 SIGMA - ¡Perfil completado exitosamente!`,
@@ -435,7 +433,7 @@ const sendUserWelcomeNotification = async (user) => {
     };
 
     const result = await sendEmail(emailData);
-    console.log('✅ Email de bienvenida enviado exitosamente a:', user.email);
+
     return result;
 
   } catch (error) {

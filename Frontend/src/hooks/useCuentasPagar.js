@@ -20,19 +20,12 @@ export const useCuentasPagar = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('🔍 Fetching cuentas desde: /api/cuentas-pagar');
-      console.log('🔍 apiClient.defaults.baseURL:', apiClient.defaults.baseURL);
-      console.log('🔍 apiClient.defaults.headers:', apiClient.defaults.headers);
-      
+
       const response = await apiClient.get('/api/cuentas-pagar');
-      console.log('✅ Respuesta completa:', response.data);
-      
+
       // La API devuelve directamente un array de cuentas
       const cuentasData = Array.isArray(response.data) ? response.data : [];
-      console.log('✅ Cuentas obtenidas:', cuentasData.length, 'registros');
-      console.log('📊 Primera cuenta:', cuentasData[0]);
-      console.log('🔍 Campos disponibles:', Object.keys(cuentasData[0] || {}));
-      console.log('🏷️ Estructura completa de la primera cuenta:', JSON.stringify(cuentasData[0], null, 2));
+
       setCuentas(cuentasData);
     } catch (err) {
       console.error('❌ Error al obtener cuentas:', err);
@@ -56,10 +49,10 @@ export const useCuentasPagar = () => {
   const updateCuenta = useCallback(
     async (id, data) => {
       try {
-        console.log('🔄 Actualizando cuenta:', id, data);
+
         await apiClient.put(`/api/cuentas-pagar/${id}`, data);
         await fetchCuentas();
-        console.log('✅ Cuenta actualizada exitosamente');
+
       } catch (err) {
         console.error('❌ Error al actualizar cuenta:', err);
         const errorMessage = err.response?.data?.error || err.message || 'Error al actualizar cuenta';
@@ -72,10 +65,10 @@ export const useCuentasPagar = () => {
   const createCuenta = useCallback(
     async (data) => {
       try {
-        console.log('➕ Creando nueva cuenta:', data);
+
         await apiClient.post('/api/cuentas-pagar', data);
         await fetchCuentas();
-        console.log('✅ Cuenta creada exitosamente');
+
       } catch (err) {
         console.error('❌ Error al crear cuenta:', err);
         const errorMessage = err.response?.data?.error || err.message || 'Error al crear cuenta';
@@ -88,10 +81,10 @@ export const useCuentasPagar = () => {
   const deleteCuenta = useCallback(
     async (id) => {
       try {
-        console.log('🗑️ Eliminando cuenta:', id);
+
         await apiClient.delete(`/api/cuentas-pagar/${id}`);
         await fetchCuentas();
-        console.log('✅ Cuenta eliminada exitosamente');
+
       } catch (err) {
         console.error('❌ Error al eliminar cuenta:', err);
         const errorMessage = err.response?.data?.error || err.message || 'Error al eliminar cuenta';
@@ -107,7 +100,7 @@ export const useCuentasPagar = () => {
   }, []);
 
   useEffect(() => {
-    console.log('🚀 Hook useCuentasPagar inicializado');
+
     fetchCuentas();
   }, [fetchCuentas]);
 

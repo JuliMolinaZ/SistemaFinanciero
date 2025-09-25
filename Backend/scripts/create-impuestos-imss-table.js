@@ -4,8 +4,7 @@ const prisma = new PrismaClient();
 
 async function createImpuestosIMSSTable() {
   try {
-    console.log('🚀 Iniciando creación de tabla de impuestos e IMSS...');
-    
+
     // Verificar si la tabla ya existe
     const existingTable = await prisma.$queryRaw`
       SELECT TABLE_NAME 
@@ -15,7 +14,7 @@ async function createImpuestosIMSSTable() {
     `;
     
     if (existingTable.length > 0) {
-      console.log('✅ La tabla impuestos_imss ya existe');
+
       return;
     }
     
@@ -43,9 +42,7 @@ async function createImpuestosIMSSTable() {
         FOREIGN KEY (proveedor_id) REFERENCES proveedores(id) ON DELETE NO ACTION ON UPDATE NO ACTION
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `;
-    
-    console.log('✅ Tabla impuestos_imss creada exitosamente');
-    
+
     // Insertar algunos datos de ejemplo
     const sampleData = [
       {
@@ -105,17 +102,12 @@ async function createImpuestosIMSSTable() {
           ${data.periodo}, ${data.estado}, ${data.comentarios}
         )
       `;
-      console.log(`✅ Impuesto insertado: ${data.concepto}`);
+
     }
-    
-    console.log('✅ Datos de ejemplo insertados exitosamente');
-    
+
     // Verificar la creación
     const count = await prisma.$queryRaw`SELECT COUNT(*) as total FROM impuestos_imss`;
-    console.log(`📊 Total de registros en la tabla: ${count[0].total}`);
-    
-    console.log('🎉 Proceso completado exitosamente');
-    
+
   } catch (error) {
     console.error('❌ Error durante la creación de la tabla:', error);
     throw error;
@@ -128,7 +120,7 @@ async function createImpuestosIMSSTable() {
 if (require.main === module) {
   createImpuestosIMSSTable()
     .then(() => {
-      console.log('✅ Script ejecutado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

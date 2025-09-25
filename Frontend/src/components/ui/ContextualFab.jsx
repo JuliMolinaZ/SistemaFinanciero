@@ -66,9 +66,7 @@ export default function ContextualFab({
 
   const handleAction = () => {
     if (!config) return;
-    
-    console.log(`🚀 Ejecutando acción: ${config.action} desde pestaña: ${activeTab}`);
-    
+
     // Ejecutar acción específica
     switch (config.action) {
       case 'createProject':
@@ -84,7 +82,7 @@ export default function ContextualFab({
         onAction?.('exportReport');
         break;
       default:
-        console.log('Acción no definida:', config.action);
+
     }
   };
 

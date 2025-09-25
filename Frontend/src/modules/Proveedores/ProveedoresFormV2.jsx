@@ -147,8 +147,6 @@ const ActionButton = styled(IconButton)(({ theme, color }) => ({
   transition: 'all 0.2s ease'
 }));
 
-
-
 // Campo de búsqueda con el mismo estilo que Proyectos
 const StyledSearchField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
@@ -188,8 +186,6 @@ const StyledSelect = styled(FormControl)(({ theme }) => ({
     }
   }
 }));
-
-
 
 // Skeleton con el mismo estilo que Proyectos
 const ProviderRowSkeleton = React.memo(() => (

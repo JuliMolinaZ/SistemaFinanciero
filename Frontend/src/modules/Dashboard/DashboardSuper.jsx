@@ -404,10 +404,10 @@ const DashboardSuper = () => {
   const handleAction = (action) => {
     switch (action) {
       case 'export':
-        console.log('Exportar dashboard');
+
         break;
       case 'share':
-        console.log('Compartir dashboard');
+
         break;
       case 'print':
         window.print();
@@ -416,7 +416,7 @@ const DashboardSuper = () => {
         setSidebarOpen(true);
         break;
       default:
-        console.log(`Acción: ${action}`);
+
     }
   };
 

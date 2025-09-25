@@ -40,63 +40,13 @@ const ProfileSetup = () => {
           setRoles([]);
         }
       } catch (error) {
-        console.log('⚠️ Error al cargar roles (esto es normal para usuarios invitados):', error.response?.status);
-        // Si es un error 401, es normal para usuarios invitados
-        if (error.response?.status === 401) {
-          console.log('ℹ️ Usuario invitado - roles se cargarán después de completar perfil');
-          setRoles([]);
-        } else {
-          console.error('Error inesperado al cargar roles:', error);
-          setRoles([]);
-        }
+        console.error('Error al obtener roles:', error);
+        setRoles([]);
       }
     };
 
     fetchRoles();
   }, []);
-
-  const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleAvatarSelect = (avatar) => {
-    setForm({ ...form, avatar });
-  };
-
-  const handleImageUpload = e => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm({ ...form, avatar: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-
-    const profile = {
-      name: form.name,
-      role: form.role,
-      avatar: form.avatar
-    };
-
-    try {
-      const response = await axios.put(`/api/usuarios/firebase/${currentUser.uid}`, profile);
-
-      setProfileData(response.data);
-      setProfileComplete(true);
-      navigate('/');
-    } catch (error) {
-      notify.error({
-        title: 'Error al actualizar perfil',
-        description: 'No se pudo guardar la información. Intenta nuevamente más tarde.',
-        error
-      });
-    }
-  };
 
   return (
     <section>

@@ -48,6 +48,7 @@ import {
   UnifiedFormLayout
 } from '../../../components/DesignSystem/FormComponents';
 import { designTheme, styleUtils } from '../../../components/DesignSystem';
+import { TaskFormActionButtons } from './TaskFormStyleButtons';
 
 // 🏃‍♂️ CARD DE SPRINT UNIFICADO
 const SprintCard = React.memo(({ sprint, index, onEdit, onStart, onComplete }) => {
@@ -319,7 +320,8 @@ const SprintCard = React.memo(({ sprint, index, onEdit, onStart, onComplete }) =
           </Box>
 
           {/* Actions */}
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Botones de estado del sprint */}
             {sprint.status === 'planning' && (
               <UnifiedButton
                 variant="success"
@@ -342,27 +344,17 @@ const SprintCard = React.memo(({ sprint, index, onEdit, onStart, onComplete }) =
                 Completar
               </UnifiedButton>
             )}
-            <Tooltip title="Ver detalles">
-              <Box>
-                <UnifiedButton
-                  variant="secondary"
-                  icon={<VisibilityIcon />}
-                  size="small"
-                  sx={{ minWidth: 40, px: 1 }}
-                />
-              </Box>
-            </Tooltip>
-            <Tooltip title="Editar">
-              <Box>
-                <UnifiedButton
-                  variant="success"
-                  icon={<EditIcon />}
-                  onClick={() => onEdit && onEdit(sprint)}
-                  size="small"
-                  sx={{ minWidth: 40, px: 1 }}
-                />
-              </Box>
-            </Tooltip>
+            
+            {/* Botones de acciones con estilo del formulario de tareas */}
+            <TaskFormActionButtons
+              onEdit={() => onEdit && onEdit(sprint)}
+              showLabels={false}
+              size="small"
+              disabled={{
+                view: false,
+                edit: false
+              }}
+            />
           </Box>
         </Box>
       </UnifiedCard>

@@ -33,39 +33,77 @@ const ProjectFormDialog = ({
   const [selectedOperationsUsers, setSelectedOperationsUsers] = useState([]);
   const [selectedItUsers, setSelectedItUsers] = useState([]);
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showPhaseManager, setShowPhaseManager] = useState(false);
 
-  // Cargar datos iniciales cuando se abre el modal
+  // Efecto simple para cargar datos cuando se abre el modal
   useEffect(() => {
     if (open) {
-      loadFormData();
-      
-      // Si es modo edición, precargar valores
-      if (mode === 'edit' && initialValues) {
-        setFormData({
-          nombre: initialValues.nombre || initialValues.name || '',
-          descripcion: initialValues.descripcion || initialValues.description || '',
-          cliente_id: initialValues.cliente_id || initialValues.client?.id || '',
-          priority: initialValues.priority || 'medium',
-          start_date: initialValues.start_date ? initialValues.start_date.split('T')[0] : '',
-          end_date: initialValues.end_date ? initialValues.end_date.split('T')[0] : '',
-          project_manager_id: initialValues.project_manager_id || '',
-        });
+      setIsLoading(true);
 
-        // Precargar equipos
-        const operations = initialValues.members?.filter(m => m.team_type === 'operations') || [];
-        const it = initialValues.members?.filter(m => m.team_type === 'it') || [];
-        
-        setSelectedOperationsUsers(operations.map(m => ({ id: m.user_id, name: m.user?.name })));
-        setSelectedItUsers(it.map(m => ({ id: m.user_id, name: m.user?.name })));
-      }
-    }
-  }, [open, mode, initialValues]);
+      // Función simple para cargar datos
+      const loadData = async () => {
+        try {
+          // Cargar clientes y usuarios en paralelo
+          const [clientsRes, usersRes] = await Promise.all([
+            fetch('http://localhost:8765/api/clients', {
+              method: 'GET',
+              credentials: 'include'
+            }),
+            fetch('http://localhost:8765/api/usuarios', {
+              method: 'GET',
+              credentials: 'include'
+            })
+          ]);
 
-  // Limpiar formulario al cerrar
-  useEffect(() => {
-    if (!open) {
+          // Procesar clientes
+          if (clientsRes.ok) {
+            const clientsData = await clientsRes.json();
+            setClients(clientsData.data || []);
+          } else {
+            setClients([]);
+          }
+
+          // Procesar usuarios
+          if (usersRes.ok) {
+            const usersData = await usersRes.json();
+            setUsers(usersData.data || []);
+          } else {
+            setUsers([]);
+          }
+
+          // Si es modo edición, precargar valores
+          if (mode === 'edit' && initialValues) {
+            setFormData({
+              nombre: initialValues.nombre || initialValues.name || '',
+              descripcion: initialValues.descripcion || initialValues.description || '',
+              cliente_id: initialValues.cliente_id || initialValues.client?.id || '',
+              priority: initialValues.priority || 'medium',
+              start_date: initialValues.start_date ? initialValues.start_date.split('T')[0] : '',
+              end_date: initialValues.end_date ? initialValues.end_date.split('T')[0] : '',
+              project_manager_id: initialValues.project_manager_id || '',
+            });
+
+            // Precargar equipos
+            const operations = initialValues.members?.filter(m => m.team_type === 'operations') || [];
+            const it = initialValues.members?.filter(m => m.team_type === 'it') || [];
+
+            setSelectedOperationsUsers(operations.map(m => ({ id: m.user_id, name: m.user?.name })));
+            setSelectedItUsers(it.map(m => ({ id: m.user_id, name: m.user?.name })));
+          }
+
+          } catch (error) {
+          console.error('❌ Error:', error);
+          setClients([]);
+          setUsers([]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadData();
+    } else {
+      // Reset cuando se cierre
       setFormData({
         nombre: '',
         descripcion: '',
@@ -80,40 +118,6 @@ const ProjectFormDialog = ({
       setErrors({});
     }
   }, [open]);
-
-  // Cargar clientes y usuarios
-  const loadFormData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Obtener clientes
-      const clientsResponse = await fetch('http://localhost:8765/api/clients', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      
-      if (clientsResponse.ok) {
-        const clientsData = await clientsResponse.json();
-        setClients(clientsData.data || []);
-      }
-
-      // Obtener usuarios
-      const usersResponse = await fetch('http://localhost:8765/api/usuarios', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json();
-        setUsers(usersData.data || []);
-      }
-
-    } catch (error) {
-      console.error('Error cargando datos del formulario:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -198,13 +202,30 @@ const ProjectFormDialog = ({
 
         {/* Body con formulario */}
         <form onSubmit={handleSubmit} className="enterprise-modal-body">
-          {isLoading && (
+          {isLoading ? (
             <div className="enterprise-form-loading">
-              Cargando datos del formulario...
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '16px',
+                minHeight: '200px',
+                justifyContent: 'center'
+              }}>
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  border: '2px solid #e5e7eb',
+                  borderTop: '2px solid #3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                <span>Cargando datos del formulario...</span>
+              </div>
             </div>
-          )}
-
-          {/* Nombre del proyecto */}
+          ) : (
+            <>
+              {/* Nombre del proyecto */}
           <div className="enterprise-form-field">
             <label className="enterprise-form-label">
               Nombre del Proyecto *
@@ -344,21 +365,24 @@ const ProjectFormDialog = ({
               </p>
             </div>
           )}
+              </>
+            )}
         </form>
 
         {/* Footer */}
         <div className="enterprise-modal-footer">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading}
+            disabled={loading || isLoading}
           >
             Cancelar
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleSubmit}
             loading={loading}
+            disabled={isLoading}
           >
             {submitLabel || (isEdit ? 'Guardar Cambios' : 'Crear Proyecto')}
           </Button>
@@ -373,7 +397,7 @@ const ProjectFormDialog = ({
           projectId={initialValues?.id}
           projectName={initialValues?.nombre || initialValues?.name || 'Proyecto'}
           onPhasesUpdated={() => {
-            console.log('✅ Fases actualizadas');
+
             setShowPhaseManager(false);
           }}
         />

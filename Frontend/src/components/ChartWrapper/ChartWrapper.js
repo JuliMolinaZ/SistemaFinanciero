@@ -56,6 +56,3 @@ ChartWrapper.defaultProps = {
 
 export default ChartWrapper;
 
-
-
-

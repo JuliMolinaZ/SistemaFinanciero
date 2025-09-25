@@ -7,8 +7,6 @@ const sprintController = require('../controllers/sprintController');
 const taskController = require('../controllers/taskController');
 const dailyStandupController = require('../controllers/dailyStandupController');
 
-console.log('🔧 Project Management Router cargado');
-
 // Ruta de prueba básica
 router.get('/test', (req, res) => {
   res.json({ message: 'Project Management Router funcionando correctamente', timestamp: new Date() });
@@ -58,8 +56,7 @@ router.get('/projects/analytics', cacheMiddleware(600), projectController.getPro
 // Endpoint directo para datos reales (versión simplificada)
 router.get('/projects-real', async (req, res) => {
   try {
-    console.log('🔍 PROJECTS-REAL - Devolviendo datos realistas de gestión de proyectos');
-    
+
     const { search } = req.query;
     
     const projects = [
@@ -211,7 +208,7 @@ router.get('/projects-real', async (req, res) => {
         project.client.nombre.toLowerCase().includes(searchLower) ||
         project.status.toLowerCase().includes(searchLower)
       );
-      console.log(`🔍 Filtrado por búsqueda "${search}": ${filteredProjects.length} proyectos`);
+
     }
 
     // Procesar proyectos para agregar información de cliente
@@ -250,9 +247,6 @@ router.get('/projects-real', async (req, res) => {
 
     const groups = Array.from(groupMap.values());
 
-    console.log('✅ PROJECTS-REAL - Proyectos procesados:', processedProjects.length);
-    console.log('✅ PROJECTS-REAL - Grupos creados:', groups.length);
-
     res.json({
       success: true,
       message: `${processedProjects.length} proyectos obtenidos exitosamente`,
@@ -286,7 +280,6 @@ router.post('/projects', projectController.createProject);
 
 // Actualizar un proyecto
 router.put('/projects/:id', projectController.updateProject);
-
 
 // Eliminar un proyecto
 router.delete('/projects/:id', projectController.deleteProject);
@@ -405,5 +398,56 @@ router.post('/sprints/:sprintId/retrospectives', dailyStandupController.createOr
 
 // Obtener resumen de retrospectivas
 router.get('/sprints/:sprintId/retrospectives/summary', dailyStandupController.getSprintRetrospectiveSummary);
+
+// ===========================================
+// RUTA DE ESTADÍSTICAS DEL DASHBOARD
+// ===========================================
+
+// Obtener estadísticas para el dashboard
+router.get('/dashboard/stats', authenticateUser, async (req, res) => {
+  try {
+
+    // Importar prisma directamente aquí
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+
+    // Contar proyectos
+    const projectsCount = await prisma.project.count();
+
+    // Contar tareas
+    const tasksCount = await prisma.task.count();
+
+    // Contar sprints activos
+    const sprintsCount = await prisma.sprint.count({
+      where: {
+        OR: [
+          { status: 'active' },
+          { status: 'planned' }
+        ]
+      }
+    });
+
+    await prisma.$disconnect();
+
+    const stats = {
+      projects: projectsCount,
+      tasks: tasksCount,
+      sprints: sprintsCount
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('❌ Error obteniendo estadísticas del dashboard:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

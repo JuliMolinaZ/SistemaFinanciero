@@ -309,34 +309,27 @@ const modulePermissions = {
 
 async function configureWorkingPermissions() {
   try {
-    console.log('🚀 Configurando permisos funcionales...');
-    
+
     // 1. OBTENER TODOS LOS ROLES
     const roles = await prisma.roles.findMany({
       where: { is_active: true },
       orderBy: { level: 'asc' }
     });
 
-    console.log(`📋 ${roles.length} roles encontrados`);
-
     // 2. CONFIGURAR PERMISOS PARA CADA ROL
     for (const role of roles) {
-      console.log(`\n🔐 Configurando permisos para rol: "${role.name}"`);
-      
+
       // Obtener la configuración de permisos para este rol
       const rolePermissions = modulePermissions[role.name];
       
       if (!rolePermissions) {
-        console.log(`⚠️ No hay configuración de permisos para el rol: "${role.name}"`);
+
         continue;
       }
 
-      console.log(`✅ Configuración encontrada para "${role.name}"`);
-
       // Para cada módulo, configurar permisos
       for (const [moduleName, permissions] of Object.entries(rolePermissions)) {
-        console.log(`  📦 Configurando módulo: ${moduleName}`);
-        
+
         // Crear el permiso
         const permissionData = {
           role_id: role.id,
@@ -356,15 +349,12 @@ async function configureWorkingPermissions() {
             data: permissionData
           });
 
-          console.log(`    ✅ Permisos configurados para ${moduleName}`);
         } catch (error) {
           console.error(`    ❌ Error configurando permisos para ${moduleName}:`, error.message);
         }
       }
     }
 
-    console.log('\n🎉 Configuración de permisos completada exitosamente!');
-    
     // 3. MOSTRAR RESUMEN DE PERMISOS CONFIGURADOS
     await showPermissionsSummary();
     
@@ -382,8 +372,6 @@ async function configureWorkingPermissions() {
 
 async function showPermissionsSummary() {
   try {
-    console.log('\n📊 RESUMEN DE PERMISOS CONFIGURADOS:');
-    console.log('=====================================');
 
     const roles = await prisma.roles.findMany({
       where: { is_active: true },
@@ -397,29 +385,15 @@ async function showPermissionsSummary() {
     });
 
     for (const role of roles) {
-      console.log(`\n👤 ${role.name} (Nivel ${role.level}) - ${role._count.users} usuarios`);
-      console.log('─'.repeat(50));
-      
-      const modules = await prisma.systemModules.findMany({
-        where: { is_active: true },
-        orderBy: { name: 'asc' }
-      });
 
-      for (const module of modules) {
-        const permission = role.role_permissions.find(p => p.module === module.name);
-        
-        if (permission) {
-          const permissions = [];
-          if (permission.can_read) permissions.push('📖 Ver');
           if (permission.can_create) permissions.push('➕ Crear');
           if (permission.can_update) permissions.push('✏️ Editar');
           if (permission.can_delete) permissions.push('🗑️ Eliminar');
           if (permission.can_export) permissions.push('📤 Exportar');
           if (permission.can_approve) permissions.push('✅ Aprobar');
-          
-          console.log(`  📦 ${module.display_name}: ${permissions.join(' | ')}`);
+
         } else {
-          console.log(`  📦 ${module.display_name}: ❌ Sin acceso`);
+
         }
       }
     }
@@ -436,7 +410,7 @@ async function showPermissionsSummary() {
 if (require.main === module) {
   configureWorkingPermissions()
     .then(() => {
-      console.log('\n✅ Script ejecutado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

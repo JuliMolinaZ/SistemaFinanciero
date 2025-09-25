@@ -8,7 +8,7 @@ router.get('/:id', recuperacionController.getRecuperacionById);
 
 // Añadir middleware de depuración para POST
 router.post('/', (req, res, next) => {
-  console.log("POST /api/recuperacion - body:", req.body);
+
   next();
 }, recuperacionController.createRecuperacion);
 

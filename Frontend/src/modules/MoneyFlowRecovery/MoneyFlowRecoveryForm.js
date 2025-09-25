@@ -6,6 +6,3 @@
 import MoneyFlowRecoveryFormV2 from './MoneyFlowRecoveryFormV2';
 export default MoneyFlowRecoveryFormV2;
 
-
-
-

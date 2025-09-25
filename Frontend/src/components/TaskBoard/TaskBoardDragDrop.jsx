@@ -581,12 +581,6 @@ const DroppableColumn = ({
     }
   });
 
-  console.log(`📋 Column ${column.status} droppable setup:`, {
-    id: `column-${column.status}`,
-    isOver,
-    status: column.status
-  });
-
   return (
     <Box
       className={`column-drop-zone ${isOver ? 'drag-over' : ''}`}
@@ -794,7 +788,7 @@ const TaskBoardDragDrop = ({
       // 1. Intentar desde el servicio nuevamente
       const user = await taskManagementService.getCurrentUser();
       if (user) {
-        console.log('🔄 Usuario obtenido desde servicio fallback:', user.name);
+
         return user;
       }
 
@@ -808,7 +802,7 @@ const TaskBoardDragDrop = ({
           email: parsed.email,
           avatar: parsed.avatar
         };
-        console.log('🔄 Usuario obtenido desde localStorage:', fallbackUser.name);
+
         return fallbackUser;
       }
 
@@ -822,7 +816,7 @@ const TaskBoardDragDrop = ({
           email: parsed.email,
           avatar: parsed.avatar
         };
-        console.log('🔄 Usuario obtenido desde sessionStorage:', fallbackUser.name);
+
         return fallbackUser;
       }
 
@@ -833,7 +827,7 @@ const TaskBoardDragDrop = ({
         email: 'usuario@sistema.com',
         avatar: null
       };
-      console.log('🔄 Usando usuario genérico como último recurso');
+
       return genericUser;
 
     } catch (error) {
@@ -866,14 +860,6 @@ const TaskBoardDragDrop = ({
         taskManagementService.getUsersByProject(projectId)
       ]);
 
-      console.log('👥 Datos de usuario desde contexto global:', {
-        profileData,
-        hasProfileData: !!profileData,
-        userName: profileData?.name,
-        userEmail: profileData?.email,
-        userId: profileData?.id
-      });
-
       setTasks(tasksResponse.data?.tasks || []);
       setUsers(usersResponse.data || []);
 
@@ -891,21 +877,16 @@ const TaskBoardDragDrop = ({
         };
 
         setCurrentUser(processedUser);
-        console.log('👤 Usuario actual establecido desde contexto:', {
-          id: processedUser.id,
-          name: processedUser.name,
-          email: processedUser.email,
-          source: 'GlobalContext.profileData'
-        });
+
       } else {
-        console.log('⚠️ No hay profileData en contexto global');
+
         // Intentar fallback
         const fallbackUser = await tryGetUserFallback();
         if (fallbackUser) {
           setCurrentUser(fallbackUser);
-          console.log('👤 Usuario establecido desde fallback:', fallbackUser.name);
+
         } else {
-          console.log('⚠️ No se pudo obtener usuario, usará genérico');
+
           setCurrentUser(null);
         }
       }
@@ -942,11 +923,7 @@ const TaskBoardDragDrop = ({
       };
 
       setCurrentUser(processedUser);
-      console.log('🔄 Usuario actualizado desde profileData:', {
-        id: processedUser.id,
-        name: processedUser.name,
-        email: processedUser.email
-      });
+
     }
   }, [profileData, currentUser]);
 
@@ -955,7 +932,7 @@ const TaskBoardDragDrop = ({
     const handleCreateNewTask = (event) => {
       const { projectId: eventProjectId, status } = event.detail;
       if (eventProjectId === projectId) {
-        console.log('🎯 Evento createNewTask capturado:', { projectId: eventProjectId, status });
+
         handleAddTask(status || 'todo');
       }
     };
@@ -978,22 +955,15 @@ const TaskBoardDragDrop = ({
     setActiveId(null);
 
     if (!over) {
-      console.log('🚫 No drop target found');
+
       return;
     }
 
     const activeTask = tasks.find(task => task.id === active.id);
     if (!activeTask) {
-      console.log('❌ Active task not found:', active.id);
+
       return;
     }
-
-    console.log('🎯 Drag ended:', {
-      activeId: active.id,
-      overId: over.id,
-      overData: over.data?.current,
-      activeTask: activeTask.title
-    });
 
     // Determinar nueva columna
     let newStatus = null;
@@ -1001,17 +971,17 @@ const TaskBoardDragDrop = ({
     // Si se suelta en una columna (formato column-status)
     if (over.id && over.id.toString().startsWith('column-')) {
       newStatus = over.id.toString().replace('column-', '');
-      console.log('📋 Dropped on column:', newStatus);
+
     }
     // Si se suelta en otra tarea, usar el estado de esa tarea
     else if (over.data?.current?.task) {
       newStatus = over.data.current.task.status;
-      console.log('🃏 Dropped on task, inheriting status:', newStatus);
+
     }
     // Si se suelta en el área de drop de una columna
     else if (over.data?.current?.status) {
       newStatus = over.data.current.status;
-      console.log('🎯 Dropped on drop area, status:', newStatus);
+
     }
     // Fallback: buscar por overId directamente en las columnas
     else {
@@ -1022,18 +992,12 @@ const TaskBoardDragDrop = ({
       );
       if (columnMatch) {
         newStatus = columnMatch.status;
-        console.log('🔍 Fallback column match:', newStatus);
+
       }
     }
 
-    console.log('🔄 Status change:', {
-      from: activeTask.status,
-      to: newStatus,
-      willUpdate: newStatus && newStatus !== activeTask.status
-    });
-
     if (!newStatus || newStatus === activeTask.status) {
-      console.log('⚠️ No status change needed');
+
       return;
     }
 
@@ -1088,32 +1052,26 @@ const TaskBoardDragDrop = ({
 
   // Manejar eliminación de tarea con confirmación personalizada
   const handleDeleteTask = async (taskId) => {
-    console.log('🗑️ Iniciando eliminación de tarea:', taskId);
-    
+
     const taskToDelete = tasks.find(task => task.id === taskId);
     if (!taskToDelete) {
-      console.log('❌ Tarea no encontrada:', taskId);
+
       return;
     }
 
-    console.log('🔍 Tarea encontrada:', taskToDelete.title);
-
     try {
       // Usar el sistema de confirmación personalizado
-      console.log('📋 Mostrando diálogo de confirmación...');
+
       const confirmed = await confirmDelete(
         `¿Estás seguro de que deseas eliminar la tarea "${taskToDelete.title}"?\n\nEsta acción no se puede deshacer.`,
         'Eliminar Tarea'
       );
 
-      console.log('✅ Confirmación recibida:', confirmed);
-
       if (!confirmed) {
-        console.log('❌ Usuario canceló la eliminación');
+
         return;
       }
 
-      console.log('🚀 Procediendo con la eliminación...');
       await taskManagementService.deleteTask(taskId);
 
       setTasks(prev => prev.filter(task => task.id !== taskId));
@@ -1124,8 +1082,6 @@ const TaskBoardDragDrop = ({
       if (onTaskDelete) {
         onTaskDelete(taskId);
       }
-
-      console.log('✅ Tarea eliminada exitosamente');
 
     } catch (error) {
       console.error('❌ Error eliminando tarea:', error);
@@ -1154,11 +1110,6 @@ const TaskBoardDragDrop = ({
         }
       } else {
         // Crear nueva tarea (con o sin usuario)
-        console.log('✨ Creando nueva tarea:', {
-          title: taskData.title,
-          hasCurrentUser: !!currentUser,
-          currentUserName: currentUser?.name
-        });
 
         // Preparar información del creador
         let creatorInfo = null;
@@ -1177,7 +1128,7 @@ const TaskBoardDragDrop = ({
             email: null,
             avatar: null
           };
-          console.log('⚠️ Creando tarea con usuario genérico');
+
         }
 
         const newTaskData = {

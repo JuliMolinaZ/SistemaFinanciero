@@ -52,7 +52,7 @@ export function ErrorDialog({
 
   const handleReportError = () => {
     // TODO: Implementar reporte de errores
-    console.log('TODO: Implementar reporte de errores');
+
   };
 
   return (

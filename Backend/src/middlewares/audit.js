@@ -84,9 +84,16 @@ const sanitizeDataForAudit = (data) => {
   return sanitized;
 };
 
-// Middleware para auditar operaciones CRUD
+// Middleware para auditar operaciones CRUD - VERSIÓN MEJORADA ANTI-BUCLE
 const auditCRUD = (tableName, action) => {
   return async (req, res, next) => {
+    // Verificar si ya estamos auditando esta petición para evitar bucles infinitos
+    if (req._auditing) {
+      return next();
+    }
+    
+    req._auditing = true; // Marcar que estamos auditando
+    
     const originalSend = res.send;
     const originalJson = res.json;
     
@@ -95,6 +102,13 @@ const auditCRUD = (tableName, action) => {
     
     // Interceptar respuesta
     res.json = function(data) {
+      // Verificar si la respuesta ya fue procesada
+      if (res._auditProcessed) {
+        return originalJson.call(this, data);
+      }
+      
+      res._auditProcessed = true;
+      
       const auditData = {
         userId: req.user?.userId || req.user?.firebase_uid,
         userEmail: req.user?.email,
@@ -112,15 +126,27 @@ const auditCRUD = (tableName, action) => {
         }
       };
 
-      // Crear registro de auditoría de forma asíncrona
-      createAuditLog(auditData).catch(error => {
+      // Crear registro de auditoría de forma asíncrona con timeout
+      const auditPromise = createAuditLog(auditData).catch(error => {
         console.error('Error en auditoría:', error);
       });
+      
+      // Timeout para evitar que la auditoría bloquee la respuesta
+      setTimeout(() => {
+        auditPromise.catch(() => {}); // Ignorar errores del timeout
+      }, 1000);
 
       return originalJson.call(this, data);
     };
 
     res.send = function(data) {
+      // Verificar si la respuesta ya fue procesada
+      if (res._auditProcessed) {
+        return originalSend.call(this, data);
+      }
+      
+      res._auditProcessed = true;
+      
       const auditData = {
         userId: req.user?.userId || req.user?.firebase_uid,
         userEmail: req.user?.email,
@@ -138,10 +164,15 @@ const auditCRUD = (tableName, action) => {
         }
       };
 
-      // Crear registro de auditoría de forma asíncrona
-      createAuditLog(auditData).catch(error => {
+      // Crear registro de auditoría de forma asíncrona con timeout
+      const auditPromise = createAuditLog(auditData).catch(error => {
         console.error('Error en auditoría:', error);
       });
+      
+      // Timeout para evitar que la auditoría bloquee la respuesta
+      setTimeout(() => {
+        auditPromise.catch(() => {}); // Ignorar errores del timeout
+      }, 1000);
 
       return originalSend.call(this, data);
     };
@@ -252,8 +283,7 @@ const cleanupOldAuditLogs = async (daysToKeep = 90) => {
   try {
     const query = `DELETE FROM ${AUDIT_TABLE} WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)`;
     const [result] = await db.query(query, [daysToKeep]);
-    
-    console.log(`Audit logs cleanup: ${result.affectedRows} records deleted`);
+
     return result.affectedRows;
   } catch (error) {
     console.error('Error limpiando logs de auditoría:', error);

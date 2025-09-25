@@ -262,16 +262,6 @@ const StyledSelect = styled(FormControl)(({ theme }) => ({
   }
 }));
 
-
-
-
-
-
-
-
-
-
-
 const EmitidasFormsV2 = () => {
   // Agregar estilos CSS para animaciones
   useEffect(() => {
@@ -280,8 +270,6 @@ const EmitidasFormsV2 = () => {
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
   }, []);
-
-
 
   const [facturas, setFacturas] = useState([]);
   const [filteredFacturas, setFilteredFacturas] = useState([]);
@@ -549,8 +537,6 @@ const EmitidasFormsV2 = () => {
         });
       }
 
-
-
       // Llamar a la API con FormData
       const response = await axios.put(`/api/emitidas/${id}`, formData, {
         headers: {
@@ -787,7 +773,6 @@ const EmitidasFormsV2 = () => {
 
   return (
     <StyledContainer maxWidth="xl">
-
 
       {/* Header con estadísticas como en Proyectos */}
       <motion.div

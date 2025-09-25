@@ -345,8 +345,6 @@ const TaskManagementPro = ({ projectId, projectName, onClose }) => {
     overdue: 0
   });
 
-  console.log('🎯 TaskManagementPro renderizado con:', { projectId, projectName });
-
   // Configurar sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -365,7 +363,6 @@ const TaskManagementPro = ({ projectId, projectName, onClose }) => {
 
     try {
       setLoading(true);
-      console.log('🔄 Cargando tareas para proyecto:', projectId);
 
       // Simular datos mientras implementamos la API
       const mockTasks = [
@@ -503,7 +500,6 @@ const TaskManagementPro = ({ projectId, projectName, onClose }) => {
     // Solo actualizar si el status cambió
     const task = tasks.find(t => t.id === taskId);
     if (task && task.status !== newStatus) {
-      console.log('🔄 Actualizando tarea:', { taskId, newStatus });
 
       const updatedTasks = tasks.map(t =>
         t.id === taskId ? { ...t, status: newStatus } : t
@@ -535,7 +531,6 @@ const TaskManagementPro = ({ projectId, projectName, onClose }) => {
   const handleDeleteTask = useCallback(async (task) => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar la tarea "${task.title}"?`)) {
       try {
-        console.log('🗑️ Eliminando tarea:', task.id);
 
         // Actualizar lista local
         const updatedTasks = tasks.filter(t => t.id !== task.id);
@@ -554,7 +549,6 @@ const TaskManagementPro = ({ projectId, projectName, onClose }) => {
 
   const handleSaveTask = useCallback(async (taskData) => {
     try {
-      console.log('💾 Guardando tarea:', taskData);
 
       if (editingTask) {
         // Actualizar tarea existente

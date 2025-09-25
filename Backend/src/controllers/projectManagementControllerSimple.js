@@ -7,8 +7,7 @@ const prisma = new PrismaClient();
 // 📋 Obtener todos los proyectos - VERSIÓN SIMPLIFICADA
 const getAllProjects = async (req, res) => {
   try {
-    console.log('🔍 getAllProjects - Versión simplificada iniciando...');
-    
+
     // Obtener proyectos con consulta SQL directa para incluir color del cliente
     const projects = await prisma.$queryRaw`
       SELECT
@@ -18,14 +17,14 @@ const getAllProjects = async (req, res) => {
           'nombre', c.nombre,
           'color', c.color
         ) as client
-      FROM projects p
+      FROM management_projects p
       LEFT JOIN clients c ON p.cliente_id = c.id
       ORDER BY p.created_at DESC
     `;
 
     // Obtener miembros de cada proyecto
     for (const project of projects) {
-      const members = await prisma.projectMember.findMany({
+      const members = await prisma.managementProjectMember.findMany({
         where: { project_id: project.id },
         select: {
           id: true,
@@ -51,8 +50,6 @@ const getAllProjects = async (req, res) => {
       }
     }
 
-    console.log(`✅ Proyectos obtenidos: ${projects.length}`);
-
     res.json({
       success: true,
       message: 'Proyectos obtenidos exitosamente',
@@ -74,9 +71,8 @@ const getAllProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 getProjectById - ID:', id);
 
-    const project = await prisma.project.findUnique({
+    const project = await prisma.managementProject.findUnique({
       where: { id: parseInt(id) },
       include: {
         client: {
@@ -109,8 +105,6 @@ const getProjectById = async (req, res) => {
       });
     }
 
-    console.log('✅ Proyecto encontrado:', project.nombre);
-
     res.json({
       success: true,
       message: 'Proyecto obtenido exitosamente',
@@ -130,8 +124,28 @@ const getProjectById = async (req, res) => {
 // ➕ Crear proyecto
 const createProject = async (req, res) => {
   try {
-    console.log('🔍 createProject - Datos recibidos:', req.body);
-    
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
     const {
       nombre,
       descripcion,
@@ -160,11 +174,12 @@ const createProject = async (req, res) => {
       start_date: start_date ? new Date(start_date) : null,
       end_date: end_date ? new Date(end_date) : null,
       project_manager_id: project_manager_id ? parseInt(project_manager_id) : null,
+      created_by: user.id, // Agregar el ID del usuario que crea el proyecto
       status: 'planning',
       progress: 0
     };
 
-    const project = await prisma.project.create({
+    const project = await prisma.managementProject.create({
       data: projectData,
       include: {
         client: {
@@ -176,8 +191,6 @@ const createProject = async (req, res) => {
       }
     });
 
-    console.log('✅ Proyecto creado:', project.nombre);
-
     // Crear miembros del proyecto si se proporcionaron
     if (members && members.length > 0) {
       const memberData = members.map(member => ({
@@ -187,11 +200,10 @@ const createProject = async (req, res) => {
         team_type: member.team_type || 'operations'
       }));
 
-      await prisma.projectMember.createMany({
+      await prisma.managementProjectMember.createMany({
         data: memberData
       });
 
-      console.log(`✅ Miembros agregados: ${memberData.length}`);
     }
 
     res.status(201).json({
@@ -216,21 +228,17 @@ const updateProject = async (req, res) => {
     const { id } = req.params;
     const { client_color, ...projectData } = req.body;
 
-    console.log('🔍 updateProject - ID:', id);
-    console.log('🔍 updateProject - Datos del proyecto:', projectData);
-    console.log('🔍 updateProject - Color del cliente:', client_color);
-
     // Si se incluye client_color y cliente_id, actualizar el color del cliente
     if (client_color && projectData.cliente_id) {
-      console.log('🎨 Actualizando color del cliente...');
+
       await prisma.client.update({
         where: { id: parseInt(projectData.cliente_id) },
         data: { color: client_color }
       });
-      console.log('✅ Color del cliente actualizado');
+
     }
 
-    const project = await prisma.project.update({
+    const project = await prisma.managementProject.update({
       where: { id: parseInt(id) },
       data: projectData,
       include: {
@@ -255,8 +263,6 @@ const updateProject = async (req, res) => {
         }
       }
     });
-
-    console.log('✅ Proyecto actualizado:', project.nombre);
 
     res.json({
       success: true,
@@ -286,13 +292,54 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 deleteProject - ID:', id);
 
-    const project = await prisma.project.delete({
-      where: { id: parseInt(id) }
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
     });
 
-    console.log('✅ Proyecto eliminado:', project.nombre);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
+    // Buscar el proyecto para verificar permisos
+    const existingProject = await prisma.managementProject.findUnique({
+      where: { id: parseInt(id) },
+      select: { id: true, nombre: true, created_by: true }
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({
+        success: false,
+        message: 'Proyecto no encontrado'
+      });
+    }
+
+    // Validar que solo el creador pueda eliminar el proyecto
+    if (existingProject.created_by !== user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tienes permisos para eliminar este proyecto. Solo el creador puede eliminarlo.'
+      });
+    }
+
+    // Eliminar el proyecto
+    const project = await prisma.managementProject.delete({
+      where: { id: parseInt(id) }
+    });
 
     res.json({
       success: true,

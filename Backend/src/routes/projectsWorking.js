@@ -89,7 +89,6 @@ const mockProjects = [
 // 📊 GET ALL PROJECTS WITH GROUPING
 router.get('/projects', async (req, res) => {
   try {
-    console.log('🔍 GET /projects - Endpoint funcional con agrupación');
 
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
@@ -109,8 +108,6 @@ router.get('/projects', async (req, res) => {
       LEFT JOIN clients c ON p.cliente_id = c.id
       ORDER BY p.created_at DESC
     `;
-
-    console.log('🔍 Proyectos obtenidos de BD:', projects.length);
 
     // Procesar client JSON y agregar miembros
     for (const project of projects) {
@@ -198,8 +195,6 @@ router.get('/projects', async (req, res) => {
       return a.clientName.localeCompare(b.clientName);
     });
 
-    console.log(`✅ Proyectos obtenidos: ${projectsWithClients.length} en ${groups.length} grupos`);
-
     res.json({
       success: true,
       message: 'Proyectos obtenidos exitosamente',
@@ -229,7 +224,6 @@ router.get('/projects', async (req, res) => {
 router.get('/projects/:id', (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 GET /projects/:id - ID:', id);
 
     const project = mockProjects.find(p => p.id === parseInt(id));
     
@@ -264,8 +258,6 @@ router.get('/projects/:id', (req, res) => {
       }
     };
 
-    console.log('✅ Proyecto encontrado:', fullProject.nombre);
-
     res.json({
       success: true,
       message: 'Proyecto obtenido exitosamente',
@@ -286,7 +278,6 @@ router.get('/projects/:id', (req, res) => {
 router.put('/projects/:id', (req, res) => {
   try {
     const { id } = req.params;
-    console.log('✏️ PUT /projects/:id - ID:', id, 'Data:', req.body);
 
     const projectIndex = mockProjects.findIndex(p => p.id === parseInt(id));
     
@@ -314,8 +305,6 @@ router.put('/projects/:id', (req, res) => {
       } : null
     };
 
-    console.log('✅ Proyecto actualizado:', updatedProject.nombre);
-
     res.json({
       success: true,
       message: 'Proyecto actualizado exitosamente',
@@ -336,7 +325,6 @@ router.put('/projects/:id', (req, res) => {
 router.delete('/projects/:id', (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🗑️ DELETE /projects/:id - ID:', id);
 
     const projectIndex = mockProjects.findIndex(p => p.id === parseInt(id));
     
@@ -348,8 +336,6 @@ router.delete('/projects/:id', (req, res) => {
     }
 
     const deletedProject = mockProjects.splice(projectIndex, 1)[0];
-
-    console.log('✅ Proyecto eliminado:', deletedProject.nombre);
 
     res.json({
       success: true,

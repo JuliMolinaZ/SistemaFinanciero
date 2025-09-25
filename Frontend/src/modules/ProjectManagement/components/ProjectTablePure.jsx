@@ -32,6 +32,7 @@ import {
   SortDesc
 } from 'lucide-react';
 import './ProjectTablePure.css';
+import ElegantActionButtons from './ElegantActionButtons';
 
 // 🔍 ULTRA SEARCH & FILTERS
 const UltraSearchFilters = ({ 
@@ -465,81 +466,22 @@ const PureProjectRow = ({
         )}
       </div>
 
-      {/* Actions - Tres botones principales */}
+      {/* Actions - Botones elegantes y minimalistas */}
       <div className="pure-project-actions">
-        {/* Ver */}
-        <motion.button
-          onClick={() => onView(project)}
-          className="pure-action-button pure-action-button--view"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label={`Ver proyecto ${project.nombre}`}
-          title="Ver detalles"
-        >
-          <Eye />
-        </motion.button>
-
-        {/* Editar */}
-        <motion.button
-          onClick={() => onEdit(project)}
-          className="pure-action-button pure-action-button--edit"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label={`Editar proyecto ${project.nombre}`}
-          title="Editar proyecto"
-        >
-          <Edit />
-        </motion.button>
-
-        {/* Eliminar */}
-        <motion.button
-          onClick={() => onDelete(project)}
-          className="pure-action-button pure-action-button--delete"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label={`Eliminar proyecto ${project.nombre}`}
-          title="Eliminar proyecto"
-        >
-          <Trash2 />
-        </motion.button>
-        
-        {/* Menú adicional para más acciones */}
-        <div className="pure-action-menu">
-          <motion.button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="pure-action-button pure-action-button--menu"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title="Más acciones"
-          >
-            <MoreHorizontal />
-          </motion.button>
-          
-          <AnimatePresence>
-            {menuOpen && (
-              <motion.div
-                className="pure-context-menu"
-                initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <button onClick={() => { console.log('Duplicar proyecto:', project); setMenuOpen(false); }} className="pure-menu-item">
-                  <Copy />
-                  Duplicar Proyecto
-                </button>
-                <button onClick={() => { console.log('Exportar proyecto:', project); setMenuOpen(false); }} className="pure-menu-item">
-                  <ExternalLink />
-                  Exportar Datos
-                </button>
-                <button onClick={() => { console.log('Ver historial:', project); setMenuOpen(false); }} className="pure-menu-item">
-                  <Clock />
-                  Ver Historial
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <ElegantActionButtons
+          onView={() => onView(project)}
+          onEdit={() => onEdit(project)}
+          onDelete={() => onDelete(project)}
+          onCopy={() => {/* TODO: Implementar duplicar proyecto */}}
+          onExport={() => {/* TODO: Implementar exportar proyecto */}}
+          onHistory={() => {/* TODO: Implementar ver historial */}}
+          size="small"
+          disabled={{
+            view: false,
+            edit: false,
+            delete: false
+          }}
+        />
       </div>
 
       {/* Hover Effect */}
@@ -780,13 +722,7 @@ const ProjectTablePure = ({
   loading = false
 }) => {
   // Log para debugging cuando se re-renderiza ProjectTablePure
-  console.log('🔄 ProjectTablePure renderizado:', {
-    projectsCount: projects.length,
-    groupsCount: groups.length,
-    timestamp: new Date().toLocaleTimeString(),
-    firstProjectInGroups: groups[0]?.projects[0]?.nombre || 'N/A',
-    firstProjectProgress: groups[0]?.projects[0]?.progress || 'N/A'
-  });
+
   const [searchValue, setSearchValue] = useState('');
   const [filters, setFilters] = useState({});
   const [sortField, setSortField] = useState('created_at');
@@ -799,93 +735,52 @@ const ProjectTablePure = ({
     const hash = groups.map(group =>
       `${group.clientId}-${group.projects.map(p => `${p.id}:${p.progress}`).join(',')}`
     ).join('|');
-    console.log('🔍 Groups data hash creado:', hash.slice(0, 50) + '...');
+
     return hash;
   }, [groups]);
 
   // 🔄 Enhanced filtering and sorting
   const filteredGroups = useMemo(() => {
-    console.log('🔄 filteredGroups useMemo ejecutándose:', {
-      groupsCount: groups.length,
-      groupsDataHash: groupsDataHash.slice(0, 30) + '...',
-      searchValue,
-      filters,
-      sortField,
-      sortDirection,
-      firstGroupProjectsCount: groups[0]?.projects?.length || 0,
-      firstProjectProgress: groups[0]?.projects[0]?.progress || 'N/A'
-    });
-
-    let filtered = groups.map(group => {
-      let filteredProjects = [...group.projects];
-
-      // Search filter
-      if (searchValue) {
-        const searchLower = searchValue.toLowerCase();
-        filteredProjects = filteredProjects.filter(project => 
-          (project.nombre?.toLowerCase().includes(searchLower)) ||
-          (project.descripcion?.toLowerCase().includes(searchLower)) ||
-          (group.clientName?.toLowerCase().includes(searchLower)) ||
-          (project.status?.toLowerCase().includes(searchLower)) ||
-          (project.priority?.toLowerCase().includes(searchLower))
-        );
-      }
-
-      // Advanced filters
-      if (filters.status) {
-        filteredProjects = filteredProjects.filter(p => p.status === filters.status);
-      }
-      if (filters.priority) {
-        filteredProjects = filteredProjects.filter(p => p.priority === filters.priority);
-      }
-      if (filters.minProgress) {
-        filteredProjects = filteredProjects.filter(p => (p.progress || 0) >= filters.minProgress);
-      }
-
-      // Sorting
-      filteredProjects.sort((a, b) => {
-        let aValue = a[sortField];
-        let bValue = b[sortField];
-
-        // Handle dates
-        if (sortField.includes('date') || sortField.includes('at')) {
-          aValue = new Date(aValue || 0);
-          bValue = new Date(bValue || 0);
-        } else if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue?.toLowerCase();
-        }
-
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-
-      return {
-        ...group,
-        projects: filteredProjects,
-        count: filteredProjects.length
-      };
-    }).filter(group => group.count > 0);
-
-    // Sort groups by name, but keep "Sin Cliente" last
-    filtered.sort((a, b) => {
-      if (a.clientName === 'Sin Cliente') return 1;
-      if (b.clientName === 'Sin Cliente') return -1;
-      return a.clientName.localeCompare(b.clientName);
-    });
-
-    return filtered;
-  }, [groups, groupsDataHash, searchValue, filters, sortField, sortDirection]);
-
-  const handleSort = useCallback((field) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
+    if (!groups || groups.length === 0) return [];
+    
+    let filtered = [...groups];
+    
+    // Apply search filter
+    if (searchValue) {
+      filtered = filtered.filter(group => 
+        group.clientName.toLowerCase().includes(searchValue.toLowerCase()) ||
+        group.projects.some(project => 
+          project.nombre.toLowerCase().includes(searchValue.toLowerCase())
+        )
+      );
     }
-  }, [sortField]);
+    
+    // Apply sorting
+    if (sortField) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortField === 'clientName') {
+          aValue = a.clientName;
+          bValue = b.clientName;
+        } else if (sortField === 'projectCount') {
+          aValue = a.projects.length;
+          bValue = b.projects.length;
+        } else {
+          aValue = a[sortField];
+          bValue = b[sortField];
+        }
+        
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+    }
+    
+    return filtered;
+  }, [groups, searchValue, sortField, sortDirection]);
 
   const handleGroupToggle = useCallback((groupId) => {
     setCollapsedGroups(prev => {
@@ -916,8 +811,17 @@ const ProjectTablePure = ({
   }, []);
 
   const handleExport = useCallback(() => {
-    console.log('Exportar proyectos:', selectedProjects.length > 0 ? selectedProjects : 'todos');
+
   }, [selectedProjects]);
+
+  const handleSort = useCallback((field) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  }, [sortField]);
 
   if (loading) {
     return (

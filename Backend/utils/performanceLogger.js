@@ -23,7 +23,7 @@ class PerformanceLogger {
   end(operationId, metadata = {}) {
     const startData = this.startTimes.get(operationId);
     if (!startData) {
-      console.warn(`⚠️ No se encontró inicio para operación: ${operationId}`);
+
       return null;
     }
 
@@ -54,7 +54,7 @@ class PerformanceLogger {
 
     // Log si la operación fue lenta
     if (duration > 1000) {
-      console.warn(`🐌 Operación lenta detectada: ${operationId} (${duration}ms)`);
+
     }
 
     return metrics;
@@ -114,7 +114,7 @@ const logOperation = (operationName, fn) => {
       
       // Log solo si es una operación significativa
       if (metrics && metrics.duration > 100) {
-        console.log(`⚡ ${operationName}: ${metrics.duration}ms`);
+
       }
       
       return result;
@@ -144,7 +144,7 @@ const performanceMiddleware = (req, res, next) => {
     
     // Log requests lentos
     if (metrics && metrics.duration > 500) {
-      console.log(`🐌 Request lento: ${req.method} ${req.path} (${metrics.duration}ms)`);
+
     }
     
     return originalSend.call(this, data);

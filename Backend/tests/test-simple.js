@@ -18,7 +18,6 @@ const invalidData = {
 };
 
 // Probar validación
-console.log('🧪 Probando validación de Joi...\n');
 
 const { error, value } = userSchema.validate(invalidData, {
   abortEarly: false,
@@ -27,12 +26,10 @@ const { error, value } = userSchema.validate(invalidData, {
 });
 
 if (error) {
-  console.log('❌ Validación falló (como se esperaba):');
+
   error.details.forEach(detail => {
-    console.log(`   - ${detail.path.join('.')}: ${detail.message}`);
+
   });
 } else {
-  console.log('✅ Validación pasó (no debería pasar con datos inválidos)');
-}
 
-console.log('\n🎉 Prueba de validación completada'); 
+}

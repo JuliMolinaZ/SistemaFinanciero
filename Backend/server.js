@@ -3,16 +3,16 @@ const express = require('express')
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-require('dotenv').config({ path: './config.env' });
+require('dotenv').config();
 
 // Inicializar Firebase Admin SDK
 const { initializeFirebase } = require('./src/config/firebase');
 try {
   initializeFirebase();
-  console.log('✅ Firebase Admin SDK inicializado correctamente');
+
 } catch (error) {
   console.error('❌ Error inicializando Firebase Admin SDK:', error.message);
-  console.log('⚠️ Continuando sin Firebase Admin SDK...');
+
 }
 
 const app = express();
@@ -28,12 +28,9 @@ app.use(cors({
 
 // Middleware de logging para debug CORS
 app.use((req, res, next) => {
-  console.log(`🔍 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'No origin'}`);
-  console.log(`🔍 Headers recibidos:`, req.headers);
+
   if (req.method === 'OPTIONS') {
-    console.log('🔍 OPTIONS request detected - CORS preflight');
-    console.log('🔍 Access-Control-Request-Method:', req.headers['access-control-request-method']);
-    console.log('🔍 Access-Control-Request-Headers:', req.headers['access-control-request-headers']);
+
   }
   next();
 });
@@ -42,7 +39,7 @@ app.use(bodyParser.json());
 
 // Health check endpoint (después de CORS y bodyParser)
 app.get('/api/health', (req, res) => {
-  console.log('✅ Health check endpoint called');
+
   res.status(200).json({ 
     status: 'ok', 
     message: 'Servidor funcionando correctamente',
@@ -53,12 +50,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Test endpoint muy básico
-console.log('🧪 REGISTRANDO ENDPOINT /test...');
+
 app.get('/test', (req, res) => {
-  console.log('🧪 TEST endpoint called');
+
   res.json({ message: 'Test endpoint works!' });
 });
-console.log('✅ ENDPOINT /test REGISTRADO');
 
 // Servir archivos estáticos desde la carpeta "uploads"
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -93,17 +89,18 @@ const cotizacionesRoutes = require('./src/routes/cotizaciones');
 const projectManagementRoutes = require('./src/routes/projectManagementSimple');
 const managementTasksRoutes = require('./src/routes/managementTasks');
 
+// Rutas de notificaciones
+const notificationsRoutes = require('./src/routes/notifications');
+
+// Ruta del dashboard
+const dashboardRoutes = require('./routes/dashboard');
+
 // Middleware para loggear cada solicitud (opcional)
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  
+
   // Log detallado para peticiones PUT a management-projects
   if (req.method === 'PUT' && req.url.includes('/api/management-projects/')) {
-    console.log('🔍 PUT REQUEST DEBUG:');
-    console.log('  - URL:', req.url);
-    console.log('  - Content-Type:', req.headers['content-type']);
-    console.log('  - Content-Length:', req.headers['content-length']);
-    console.log('  - Body preview:', req.body);
+
   }
   
   next();
@@ -136,15 +133,21 @@ app.use('/api/requisiciones', requisicionesRoutes);
 // Nueva ruta de cotizaciones
 app.use('/api/cotizaciones', cotizacionesRoutes);
 
+// Ruta del dashboard
+app.use('/api/dashboard', dashboardRoutes);
+
 // Rutas del módulo de gestión de proyectos
-console.log('🚀 Cargando rutas de gestión de proyectos...');
+
 app.use('/api/project-management', projectManagementRoutes);
 app.use('/api/management-projects', require('./src/routes/managementProjects'));
 app.use('/api/management-tasks', managementTasksRoutes);
-console.log('✅ Rutas de gestión de proyectos configuradas');
+
+// Rutas de notificaciones
+
+app.use('/api/notifications', notificationsRoutes);
 
 // Rutas de usuarios
-console.log('🚀 Cargando rutas de usuarios...');
+
 app.use('/api/users', require('./src/routes/users'));
 app.use('/api/permissions', require('./src/routes/permissions'));
 
@@ -152,12 +155,10 @@ app.use('/api/permissions', require('./src/routes/permissions'));
 const { testDatabaseConnection, configureDevOperatorPermissionsSimple } = require('./src/controllers/testPermissionsController');
 app.get('/api/test-db', testDatabaseConnection);
 app.post('/api/test-permissions', configureDevOperatorPermissionsSimple);
-console.log('✅ Rutas de usuarios configuradas');
 
 // Ruta temporal que funciona (bypass de problemas de Prisma)
 const projectsWorkingRoutes = require('./src/routes/projectsWorking');
 app.use('/api/projects-working', projectsWorkingRoutes);
-console.log('✅ Rutas temporales de proyectos configuradas');
 
 // Ruta de prueba directa
 app.get('/api/project-management/test-direct', (req, res) => {
@@ -214,7 +215,5 @@ app.use((err, req, res, next) => {
 // Iniciar el servidor
 const PORT = process.env.PORT || 8765;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
+
 });

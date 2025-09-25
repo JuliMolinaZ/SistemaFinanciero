@@ -6,8 +6,7 @@ const { Parser } = require('json2csv');
 // Obtener todos los impuestos e IMSS con información completa del proveedor
 exports.getAllImpuestosIMSS = async (req, res) => {
   try {
-    console.log('🔍 getAllImpuestosIMSS: Iniciando consulta con Prisma...');
-    
+
     // Consulta usando Prisma con relaciones
     const impuestosIMSS = await prisma.impuestosIMSS.findMany({
       include: {
@@ -79,13 +78,10 @@ exports.getAllImpuestosIMSS = async (req, res) => {
         dias_vencido: diasVencido
       };
     });
-    
-    console.log("✅ getAllImpuestosIMSS: Se obtuvieron", transformedData.length, "registros.");
-    
+
     // Log de la primera cuenta para debugging
     if (transformedData.length > 0) {
-      console.log("📊 Primer impuesto completo:", JSON.stringify(transformedData[0], null, 2));
-      console.log("🏷️ Campos disponibles:", Object.keys(transformedData[0]));
+
     }
     
     res.json(transformedData);
@@ -183,8 +179,7 @@ exports.getEstadisticasImpuestosIMSS = async (req, res) => {
       porcentaje_pendiente: totalImpuestos > 0 ? ((impuestosPendientes / totalImpuestos) * 100).toFixed(2) : 0,
       porcentaje_vencido: totalImpuestos > 0 ? ((impuestosVencidos / totalImpuestos) * 100).toFixed(2) : 0
     };
-    
-    console.log("✅ getEstadisticasImpuestosIMSS: Estadísticas calculadas exitosamente");
+
     res.json(estadisticas);
   } catch (error) {
     console.error("❌ Error en getEstadisticasImpuestosIMSS:", error);
@@ -196,8 +191,7 @@ exports.getEstadisticasImpuestosIMSS = async (req, res) => {
 exports.getImpuestoIMSSById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 getImpuestoIMSSById: Buscando impuesto con ID:', id);
-    
+
     const impuesto = await prisma.impuestosIMSS.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -216,11 +210,10 @@ exports.getImpuestoIMSSById = async (req, res) => {
     });
     
     if (!impuesto) {
-      console.log('❌ getImpuestoIMSSById: Impuesto no encontrado');
+
       return res.status(404).json({ error: 'Impuesto no encontrado' });
     }
-    
-    console.log('✅ getImpuestoIMSSById: Impuesto encontrado exitosamente');
+
     res.json(impuesto);
   } catch (error) {
     console.error("❌ Error en getImpuestoIMSSById:", error);
@@ -231,8 +224,7 @@ exports.getImpuestoIMSSById = async (req, res) => {
 // Crear nuevo impuesto
 exports.createImpuestoIMSS = async (req, res) => {
   try {
-    console.log('🔍 createImpuestoIMSS: Datos recibidos:', req.body);
-    
+
     const {
       concepto,
       tipo_impuesto,
@@ -268,8 +260,7 @@ exports.createImpuestoIMSS = async (req, res) => {
         autorizado: false
       }
     });
-    
-    console.log('✅ createImpuestoIMSS: Impuesto creado exitosamente con ID:', nuevoImpuesto.id);
+
     res.status(201).json(nuevoImpuesto);
   } catch (error) {
     console.error("❌ Error en createImpuestoIMSS:", error);
@@ -281,9 +272,7 @@ exports.createImpuestoIMSS = async (req, res) => {
 exports.updateImpuestoIMSS = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 updateImpuestoIMSS: Actualizando impuesto con ID:', id);
-    console.log('🔍 updateImpuestoIMSS: Datos recibidos:', req.body);
-    
+
     const {
       concepto,
       tipo_impuesto,
@@ -317,15 +306,12 @@ exports.updateImpuestoIMSS = async (req, res) => {
     if (factura_xml !== undefined) updateData.factura_xml = factura_xml;
     if (comentarios !== undefined) updateData.comentarios = comentarios;
     if (autorizado !== undefined) updateData.autorizado = autorizado;
-    
-    console.log('🔍 updateImpuestoIMSS: Datos a actualizar:', updateData);
-    
+
     const impuestoActualizado = await prisma.impuestosIMSS.update({
       where: { id: parseInt(id) },
       data: updateData
     });
-    
-    console.log('✅ updateImpuestoIMSS: Impuesto actualizado exitosamente');
+
     res.json({ message: 'Impuesto actualizado correctamente', impuesto: impuestoActualizado });
   } catch (error) {
     console.error("❌ Error en updateImpuestoIMSS:", error);
@@ -337,13 +323,11 @@ exports.updateImpuestoIMSS = async (req, res) => {
 exports.deleteImpuestoIMSS = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 deleteImpuestoIMSS: Eliminando impuesto con ID:', id);
-    
+
     await prisma.impuestosIMSS.delete({
       where: { id: parseInt(id) }
     });
-    
-    console.log('✅ deleteImpuestoIMSS: Impuesto eliminado exitosamente');
+
     res.json({ message: 'Impuesto eliminado correctamente' });
   } catch (error) {
     console.error("❌ Error en deleteImpuestoIMSS:", error);
@@ -354,8 +338,7 @@ exports.deleteImpuestoIMSS = async (req, res) => {
 // Exportar impuestos a CSV
 exports.exportarImpuestosIMSSCSV = async (req, res) => {
   try {
-    console.log('🔍 exportarImpuestosIMSSCSV: Iniciando exportación...');
-    
+
     const impuestos = await prisma.impuestosIMSS.findMany({
       include: {
         provider: {
@@ -400,8 +383,7 @@ exports.exportarImpuestosIMSSCSV = async (req, res) => {
     // Configurar headers para descarga
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename=impuestos_imss_${new Date().toISOString().split('T')[0]}.csv`);
-    
-    console.log('✅ exportarImpuestosIMSSCSV: Exportación completada exitosamente');
+
     res.send(csv);
   } catch (error) {
     console.error("❌ Error en exportarImpuestosIMSSCSV:", error);

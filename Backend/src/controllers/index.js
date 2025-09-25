@@ -28,7 +28,6 @@ const permisoController = require('./permisosController');
 const recuperacionController = require('./recuperacionController');
 const rolController = require('./rolController');
 
-
 module.exports = {
   // Controladores principales
   userController,

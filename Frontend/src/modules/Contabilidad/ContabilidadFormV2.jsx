@@ -491,8 +491,6 @@ const ContabilidadFormV2 = () => {
     }
   }, [fetchContabilidad]);
 
-
-
   // Funciones para manejar archivos
   const deleteFile = useCallback(async (filename, field) => {
     if (!filename) return;

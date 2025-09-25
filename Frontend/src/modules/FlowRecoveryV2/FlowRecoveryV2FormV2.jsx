@@ -170,46 +170,37 @@ const FlowRecoveryV2Module = () => {
 
   // Función para obtener solo los campos modificados IDÉNTICA a PROYECTOS
   const getModifiedFields = (original, current) => {
-    console.log('🔍 DEBUG getModifiedFields:');
-    console.log('  - Original:', original);
-    console.log('  - Current:', current);
-    
     const modified = {};
     Object.keys(current).forEach(key => {
-      console.log(`  - Comparando campo "${key}":`);
-      console.log(`    Original: "${original[key]}" (tipo: ${typeof original[key]})`);
-      console.log(`    Current: "${current[key]}" (tipo: ${typeof current[key]})`);
-      console.log(`    Son iguales: ${current[key] === original[key]}`);
-      
       // Solo incluir campos que realmente han cambiado
       if (current[key] !== original[key]) {
-        console.log(`    ✅ Campo "${key}" ha cambiado`);
         // No enviar campos vacíos que podrían sobrescribir datos existentes
         if (current[key] !== '' && current[key] !== null && current[key] !== undefined) {
           modified[key] = current[key];
-          console.log(`    ✅ Campo "${key}" agregado a modifiedFields`);
-        } else if (original[key] !== '' && original[key] !== null && original[key] !== undefined) {
-          // Si el campo original tenía valor y ahora está vacío, mantener el original
-          console.log(`Campo ${key} se mantiene con valor original:`, original[key]);
         }
-      } else {
-        console.log(`    ❌ Campo "${key}" NO ha cambiado`);
       }
     });
-    
-    console.log('📊 RESULTADO FINAL:');
-    console.log('  - Campos originales:', original);
-    console.log('  - Campos actuales:', current);
-    console.log('  - Campos modificados:', modified);
-    console.log('  - Total de campos modificados:', Object.keys(modified).length);
-    
+
     return modified;
   };
 
-  // Estados IDÉNTICOS a PROYECTOS
+  // Estados del componente
   const [flows, setFlows] = useState([]);
   const [filteredFlows, setFilteredFlows] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClient, setSelectedClient] = useState('');
+  const [selectedProject, setSelectedProject] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [formData, setFormData] = useState({
+    fecha: new Date().toISOString().split('T')[0],
+    estado: 'pendiente',
+    prioridad: 'media',
+    recuperado: false
+  });
+  const [originalFlowData, setOriginalFlowData] = useState(null);
   const [openFlowDialog, setOpenFlowDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingFlowId, setEditingFlowId] = useState(null);
@@ -221,562 +212,48 @@ const FlowRecoveryV2Module = () => {
 
   // Log para debug del estado isPending
   useEffect(() => {
-    console.log('🔍 Frontend - Estado isPending cambiado:', isPending);
+
   }, [isPending]);
-
-  // Log para debug del estado flows
-  useEffect(() => {
-    console.log('🔍 Frontend - Estado flows cambiado:', flows);
-    console.log('🔍 Frontend - flows.length:', flows.length);
-    console.log('🔍 Frontend - flows es array:', Array.isArray(flows));
-    if (flows.length > 0) {
-      console.log('🔍 Frontend - Primer flow en estado:', flows[0]);
-    }
-  }, [flows]);
-
-  // Log para debug del estado filteredFlows
-  useEffect(() => {
-    console.log('🔍 Frontend - Estado filteredFlows cambiado:', filteredFlows);
-    console.log('🔍 Frontend - filteredFlows.length:', filteredFlows.length);
-    console.log('🔍 Frontend - filteredFlows es array:', Array.isArray(filteredFlows));
-    if (filteredFlows.length > 0) {
-      console.log('🔍 Frontend - Primer filteredFlow en estado:', filteredFlows[0]);
-    }
-  }, [filteredFlows]);
-
-  // Estados del formulario IDÉNTICOS a PROYECTOS
-  const [formData, setFormData] = useState({
-    concepto: '',
-    monto: '',
-    fecha: new Date().toISOString().split('T')[0],
-    cliente_id: '',
-    proyecto_id: '',
-    categoria: '',
-    estado: 'pendiente',
-    descripcion: '',
-    prioridad: 'media',
-    notas: '',
-    fecha_vencimiento: '',
-    recuperado: false
-  });
-
-  // Estado para almacenar datos originales del flow (para edición)
-  const [originalFlowData, setOriginalFlowData] = useState(null);
-
-  // Estados para clientes y proyectos
-  const [clients, setClients] = useState([]);
-  const [projects, setProjects] = useState([]);
-
-  // Función para obtener flows IDÉNTICA a PROYECTOS
-  const fetchFlows = useCallback(async () => {
-    try {
-      console.log('🔍 Frontend - Iniciando fetchFlows...');
-      const response = await axios.get('/api/flowRecoveryV2');
-      console.log('🔍 Frontend - Response completa:', response);
-      console.log('🔍 Frontend - Response.status:', response.status);
-      console.log('🔍 Frontend - Response.headers:', response.headers);
-      console.log('🔍 Frontend - Response.data:', response.data);
-      console.log('🔍 Frontend - Response.data.success:', response.data.success);
-      console.log('🔍 Frontend - Response.data.data:', response.data.data);
-      console.log('🔍 Frontend - Response.data.data.length:', response.data.data?.length);
-      
-      // La API puede devolver { success: true, data: [...], total: X } o directamente un array
-      const flowsData = response.data.success && Array.isArray(response.data.data) 
-        ? response.data.data 
-        : response.data;
-      
-      console.log('🔍 Frontend - flowsData extraído:', flowsData);
-      console.log('🔍 Frontend - flowsData es array:', Array.isArray(flowsData));
-      
-      console.log('🔍 Frontend - Procesando flows individuales...');
-      const flowsWithNames = flowsData.map((flow, index) => {
-        console.log(`🔍 Frontend - Procesando flow ${index + 1}:`, flow);
-        const processedFlow = {
-          ...flow,
-          cliente_nombre: flow.clients?.nombre || 'Sin cliente',
-          proyecto_nombre: flow.projects?.nombre || 'Sin proyecto'
-        };
-        console.log(`🔍 Frontend - Flow ${index + 1} procesado:`, processedFlow);
-        return processedFlow;
-      });
-      
-      console.log('🔍 Frontend - flowsWithNames procesado:', flowsWithNames);
-      console.log('🔍 Frontend - Primer flow:', flowsWithNames[0]);
-      
-      // Log adicional para verificar estados
-      console.log('🔍 Frontend - Estados de flows recibidos:');
-      flowsWithNames.slice(0, 3).forEach(flow => {
-        console.log(`  - Flow ID ${flow.id}: recuperado = "${flow.recuperado}"`);
-      });
-      
-      console.log('🔍 Frontend - Estableciendo flows en estado...');
-      console.log('🔍 Frontend - flowsWithNames a establecer:', flowsWithNames);
-      setFlows(flowsWithNames);
-      setFilteredFlows(flowsWithNames);
-      console.log('🔍 Frontend - Estados establecidos correctamente');
-      console.log('🔍 Frontend - setFlows y setFilteredFlows llamados');
-    } catch (error) {
-      console.error('❌ Frontend - Error al obtener flows:', error);
-      setSnackbar({ open: true, message: 'Error al obtener flows', severity: 'error' });
-    }
-  }, []);
-
-  // Función para obtener clientes IDÉNTICA a PROYECTOS
-  const fetchClients = useCallback(async () => {
-    try {
-      const response = await axios.get('/api/clients');
-      const clientsData = response.data.success && Array.isArray(response.data.data) 
-        ? response.data.data 
-        : response.data;
-      setClients(clientsData);
-    } catch (error) {
-      console.error('Error al obtener clientes:', error);
-    }
-  }, []);
-
-  // Función para obtener proyectos
-  const fetchProjects = useCallback(async () => {
-    try {
-      const response = await axios.get('/api/projects');
-      const projectsData = response.data.success && Array.isArray(response.data.data) 
-        ? response.data.data 
-        : response.data;
-      setProjects(projectsData);
-    } catch (error) {
-      console.error('Error al obtener proyectos:', error);
-    }
-  }, []);
-
-  // Función para crear flow IDÉNTICA a PROYECTOS
-  const handleCreateFlow = async () => {
-    try {
-      console.log('🔍 Frontend - handleCreateFlow iniciado');
-      console.log('🔍 Frontend - formData a enviar:', formData);
-      console.log('🔍 Frontend - URL de la API:', '/api/flowRecoveryV2');
-      
-      const response = await axios.post('/api/flowRecoveryV2', formData);
-      console.log('🔍 Frontend - handleCreateFlow respuesta exitosa:', response.data);
-      
-      if (response.data.success) {
-        setSnackbar({ open: true, message: 'Flow creado exitosamente', severity: 'success' });
-        setOpenFlowDialog(false);
-        resetForm();
-        fetchFlows();
-      } else {
-        console.warn('🔍 Frontend - handleCreateFlow: response.data.success es false:', response.data);
-      }
-    } catch (error) {
-      console.error('🔍 Frontend - handleCreateFlow error:', error);
-      console.error('🔍 Frontend - handleCreateFlow error.response:', error.response);
-      console.error('🔍 Frontend - handleCreateFlow error.message:', error.message);
-      setSnackbar({ open: true, message: 'Error al crear flow', severity: 'error' });
-    }
-  };
-
-  // Función para actualizar flow IDÉNTICA a PROYECTOS
-  const handleUpdateFlow = async () => {
-    try {
-      console.log('🔍 Frontend - handleUpdateFlow iniciado');
-      console.log('🔍 Frontend - editingFlowId:', editingFlowId);
-      console.log('🔍 Frontend - originalFlowData:', originalFlowData);
-      console.log('🔍 Frontend - formData actual:', formData);
-      
-      const modifiedFields = getModifiedFields(originalFlowData, formData);
-      console.log('🔍 Frontend - Campos modificados para actualización:', modifiedFields);
-      
-      if (Object.keys(modifiedFields).length === 0) {
-        console.log('🔍 Frontend - No hay cambios para guardar');
-        setSnackbar({ open: true, message: 'No hay cambios para guardar', severity: 'info' });
-        return;
-      }
-
-      console.log('🔍 Frontend - URL de la API:', `/api/flowRecoveryV2/${editingFlowId}`);
-      const response = await axios.put(`/api/flowRecoveryV2/${editingFlowId}`, modifiedFields);
-      console.log('🔍 Frontend - handleUpdateFlow respuesta exitosa:', response.data);
-      
-      if (response.data.success) {
-        setSnackbar({ open: true, message: 'Flow actualizado exitosamente', severity: 'success' });
-        setOpenFlowDialog(false);
-        resetForm();
-        fetchFlows();
-      } else {
-        console.warn('🔍 Frontend - handleUpdateFlow: response.data.success es false:', response.data);
-      }
-    } catch (error) {
-      console.error('🔍 Frontend - handleUpdateFlow error:', error);
-      console.error('🔍 Frontend - handleUpdateFlow error.response:', error.response);
-      console.error('🔍 Frontend - handleUpdateFlow error.message:', error.message);
-      setSnackbar({ open: true, message: 'Error al actualizar flow', severity: 'error' });
-    }
-  };
-
-  // Función para eliminar flow IDÉNTICA a PROYECTOS
-  const handleDelete = async (flow) => {
-    console.log('🔍 Frontend - handleDelete iniciado para flow:', flow);
-    
-    if (window.confirm(`¿Estás seguro de eliminar el flow "${flow.concepto}"?`)) {
-      try {
-        console.log('🔍 Frontend - Usuario confirmó eliminación');
-        console.log('🔍 Frontend - URL de la API:', `/api/flowRecoveryV2/${flow.id}`);
-        
-        const response = await axios.delete(`/api/flowRecoveryV2/${flow.id}`);
-        console.log('🔍 Frontend - handleDelete respuesta exitosa:', response.data);
-        
-        if (response.data.success) {
-          setSnackbar({ open: true, message: 'Flow eliminado exitosamente', severity: 'success' });
-          fetchFlows();
-        } else {
-          console.warn('🔍 Frontend - handleDelete: response.data.success es false:', response.data);
-        }
-      } catch (error) {
-        console.error('🔍 Frontend - handleDelete error:', error);
-        console.error('🔍 Frontend - handleDelete error.response:', error.response);
-        console.error('🔍 Frontend - handleDelete error.message:', error.message);
-        setSnackbar({ open: true, message: 'Error al eliminar flow', severity: 'error' });
-      }
-    } else {
-      console.log('🔍 Frontend - Usuario canceló la eliminación');
-    }
-  };
-
-  // Función para editar flow IDÉNTICA a PROYECTOS
-  const handleEdit = (flow) => {
-    console.log('🔍 Frontend - handleEdit iniciado para flow:', flow);
-    console.log('🔍 Frontend - Estado antes del edit:', { isEditing, editingFlowId, openFlowDialog });
-    
-    setIsEditing(true);
-    setEditingFlowId(flow.id);
-    
-    const flowData = {
-      concepto: flow.concepto || '',
-      monto: flow.monto || '',
-      fecha: flow.fecha ? new Date(flow.fecha).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      cliente_id: flow.cliente_id || '',
-      proyecto_id: flow.proyecto_id || '',
-      categoria: flow.categoria || '',
-      estado: flow.estado || 'pendiente',
-      descripcion: flow.descripcion || '',
-      prioridad: flow.prioridad || 'media',
-      notas: flow.notas || '',
-      fecha_vencimiento: flow.fecha_vencimiento ? new Date(flow.fecha_vencimiento).toISOString().split('T')[0] : '',
-      recuperado: flow.recuperado || false
-    };
-    
-    console.log('🔍 Frontend - Datos del flow a editar:', flowData);
-    
-    setOriginalFlowData(flowData);
-    setFormData(flowData);
-    setOpenFlowDialog(true);
-    
-    console.log('🔍 Frontend - Estado después del edit:', { isEditing: true, editingFlowId: flow.id, openFlowDialog: true });
-  };
-
-  // Función para ver detalles IDÉNTICA a PROYECTOS
-  const handleViewDetails = (flow) => {
-    console.log('🔍 Frontend - handleViewDetails iniciado para flow:', flow);
-    console.log('🔍 Frontend - Estado antes de ver detalles:', { viewingFlow, viewDetailsOpen });
-    setViewingFlow(flow);
-    setViewDetailsOpen(true);
-    console.log('🔍 Frontend - Estado después de ver detalles:', { viewingFlow: flow, viewDetailsOpen: true });
-  };
-
-  // Función para cerrar detalles IDÉNTICA a PROYECTOS
-  const handleCloseViewDetails = () => {
-    console.log('🔍 Frontend - handleCloseViewDetails ejecutado');
-    setViewDetailsOpen(false);
-    setViewingFlow(null);
-  };
-
-  // Función para resetear formulario IDÉNTICA a PROYECTOS
-  const resetForm = () => {
-    console.log('🔍 Frontend - resetForm ejecutado');
-    console.log('🔍 Frontend - Estado antes del reset:', { isEditing, editingFlowId, openFlowDialog });
-    
-    setFormData({
-      concepto: '',
-      monto: '',
-      fecha: new Date().toISOString().split('T')[0],
-      cliente_id: '',
-      proyecto_id: '',
-      categoria: '',
-      estado: 'pendiente',
-      descripcion: '',
-      prioridad: 'media',
-      notas: '',
-      fecha_vencimiento: '',
-      recuperado: false
-    });
-    setIsEditing(false);
-    setEditingFlowId(null);
-    setOriginalFlowData(null);
-    
-    console.log('🔍 Frontend - Estado después del reset:', { isEditing: false, editingFlowId: null, openFlowDialog: false });
-  };
-
-  // Función para manejar envío del formulario IDÉNTICA a PROYECTOS
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('🔍 Frontend - handleSubmit ejecutado');
-    console.log('🔍 Frontend - isEditing:', isEditing);
-    console.log('🔍 Frontend - formData actual:', formData);
-    
-    if (isEditing) {
-      console.log('🔍 Frontend - Llamando a handleUpdateFlow');
-      handleUpdateFlow();
-    } else {
-      console.log('🔍 Frontend - Llamando a handleCreateFlow');
-      handleCreateFlow();
-    }
-  };
-
-  // Función para cerrar diálogo IDÉNTICA a PROYECTOS
-  const handleCloseDialog = () => {
-    console.log('🔍 Frontend - handleCloseDialog ejecutado');
-    console.log('🔍 Frontend - Estado antes de cerrar:', { openFlowDialog, isEditing, editingFlowId });
-    setOpenFlowDialog(false);
-    resetForm();
-    console.log('🔍 Frontend - Estado después de cerrar:', { openFlowDialog: false, isEditing: false, editingFlowId: null });
-  };
-
-  // Función para cerrar snackbar IDÉNTICA a PROYECTOS
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  // Efecto para filtros IDÉNTICO a PROYECTOS
-  useEffect(() => {
-    console.log('🔍 Frontend - useEffect filtros ejecutándose...');
-    console.log('🔍 Frontend - flows en estado:', flows);
-    console.log('🔍 Frontend - searchTerm:', searchTerm);
-    console.log('🔍 Frontend - Stack trace del useEffect filtros:', new Error().stack);
-    
-    let filtered = flows;
-
-    if (searchTerm) {
-      filtered = filtered.filter(flow =>
-        flow.concepto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        flow.cliente_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        flow.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    console.log('🔍 Frontend - filtered resultante:', filtered);
-    setFilteredFlows(filtered);
-  }, [flows, searchTerm]);
-
-  // Efectos para cargar datos IDÉNTICOS a PROYECTOS
-  useEffect(() => {
-    fetchClients();
-    fetchProjects();
-  }, [fetchClients, fetchProjects]);
-
-  useEffect(() => {
-    console.log('🔍 Frontend - useEffect fetchFlows ejecutándose...');
-    fetchFlows();
-  }, [fetchFlows]);
-
-  // Monitorear cambios en el estado del diálogo
-  useEffect(() => {
-    console.log('🔍 Frontend - useEffect openFlowDialog cambiado:', openFlowDialog);
-    console.log('🔍 Frontend - Estado completo del diálogo:', { openFlowDialog, isEditing, editingFlowId, viewingFlow });
-    
-    // Agregar stack trace para identificar qué función cambió el estado
-    if (openFlowDialog) {
-      console.log('🔍 Frontend - Diálogo ABIERTO - Stack trace:', new Error().stack);
-    } else {
-      console.log('🔍 Frontend - Diálogo CERRADO - Stack trace:', new Error().stack);
-    }
-  }, [openFlowDialog, isEditing, editingFlowId, viewingFlow]);
-
-  // Estadísticas IDÉNTICAS a PROYECTOS
-  const stats = useMemo(() => [
-    { 
-      label: 'Total Flows', 
-      value: flows.length.toString(), 
-      icon: <TrendingUpIcon />, 
-      color: '#667eea' 
-    },
-    { 
-      label: 'Monto Total', 
-      value: formatCurrency(flows.reduce((sum, f) => sum + parseFloat(f.monto || 0), 0)), 
-      icon: <AttachMoneyIcon />, 
-      color: '#27ae60' 
-    },
-    { 
-      label: 'Recuperados', 
-      value: flows.filter(f => f.recuperado).length.toString(), 
-      icon: <CheckCircleIcon />, 
-      color: '#2e7d32' 
-    },
-    { 
-      label: 'Pendientes', 
-      value: flows.filter(f => !f.recuperado).length.toString(), 
-      icon: <ScheduleIcon />, 
-      color: '#f39c12' 
-    }
-  ], [flows]);
 
   return (
     <StyledContainer maxWidth="xl">
-      <Grid container spacing={3}>
-        {/* Header y estadísticas - IDÉNTICO a PROYECTOS */}
-        <Grid item xs={12}>
-          <Box sx={{ mb: 3 }}>
-            {/* Header principal */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              mb: 3,
-              flexWrap: 'wrap',
-              gap: 2
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Grid container spacing={3}>
+          {/* Header con botón de agregar */}
+          <Grid item xs={12}>
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 3
             }}>
-              <Box>
-                <Typography variant="h3" sx={{ 
-                  fontWeight: 800, 
-                  color: '#fff',
-                  mb: 1,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                }}>
-                  Flow Recovery V2
-                </Typography>
-                <Typography variant="h6" sx={{ 
-                  color: 'rgba(255,255,255,0.9)',
-                  fontWeight: 400
-                }}>
-                  Gestión de flujos de recuperación del sistema
-                </Typography>
-              </Box>
-              
-              {/* Botones de acción - IDÉNTICOS a PROYECTOS */}
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Button
-                  onClick={async () => {
-                    console.log('🧪 PRUEBA SIMPLE - CLIC DETECTADO');
-                    
-                    try {
-                      const response = await axios.get('/api/flowRecoveryV2');
-                      console.log('✅ Prueba simple exitosa:', response.data);
-                      setSnackbar({ 
-                        open: true, 
-                        message: 'Prueba simple exitosa', 
-                        severity: 'success' 
-                      });
-                    } catch (error) {
-                      console.error('❌ Error en prueba simple:', error);
-                      setSnackbar({ 
-                        open: true, 
-                        message: 'Error en prueba simple: ' + error.message, 
-                        severity: 'error' 
-                      });
-                    }
-                  }}
-                  variant="contained"
-                  sx={{
-                    background: 'linear-gradient(135deg, #9b59b6, #8e44ad)',
-                    color: '#fff',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #8e44ad, #7d3c98)'
-                    }
-                  }}
-                >
-                  🧪 SIMPLE
-                </Button>
-                <Button
-                  onClick={async () => {
-                    console.log('🧪 PRUEBA CREAR - CLIC DETECTADO');
-                    
-                    try {
-                      const testData = {
-                        concepto: 'Prueba Crear - ' + new Date().toISOString(),
-                        monto: 999.99,
-                        fecha: new Date().toISOString().split('T')[0],
-                        categoria: 'Prueba',
-                        estado: 'pendiente',
-                        descripcion: 'Descripción de prueba',
-                        prioridad: 'media',
-                        notas: 'Notas de prueba',
-                        recuperado: false
-                      };
-                      
-                      console.log('📝 Datos de prueba a enviar:', testData);
-                      
-                      const response = await axios.post('/api/flowRecoveryV2', testData);
-                      console.log('✅ Prueba crear exitosa:', response.data);
-                      setSnackbar({ 
-                        open: true, 
-                        message: 'Prueba crear exitosa: ' + response.data.message, 
-                        severity: 'success' 
-                      });
-                      
-                      // Recargar los datos
-                      fetchFlows();
-                    } catch (error) {
-                      console.error('❌ Error en prueba crear:', error);
-                      console.error('❌ Error response:', error.response);
-                      setSnackbar({ 
-                        open: true, 
-                        message: 'Error en prueba crear: ' + (error.response?.data?.message || error.message), 
-                        severity: 'error' 
-                      });
-                    }
-                  }}
-                  variant="contained"
-                  sx={{
-                    background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
-                    color: '#fff',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #c0392b, #a93226)'
-                    }
-                  }}
-                >
-                  🧪 CREAR
-                </Button>
-                <IconButton
-                  onClick={() => {
-                    console.log('🔍 Frontend - Botón Agregar Flow clickeado');
-                    console.log('🔍 Frontend - Estado actual:', { openFlowDialog, isEditing, editingFlowId, viewingFlow });
-                    console.log('🔍 Frontend - Stack trace del click:', new Error().stack);
-                    
-                    setIsEditing(false);
-                    setEditingFlowId(null);
-                    setFormData({
-                      concepto: '',
-                      monto: '',
-                      fecha: new Date().toISOString().split('T')[0],
-                      cliente_id: '',
-                      proyecto_id: '',
-                      categoria: '',
-                      estado: 'pendiente',
-                      descripcion: '',
-                      prioridad: 'media',
-                      notas: '',
-                      fecha_vencimiento: '',
-                      recuperado: false
-                    });
-                    setOpenFlowDialog(true);
-                    console.log('🔍 Frontend - Estado después del click:', { openFlowDialog: true, isEditing: false, editingFlowId: null, viewingFlow: null });
-                  }}
-                  sx={{
-                    background: 'linear-gradient(135deg, #27ae60, #229954)',
-                    color: '#fff',
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #229954, #1e8449)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(39, 174, 96, 0.3)'
-                    }
-                  }}
-                >
-                  <AddIcon sx={{ mr: 1 }} />
-                  Agregar Flow
-                </IconButton>
-              </Box>
+              <Typography variant="h4" sx={{
+                fontWeight: 700,
+                color: '#fff',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              }}>
+                Flow Recovery V2
+              </Typography>
+              <Button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditingFlowId(null);
+                  setFormData({
+                    fecha: new Date().toISOString().split('T')[0],
+                    estado: 'pendiente',
+                    prioridad: 'media',
+                    recuperado: false
+                  });
+                  setOpenFlowDialog(true);
+                }}
+                startIcon={<AddIcon />}
+
+              >
+                Nuevo Flow
+              </Button>
             </Box>
-            
-            {/* Stats optimizados - IDÉNTICOS a PROYECTOS */}
+
+            {/* Stats */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
               {stats.map((stat, index) => (
                 <Grid item xs={6} md={3} key={index}>
@@ -785,12 +262,9 @@ const FlowRecoveryV2Module = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <StyledCard sx={{ 
-                      p: 2, 
+                    <StyledCard sx={{
+                      p: 2,
                       textAlign: 'center',
-                      background: 'rgba(255,255,255,0.95)',
-                      backdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255,255,255,0.3)',
                       position: 'relative',
                       overflow: 'hidden',
                       '&::before': {
@@ -804,8 +278,8 @@ const FlowRecoveryV2Module = () => {
                         borderRadius: '2px'
                       }
                     }}>
-                      <Box sx={{ 
-                        color: stat.color, 
+                      <Box sx={{
+                        color: stat.color,
                         mb: 1,
                         display: 'flex',
                         justifyContent: 'center',
@@ -816,15 +290,15 @@ const FlowRecoveryV2Module = () => {
                       }}>
                         {stat.icon}
                       </Box>
-                      <Typography variant="h4" sx={{ 
-                        fontWeight: 800, 
+                      <Typography variant="h4" sx={{
+                        fontWeight: 800,
                         color: '#2c3e50',
                         mb: 0.5,
                         textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                       }}>
                         {stat.value}
                       </Typography>
-                      <Typography variant="body2" sx={{ 
+                      <Typography variant="body2" sx={{
                         color: '#7f8c8d',
                         fontWeight: 500,
                         textTransform: 'uppercase',
@@ -838,7 +312,6 @@ const FlowRecoveryV2Module = () => {
                 </Grid>
               ))}
             </Grid>
-          </Box>
 
           {/* Filtros y búsqueda - IDÉNTICOS a PROYECTOS */}
           <StyledCard sx={{ p: 3, mb: 3 }}>
@@ -854,28 +327,14 @@ const FlowRecoveryV2Module = () => {
                       <SearchIcon sx={{ color: 'rgba(102, 126, 234, 0.5)', mr: 1 }} />
                     )
                   }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      backgroundColor: 'rgba(255,255,255,0.9)',
-                    }
-                  }}
+
                 />
               </Grid>
               <Grid item xs={12} md={8}>
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                   <IconButton
                     onClick={fetchFlows}
-                    sx={{
-                      background: 'rgba(255,255,255,0.2)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.3)',
-                      color: '#fff',
-                      '&:hover': {
-                        background: 'rgba(255,255,255,0.3)',
-                        transform: 'scale(1.05)'
-                      }
-                    }}
+
                   >
                     <RefreshIcon />
                   </IconButton>
@@ -904,7 +363,6 @@ const FlowRecoveryV2Module = () => {
                   </TableRow>
                 </TableHead>
                                     <TableBody>
-                      {console.log('🔍 Frontend - Renderizando tabla, filteredFlows:', filteredFlows)}
                       {isPending ? (
                         Array.from({ length: 5 }).map((_, index) => (
                           <TableRow key={index}>
@@ -921,9 +379,8 @@ const FlowRecoveryV2Module = () => {
                         ))
                       ) : (
                                                 <AnimatePresence>
-                          {console.log('🔍 Frontend - Renderizando filas, filteredFlows.length:', filteredFlows.length)}
                           {filteredFlows.map((flow, index) => {
-                            console.log(`🔍 Frontend - Renderizando flow ${index + 1}:`, flow);
+
                             return (
                               <motion.tr
                                 key={flow.id}
@@ -962,26 +419,14 @@ const FlowRecoveryV2Module = () => {
                                 <TableCell>
                                   <StyledChip
                                     label={flow.estado || 'pendiente'}
-                                    sx={{
-                                      backgroundColor: getStatusColor(flow.estado || 'pendiente').bg,
-                                      color: getStatusColor(flow.estado || 'pendiente').text,
-                                      fontWeight: 600,
-                                      minWidth: 80,
-                                      textAlign: 'center'
-                                    }}
+
                                     size="small"
                                   />
                                 </TableCell>
                                 <TableCell>
                                   <StyledChip
                                     label={flow.recuperado ? 'Recuperado' : 'Pendiente'}
-                                    sx={{
-                                      backgroundColor: getStatusColor(flow.recuperado ? 'recuperado' : 'pendiente').bg,
-                                      color: getStatusColor(flow.estado || 'pendiente').text,
-                                      fontWeight: 600,
-                                      minWidth: 80,
-                                      textAlign: 'center'
-                                    }}
+
                                     size="small"
                                   />
                                 </TableCell>
@@ -1024,7 +469,6 @@ const FlowRecoveryV2Module = () => {
           </StyledCard>
         </Grid>
 
-
       </Grid>
 
       {/* Modal de formulario - IDÉNTICO a PROYECTOS */}
@@ -1048,25 +492,15 @@ const FlowRecoveryV2Module = () => {
           </Box>
           <IconButton
             onClick={handleCloseDialog}
-            sx={{
-              position: 'absolute',
-              right: 16,
-              top: 16,
-              color: '#7f8c8d'
-            }}
+
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 3 }}>
-            {console.log('🔍 Frontend - Renderizando formulario, openFlowDialog:', openFlowDialog)}
-            {console.log('🔍 Frontend - Renderizando formulario, isEditing:', isEditing)}
-            {console.log('🔍 Frontend - Renderizando formulario, formData:', formData)}
             <form onSubmit={(e) => {
-              console.log('🔍 Frontend - Formulario onSubmit ejecutado');
-              console.log('🔍 Frontend - Evento del formulario:', e);
-              console.log('🔍 Frontend - Stack trace del onSubmit:', new Error().stack);
+
               handleSubmit(e);
             }}>
               <Grid container spacing={3}>
@@ -1078,18 +512,7 @@ const FlowRecoveryV2Module = () => {
                     onChange={(e) => setFormData({ ...formData, concepto: e.target.value })}
                     fullWidth
                     required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1102,18 +525,7 @@ const FlowRecoveryV2Module = () => {
                     fullWidth
                     required
                     inputProps={{ min: 0, step: 0.01 }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1126,18 +538,7 @@ const FlowRecoveryV2Module = () => {
                     fullWidth
                     required
                     InputLabelProps={{ shrink: true }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1148,12 +549,7 @@ const FlowRecoveryV2Module = () => {
                       value={formData.cliente_id}
                       onChange={(e) => setFormData({ ...formData, cliente_id: e.target.value })}
                       label="Cliente"
-                      sx={{
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)'
-                      }}
+
                     >
                       {clients.map((cliente) => (
                         <MenuItem key={cliente.id} value={cliente.id}>
@@ -1171,12 +567,7 @@ const FlowRecoveryV2Module = () => {
                       value={formData.proyecto_id}
                       onChange={(e) => setFormData({ ...formData, proyecto_id: e.target.value })}
                       label="Proyecto"
-                      sx={{
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)'
-                      }}
+
                     >
                       {projects.map((project) => (
                         <MenuItem key={project.id} value={project.id}>
@@ -1193,18 +584,7 @@ const FlowRecoveryV2Module = () => {
                     value={formData.categoria}
                     onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                     fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1215,12 +595,7 @@ const FlowRecoveryV2Module = () => {
                       value={formData.estado}
                       onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
                       label="Estado"
-                      sx={{
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)'
-                      }}
+
                     >
                       <MenuItem value="pendiente">Pendiente</MenuItem>
                       <MenuItem value="en_proceso">En Proceso</MenuItem>
@@ -1239,18 +614,7 @@ const FlowRecoveryV2Module = () => {
                     fullWidth
                     multiline
                     rows={3}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1261,12 +625,7 @@ const FlowRecoveryV2Module = () => {
                       value={formData.prioridad}
                       onChange={(e) => setFormData({ ...formData, prioridad: e.target.value })}
                       label="Prioridad"
-                      sx={{
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)'
-                      }}
+
                     >
                       <MenuItem value="baja">Baja</MenuItem>
                       <MenuItem value="media">Media</MenuItem>
@@ -1284,18 +643,7 @@ const FlowRecoveryV2Module = () => {
                     fullWidth
                     multiline
                     rows={3}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1307,18 +655,7 @@ const FlowRecoveryV2Module = () => {
                     onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value })}
                     fullWidth
                     InputLabelProps={{ shrink: true }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        '&:hover': {
-                          background: 'rgba(255,255,255,0.95)',
-                          borderColor: 'rgba(102, 126, 234, 0.5)'
-                        }
-                      }
-                    }}
+
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -1339,49 +676,22 @@ const FlowRecoveryV2Module = () => {
         <DialogActions sx={{ gap: 2, p: 3 }}>
           <Button
             onClick={handleCloseDialog}
-            sx={{
-              borderRadius: 12,
-              px: 3,
-              py: 1.5,
-              fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-              },
-              transition: 'all 0.3s ease'
-            }}
+
           >
             Cancelar
           </Button>
           <Button
             onClick={() => {
-              console.log('🔍 Frontend - Botón de envío clickeado');
-              console.log('🔍 Frontend - formData actual:', formData);
-              console.log('🔍 Frontend - isEditing:', isEditing);
-              
+
               if (isEditing) {
-                console.log('🔍 Frontend - Llamando a handleUpdateFlow');
+
                 handleUpdateFlow();
               } else {
-                console.log('🔍 Frontend - Llamando a handleCreateFlow');
+
                 handleCreateFlow();
               }
             }}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: 12,
-              px: 3,
-              py: 1.5,
-              fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)'
-              },
-              transition: 'all 0.3s ease'
-            }}
+
           >
             {isEditing ? 'Actualizar' : 'Crear'}
           </Button>
@@ -1420,12 +730,7 @@ const FlowRecoveryV2Module = () => {
           </Box>
           <IconButton
             onClick={handleCloseViewDetails}
-            sx={{
-              color: 'rgba(255,255,255,0.8)',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.1)'
-              }
-            }}
+
           >
             <CloseIcon />
           </IconButton>
@@ -1451,21 +756,13 @@ const FlowRecoveryV2Module = () => {
                     label={viewingFlow.recuperado ? 'Recuperado' : 'Pendiente'}
                     status={viewingFlow.recuperado ? 'recuperado' : 'pendiente'}
                     size="small"
-                    sx={{
-                      backgroundColor: viewingFlow.recuperado ? '#27ae60' : '#3498db',
-                      color: '#fff',
-                      fontWeight: 600
-                    }}
+
                   />
                   <StyledChip
                     label={viewingFlow.categoria || 'Sin categoría'}
                     status="default"
                     size="small"
-                    sx={{
-                      backgroundColor: '#95a5a6',
-                      color: '#fff',
-                      fontWeight: 600
-                    }}
+
                   />
                 </Box>
                 <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)' }}>
@@ -1602,19 +899,7 @@ const FlowRecoveryV2Module = () => {
         }}>
           <Button
             onClick={handleCloseViewDetails}
-            sx={{
-              borderRadius: 12,
-              px: 3,
-              py: 1.5,
-              fontWeight: 600,
-              border: '1px solid rgba(255,255,255,0.3)',
-              color: '#fff',
-              '&:hover': {
-                borderColor: '#fff',
-                background: 'rgba(255,255,255,0.1)'
-              },
-              transition: 'all 0.3s ease'
-            }}
+
           >
             Cerrar
           </Button>
@@ -1623,21 +908,7 @@ const FlowRecoveryV2Module = () => {
               handleCloseViewDetails();
               handleEdit(viewingFlow);
             }}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(135deg, #f39c12, #e67e22)',
-              borderRadius: 12,
-              px: 3,
-              py: 1.5,
-              fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(243, 156, 18, 0.3)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #e67e22, #d35400)',
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 25px rgba(243, 156, 18, 0.4)'
-              },
-              transition: 'all 0.3s ease'
-            }}
+
           >
             Editar Flow
           </Button>
@@ -1655,15 +926,12 @@ const FlowRecoveryV2Module = () => {
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           variant="filled"
-          sx={{
-            borderRadius: 12,
-            fontWeight: 600,
-            boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-          }}
+
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
+      </Box>
     </StyledContainer>
   );
 };

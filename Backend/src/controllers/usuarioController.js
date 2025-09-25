@@ -206,9 +206,7 @@ exports.getUserByFirebaseUid = async (req, res) => {
   const start = Date.now();
   try {
     const { firebase_uid } = req.params;
-    
-    console.log('🔍 Buscando usuario con Firebase UID:', firebase_uid);
-    
+
     // Verificar cache
     const cacheKey = `user_firebase_${firebase_uid}`;
     const cachedUser = getCachedData(cacheKey);
@@ -239,17 +237,14 @@ exports.getUserByFirebaseUid = async (req, res) => {
     });
     
     if (!user) {
-      console.log('❌ Usuario no encontrado con Firebase UID:', firebase_uid);
-      
+
       // Si el usuario no existe, intentar buscar por email en el token Firebase
       const firebaseToken = req.headers['x-firebase-token'];
       if (firebaseToken) {
         try {
           const decodedToken = await verifyFirebaseToken(firebaseToken);
           const email = decodedToken.email;
-          
-          console.log('🔍 Buscando usuario por email:', email);
-          
+
           // Buscar usuario por email
           const userByEmail = await prisma.user.findFirst({
             where: { email: email.toLowerCase() },
@@ -267,15 +262,25 @@ exports.getUserByFirebaseUid = async (req, res) => {
           });
           
           if (userByEmail) {
-            console.log('✅ Usuario encontrado por email, actualizando Firebase UID...');
+
+            // Actualizar Firebase UID, last_login y is_first_login
+            // Solo actualizar last_login si han pasado más de 5 minutos
+            const shouldUpdateLogin = !userByEmail.last_login || 
+              (userByEmail.last_login && new Date() - new Date(userByEmail.last_login) > 5 * 60 * 1000);
             
-            // Actualizar Firebase UID
+            const updateData = {
+              firebase_uid: firebase_uid,
+              updated_at: new Date()
+            };
+            
+            if (shouldUpdateLogin) {
+              updateData.last_login = new Date();
+              updateData.is_first_login = false;
+            }
+            
             const updatedUser = await prisma.user.update({
               where: { id: userByEmail.id },
-              data: {
-                firebase_uid: firebase_uid,
-                updated_at: new Date()
-              },
+              data: updateData,
               include: {
                 roles: {
                   select: {
@@ -288,9 +293,13 @@ exports.getUserByFirebaseUid = async (req, res) => {
                 }
               }
             });
-            
-            console.log('✅ Firebase UID actualizado exitosamente');
-            
+
+            if (shouldUpdateLogin) {
+
+            } else {
+
+            }
+
             // Agregar status y mantener compatibilidad con el frontend
             const userWithStatus = {
               ...updatedUser,
@@ -317,7 +326,7 @@ exports.getUserByFirebaseUid = async (req, res) => {
             });
           }
         } catch (firebaseError) {
-          console.log('⚠️ Error verificando token Firebase:', firebaseError.message);
+
         }
       }
       
@@ -331,7 +340,7 @@ exports.getUserByFirebaseUid = async (req, res) => {
 
     // Verificar si el usuario está activo
     if (!user.is_active) {
-      console.log('⚠️ Usuario inactivo:', user.email);
+
       return res.status(403).json({
         success: false,
         message: 'Usuario inactivo',
@@ -339,26 +348,57 @@ exports.getUserByFirebaseUid = async (req, res) => {
       });
     }
 
+    // Actualizar last_login y is_first_login cuando se consulta el usuario
+    // Solo actualizar si han pasado más de 5 minutos desde el último login
+    // Esto evita actualizar constantemente el last_login
+    const shouldUpdateLogin = !user.last_login || 
+      (user.last_login && new Date() - new Date(user.last_login) > 5 * 60 * 1000);
+    
+    let updatedUser = user;
+    
+    if (shouldUpdateLogin) {
+      updatedUser = await prisma.user.update({
+        where: { firebase_uid },
+        data: {
+          last_login: new Date(),
+          is_first_login: false
+        },
+        include: {
+          roles: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              level: true,
+              is_active: true
+            }
+          }
+        }
+      });
+
+    } else {
+
+    }
+
     // Agregar status y mantener compatibilidad con el frontend
     const userWithStatus = {
-      ...user,
+      ...updatedUser,
       // Mantener el campo role para compatibilidad con el frontend
-      role: user.roles ? user.roles.name : user.role || 'Sin rol',
+      role: updatedUser.roles ? updatedUser.roles.name : updatedUser.role || 'Sin rol',
       // Agregar información del nuevo sistema de roles
-      role_info: user.roles ? {
-        id: user.roles.id,
-        name: user.roles.name,
-        description: user.roles.description,
-        level: user.roles.level,
-        is_active: user.roles.is_active
+      role_info: updatedUser.roles ? {
+        id: updatedUser.roles.id,
+        name: updatedUser.roles.name,
+        description: updatedUser.roles.description,
+        level: updatedUser.roles.level,
+        is_active: updatedUser.roles.is_active
       } : null,
-      status: user.updated_at && new Date(user.updated_at) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) ? 'active' : 'inactive'
+      status: updatedUser.updated_at && new Date(updatedUser.updated_at) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) ? 'active' : 'inactive'
     };
     
     // Guardar en cache
     setCachedData(cacheKey, userWithStatus);
-    
-    console.log('✅ Usuario encontrado:', user.email, 'Rol:', user.roles?.name);
+
     logDatabaseOperation('SELECT', 'users', Date.now() - start, true);
     res.json({
       success: true,
@@ -491,8 +531,6 @@ exports.updateUser = async (req, res) => {
       });
     }
 
-    console.log(`✏️ Usuario ${currentUserRole} actualizando usuario ID: ${id}`);
-
     // Verificar si el usuario existe
     const existingUser = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -617,8 +655,6 @@ exports.deleteUser = async (req, res) => {
         requiredRole: 'Super Administrador o Gerente'
       });
     }
-
-    console.log(`🗑️ Usuario ${currentUserRole} eliminando usuario ID: ${id}`);
 
     // Verificar si el usuario existe
     const existingUser = await prisma.user.findUnique({
@@ -802,8 +838,6 @@ exports.downloadUsersReport = async (req, res) => {
       });
     }
 
-    console.log(`📊 Usuario ${userRole} descargando informe de usuarios...`);
-
     // Obtener todos los usuarios con información de roles
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' },
@@ -856,8 +890,6 @@ exports.downloadUsersReport = async (req, res) => {
     // Log de auditoría
     logDatabaseOperation('SELECT', 'users', Date.now() - start, true, 'REPORT_DOWNLOAD');
     logAuth('DOWNLOAD_USERS_REPORT', req.user?.id, 'SUCCESS', `Informe descargado: ${users.length} usuarios`);
-    
-    console.log(`✅ Informe de usuarios descargado exitosamente por ${userRole}`);
 
   } catch (error) {
     console.error('Error al descargar informe de usuarios:', error);

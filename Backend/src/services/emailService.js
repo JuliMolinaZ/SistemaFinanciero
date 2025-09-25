@@ -23,15 +23,7 @@ const sendEmailWithSendGrid = async (emailData) => {
     text: emailData.text || emailData.html.replace(/<[^>]*>/g, '')
   };
 
-  console.log('📧 Enviando email con SendGrid...');
-  console.log('   Desde:', msg.from.email);
-  console.log('   Hacia:', msg.to);
-  console.log('   Asunto:', msg.subject);
-
   const result = await sgMail.send(msg);
-
-  console.log('✅ Email enviado con SendGrid exitosamente');
-  console.log('   Response:', result[0].statusCode);
 
   return {
     success: true,
@@ -45,7 +37,7 @@ const sendEmailWithSendGrid = async (emailData) => {
 const createTransporter = () => {
   // Usar SMTP directo de Gmail (fallback para cuando SendGrid falle)
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    console.log('🔧 Usando configuración SMTP directa como fallback');
+
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT || 587,
@@ -64,7 +56,7 @@ const createTransporter = () => {
   }
 
   // Fallback a servicio Gmail (para desarrollo)
-  console.log('🔧 Usando servicio Gmail como fallback');
+
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -87,7 +79,7 @@ const sendEmail = async (emailData) => {
       try {
         console.log('🚀 Intentando envío con SendGrid (proveedor principal)...');
         const result = await sendEmailWithSendGrid(emailData);
-        console.log('✅ Email enviado exitosamente con SendGrid');
+
         return result;
       } catch (sendgridError) {
         console.warn('⚠️ SendGrid falló:', sendgridError.message);
@@ -100,7 +92,6 @@ const sendEmail = async (emailData) => {
     // 2. FALLBACK A SMTP SI SENDGRID FALLA
     if (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD) {
       try {
-        console.log('🔄 Fallback: Intentando envío con SMTP...');
 
         const transporter = createTransporter();
 
@@ -112,15 +103,7 @@ const sendEmail = async (emailData) => {
           text: emailData.text || emailData.html.replace(/<[^>]*>/g, '')
         };
 
-        console.log('📧 Enviando email con SMTP...');
-        console.log('   Desde:', mailOptions.from);
-        console.log('   Hacia:', mailOptions.to);
-        console.log('   Asunto:', mailOptions.subject);
-
         const result = await transporter.sendMail(mailOptions);
-
-        console.log('✅ Email enviado exitosamente con SMTP');
-        console.log('   Message ID:', result.messageId);
 
         return {
           success: true,
@@ -139,10 +122,7 @@ const sendEmail = async (emailData) => {
 
     // 3. SI TODO FALLA, SIMULAR ENVÍO EN DESARROLLO
     if (process.env.NODE_ENV === 'development') {
-      console.log('🧪 MODO DESARROLLO: Simulando envío de email...');
-      console.log('   Desde:', process.env.EMAIL_FROM || 'RunSolutions <noreply@runsolutions-services.com>');
-      console.log('   Hacia:', emailData.to);
-      console.log('   Asunto:', emailData.subject);
+
       console.log('   📝 Contenido HTML:', emailData.html.substring(0, 100) + '...');
       console.log('⚠️ ERRORES DE PROVEEDORES:', errors.join(', '));
 
@@ -163,7 +143,6 @@ const sendEmail = async (emailData) => {
 
     // En desarrollo, siempre simular para no bloquear flujo
     if (process.env.NODE_ENV === 'development') {
-      console.log('🧪 Simulando envío para continuar desarrollo...');
 
       return {
         success: true,
@@ -189,7 +168,7 @@ const verifyConnection = async () => {
   // Verificar SendGrid
   if (process.env.SENDGRID_API_KEY) {
     try {
-      console.log('🔍 Verificando conexión SendGrid...');
+
       const testEmail = {
         to: 'test@test.com',
         subject: 'Test SendGrid Connection',
@@ -210,38 +189,38 @@ const verifyConnection = async () => {
       // SendGrid no tiene un método verify directo, pero podemos validar la API Key
       if (process.env.SENDGRID_API_KEY.startsWith('SG.')) {
         results.sendgrid = true;
-        console.log('✅ SendGrid configurado correctamente');
+
       } else {
-        console.log('❌ SendGrid API Key parece inválida');
+
       }
     } catch (error) {
-      console.log('❌ Error verificando SendGrid:', error.message);
+
     }
   } else {
-    console.log('⚠️ SendGrid no configurado');
+
   }
 
   // Verificar SMTP
   if (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD) {
     try {
-      console.log('🔍 Verificando conexión SMTP...');
+
       const transporter = createTransporter();
       await transporter.verify();
       results.smtp = true;
-      console.log('✅ SMTP configurado correctamente');
+
     } catch (error) {
-      console.log('❌ Error verificando SMTP:', error.message);
+
     }
   } else {
-    console.log('⚠️ SMTP no configurado');
+
   }
 
   results.overall = results.sendgrid || results.smtp;
 
   if (results.overall) {
-    console.log('✅ Al menos un proveedor de email está disponible');
+
   } else {
-    console.log('❌ No hay proveedores de email disponibles');
+
   }
 
   return results;

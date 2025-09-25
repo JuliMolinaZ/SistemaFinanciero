@@ -37,7 +37,7 @@ const ProjectDashboardPage = () => {
   const handleSearch = useCallback((query) => {
     setSearchQuery(query);
     // Implementar lógica de búsqueda aquí
-    console.log('Searching for:', query);
+
   }, []);
 
   // 📊 Cargar datos
@@ -71,22 +71,22 @@ const ProjectDashboardPage = () => {
 
   // 🎯 Handlers de eventos
   const handleProjectSelect = useCallback((project) => {
-    console.log('Selected project:', project);
+
     // Implementar navegación a detalles del proyecto
   }, []);
 
   const handleCreateProject = useCallback(() => {
-    console.log('Create new project');
+
     // Implementar creación de proyecto
   }, []);
 
   const handleViewAll = useCallback(() => {
-    console.log('View all projects');
+
     // Implementar navegación a lista completa
   }, []);
 
   const handleLogout = useCallback(() => {
-    console.log('Logout');
+
     // Implementar logout
   }, []);
 
@@ -142,7 +142,6 @@ const ProjectDashboardPage = () => {
               variant="secondary"
               size="sm"
               icon={Settings}
-              onClick={() => console.log('Settings')}
               aria-label="Configuración del dashboard"
             />
           </div>

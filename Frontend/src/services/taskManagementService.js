@@ -1,6 +1,9 @@
 // 🎯 TASK MANAGEMENT SERVICE - SERVICIO DE GESTIÓN DE TAREAS
 // ==========================================================
 
+// Importar utilidades de autenticación
+import { authGet, authPost, authPut, authDelete } from '../utils/authAxios';
+
 // 🌐 API Configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
 const API_ENDPOINTS = {
@@ -40,8 +43,7 @@ export const taskManagementService = {
   async getTasksByProject(projectId) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.tasks}/project/${projectId}`;
-      console.log('🔍 Fetching tasks from:', url);
-      
+
       const response = await fetch(url, createRequest('GET'));
 
       let data;
@@ -57,7 +59,6 @@ export const taskManagementService = {
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      console.log('✅ Tasks fetched successfully:', data.data?.total || 0, 'tasks');
       return data;
 
     } catch (error) {
@@ -70,7 +71,6 @@ export const taskManagementService = {
   async getAllSigmaUsers() {
     try {
       const url = `${API_BASE_URL}/api/users`;
-      console.log('👥 Fetching all Sigma users from:', url);
 
       const response = await fetch(url, createRequest('GET'));
 
@@ -97,13 +97,12 @@ export const taskManagementService = {
         active: user.active !== false
       })).filter(user => user.active); // Solo usuarios activos
 
-      console.log('✅ Sigma users fetched successfully:', users.length, 'users');
       return { data: users };
 
     } catch (error) {
       console.error('❌ Error fetching Sigma users:', error);
       // Fallback: devolver users mock
-      console.log('🔄 Fallback: usando datos mock de usuarios');
+
       return {
         data: [
           { id: 1, name: 'Juan Pérez', email: 'juan@example.com', avatar: null, role: 'admin' },
@@ -122,14 +121,13 @@ export const taskManagementService = {
     try {
       // Primero intentar obtener miembros específicos del proyecto
       const url = `${API_BASE_URL}/api/management-projects/${projectId}/members`;
-      console.log('👥 Fetching project members from:', url);
 
       const response = await fetch(url, createRequest('GET'));
 
       if (response.ok) {
         const data = await response.json();
         // Procesar los miembros del proyecto para extraer usuarios
-        const members = data.data || [];
+        const members = data.data?.members || [];
         const users = members.map(member => ({
           id: member.user?.id || member.id,
           name: member.user?.name || member.name,
@@ -138,12 +136,11 @@ export const taskManagementService = {
           role: member.team_type || 'member'
         }));
 
-        console.log('✅ Project members fetched successfully:', users.length, 'users');
         return { data: users };
       }
 
       // Si no hay miembros específicos, usar todos los usuarios de Sigma
-      console.log('⚠️ No project members found, using all Sigma users');
+
       return await this.getAllSigmaUsers();
 
     } catch (error) {
@@ -157,18 +154,9 @@ export const taskManagementService = {
   async createTask(taskData) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.tasks}`;
-      console.log('📝 Creating task:', taskData);
-      
-      const response = await fetch(url, createRequest('POST', taskData));
-      const data = await response.json();
 
-      if (!response.ok) {
-        console.error('❌ Create error:', response.status, data);
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      console.log('✅ Task created successfully:', data.data?.id);
-      return data;
+      const response = await authPost(url, taskData);
+      return response.data;
 
     } catch (error) {
       console.error('❌ Error creating task:', error);
@@ -180,18 +168,9 @@ export const taskManagementService = {
   async updateTask(taskId, updates) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.tasks}/${taskId}`;
-      console.log('✏️ Updating task:', taskId, updates);
-      
-      const response = await fetch(url, createRequest('PUT', updates));
-      const data = await response.json();
 
-      if (!response.ok) {
-        console.error('❌ Update error:', response.status, data);
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      console.log('✅ Task updated successfully:', data.data?.id);
-      return data;
+      const response = await authPut(url, updates);
+      return response.data;
 
     } catch (error) {
       console.error('❌ Error updating task:', error);
@@ -203,18 +182,9 @@ export const taskManagementService = {
   async deleteTask(taskId) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.tasks}/${taskId}`;
-      console.log('🗑️ Deleting task:', taskId);
-      
-      const response = await fetch(url, createRequest('DELETE'));
-      const data = await response.json();
 
-      if (!response.ok) {
-        console.error('❌ Delete error:', response.status, data);
-        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
-      }
-
-      console.log('✅ Task deleted successfully:', taskId);
-      return data;
+      const response = await authDelete(url);
+      return response.data;
 
     } catch (error) {
       console.error('❌ Error deleting task:', error);
@@ -226,7 +196,6 @@ export const taskManagementService = {
   async getCurrentUser() {
     try {
       const url = `${API_BASE_URL}/api/auth/me`;
-      console.log('👤 Fetching current user from:', url);
 
       const response = await fetch(url, createRequest('GET'));
 
@@ -253,7 +222,6 @@ export const taskManagementService = {
           last_name: user.last_name
         };
 
-        console.log('✅ Current user fetched:', processedUser.name);
         return processedUser;
       }
 
@@ -269,7 +237,6 @@ export const taskManagementService = {
   async getAvailableUsers(projectId) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.users}/project/${projectId}/users`;
-      console.log('👥 Fetching available users for project:', projectId);
 
       const response = await fetch(url, createRequest('GET'));
       const data = await response.json();
@@ -279,7 +246,6 @@ export const taskManagementService = {
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      console.log('✅ Users fetched successfully:', data.data?.length || 0, 'users');
       return data;
 
     } catch (error) {

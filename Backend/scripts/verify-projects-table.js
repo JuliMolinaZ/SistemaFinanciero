@@ -5,7 +5,6 @@ async function verifyProjectsTable() {
   let connection;
 
   try {
-    console.log('🔍 Verificando estructura de la tabla projects...');
 
     // Crear conexión a la base de datos
     connection = await mysql.createConnection({
@@ -16,10 +15,8 @@ async function verifyProjectsTable() {
       port: process.env.DB_PORT || 3306
     });
 
-    console.log('✅ Conexión a la base de datos establecida');
-
     // 1. Verificar estructura de la tabla projects
-    console.log('\n📊 ESTRUCTURA DE LA TABLA PROJECTS:');
+
     const [columns] = await connection.execute(`
       SELECT 
         COLUMN_NAME, 
@@ -33,11 +30,11 @@ async function verifyProjectsTable() {
     `, [process.env.DB_NAME || 'sistema_financiero']);
 
     columns.forEach(col => {
-      console.log(`  - ${col.COLUMN_NAME}: ${col.DATA_TYPE} (${col.IS_NULLABLE === 'YES' ? 'NULL' : 'NOT NULL'}) ${col.COLUMN_DEFAULT ? `DEFAULT: ${col.COLUMN_DEFAULT}` : ''} ${col.COLUMN_KEY === 'PRI' ? 'PRIMARY KEY' : ''}`);
+
     });
 
     // 2. Verificar tabla de fases
-    console.log('\n📋 ESTRUCTURA DE LA TABLA PHASES:');
+
     const [phaseColumns] = await connection.execute(`
       SELECT 
         COLUMN_NAME, 
@@ -51,14 +48,14 @@ async function verifyProjectsTable() {
 
     if (phaseColumns.length > 0) {
       phaseColumns.forEach(col => {
-        console.log(`  - ${col.COLUMN_NAME}: ${col.DATA_TYPE} (${col.IS_NULLABLE === 'YES' ? 'NULL' : 'NOT NULL'}) ${col.COLUMN_DEFAULT ? `DEFAULT: ${col.COLUMN_DEFAULT}` : ''}`);
+
       });
     } else {
-      console.log('  ❌ Tabla phases no encontrada');
+
     }
 
     // 3. Verificar datos de ejemplo en projects
-    console.log('\n📋 DATOS DE EJEMPLO EN PROJECTS:');
+
     const [projects] = await connection.execute(`
       SELECT 
         id, 
@@ -73,14 +70,14 @@ async function verifyProjectsTable() {
 
     if (projects.length > 0) {
       projects.forEach(project => {
-        console.log(`  - ID ${project.id}: "${project.nombre}" | Fase ID: ${project.phase_id || 'NULL'} | Estado: ${project.estado || 'NULL'} | Descripción: ${project.descripcion || 'Sin descripción'}`);
+
       });
     } else {
-      console.log('  ❌ No hay proyectos en la base de datos');
+
     }
 
     // 4. Verificar datos de ejemplo en phases
-    console.log('\n📋 DATOS DE EJEMPLO EN PHASES:');
+
     const [phases] = await connection.execute(`
       SELECT id, nombre, descripcion
       FROM phases
@@ -89,14 +86,14 @@ async function verifyProjectsTable() {
 
     if (phases.length > 0) {
       phases.forEach(phase => {
-        console.log(`  - ID ${phase.id}: "${phase.nombre}" - ${phase.descripcion || 'Sin descripción'}`);
+
       });
     } else {
-      console.log('  ❌ No hay fases en la base de datos');
+
     }
 
     // 5. Verificar relaciones entre projects y phases
-    console.log('\n🔗 VERIFICANDO RELACIONES PROJECTS-PHASES:');
+
     const [projectPhases] = await connection.execute(`
       SELECT 
         p.id,
@@ -109,11 +106,11 @@ async function verifyProjectsTable() {
     `);
 
     projectPhases.forEach(pp => {
-      console.log(`  - Proyecto "${pp.proyecto_nombre}" (ID: ${pp.id}) | Fase ID: ${pp.phase_id || 'NULL'} | Nombre Fase: ${pp.fase_nombre || 'Sin fase asignada'}`);
+
     });
 
     // 6. Verificar índices y constraints
-    console.log('\n🔒 VERIFICANDO ÍNDICES Y CONSTRAINTS:');
+
     const [indexes] = await connection.execute(`
       SELECT 
         INDEX_NAME,
@@ -125,10 +122,8 @@ async function verifyProjectsTable() {
     `, [process.env.DB_NAME || 'sistema_financiero']);
 
     indexes.forEach(idx => {
-      console.log(`  - Índice: ${idx.INDEX_NAME} | Columna: ${idx.COLUMN_NAME} | Único: ${idx.NON_UNIQUE === 0 ? 'SÍ' : 'NO'}`);
-    });
 
-    console.log('\n🎉 Verificación completada exitosamente!');
+    });
 
   } catch (error) {
     console.error('❌ Error durante la verificación:', error);
@@ -136,7 +131,7 @@ async function verifyProjectsTable() {
   } finally {
     if (connection) {
       await connection.end();
-      console.log('🔌 Conexión a la base de datos cerrada');
+
     }
   }
 }

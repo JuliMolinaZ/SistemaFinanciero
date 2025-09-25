@@ -95,21 +95,20 @@ const CuentasPagarForm = () => {
   };
 
   useEffect(() => {
-    console.log('🔄 CuentasPagarForm: Iniciando fetchCuentas...');
+
     fetchCuentas();
   }, [fetchCuentas]);
 
   // Log cuando cambian las cuentas
   useEffect(() => {
-    console.log('📊 CuentasPagarForm: cuentas actualizadas:', cuentas);
-    console.log('📊 CuentasPagarForm: número de cuentas:', cuentas.length);
+
   }, [cuentas]);
 
   useEffect(() => {
     const fetchProveedores = async () => {
       try {
         const res = await apiClient.get('/api/proveedores');
-        console.log('Respuesta de proveedores:', res.data);
+
         // La API devuelve {success: true, data: [...]}
         const proveedoresData = Array.isArray(res.data?.data) ? res.data.data : [];
         setProveedores(proveedoresData);
@@ -121,7 +120,7 @@ const CuentasPagarForm = () => {
     const fetchCategorias = async () => {
       try {
         const res = await apiClient.get('/api/categorias');
-        console.log('Respuesta de categorías:', res.data);
+
         // La API devuelve {success: true, data: [...]}
         const categoriasData = Array.isArray(res.data?.data) ? res.data.data : [];
         setCategorias(categoriasData);
@@ -142,9 +141,7 @@ const CuentasPagarForm = () => {
   }, []);
 
   const filtrarCuentas = useCallback(() => {
-    console.log('🔍 filtrarCuentas: cuentas recibidas:', cuentas.length);
-    console.log('🔍 filtrarCuentas: cuentas data:', cuentas);
-    
+
     let filtradas = cuentas;
     // Si filtroMes tiene valor y NO es "all", se filtra por mes
     if (filtroMes && filtroMes !== 'all') {
@@ -168,7 +165,7 @@ const CuentasPagarForm = () => {
         filtradas = filtradas.filter((c) => !c.pagado);
       }
     }
-    console.log('🔍 filtrarCuentas: cuentas filtradas:', filtradas.length);
+
     setCuentasFiltradas(filtradas);
     // Al cambiar el filtro se limpia la selección
     setSelectedCuentas([]);

@@ -33,7 +33,6 @@ import { faEdit, faTrash, faClose, faSearch } from '@fortawesome/free-solid-svg-
 
 // Configuración de la URL base para la API
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
-console.log(">>> API_URL =", API_URL);
 
 // Formateador de moneda MXN
 const formatterMXN = new Intl.NumberFormat('es-MX', {
@@ -46,11 +45,11 @@ const formatterMXN = new Intl.NumberFormat('es-MX', {
 // Componente: RequisicionesFormDialog
 // ─────────────────────────────────────────────
 const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange, onSubmit }) => {
-  console.log(">>> RequisicionesFormDialog renderizado - isEditing:", isEditing, "formData:", formData);
+
   return (
     <Dialog
       open={open}
-      onClose={() => { console.log(">>> Dialog: se cierra el formulario"); onClose(); }}
+      onClose={() => { onClose(); }}
       fullWidth
       maxWidth="sm"
       TransitionProps={{ timeout: 300 }}
@@ -66,7 +65,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
       >
         {isEditing ? 'Actualizar Requisición' : 'Registrar Requisición'}
         <IconButton
-          onClick={() => { console.log(">>> IconButton: clic en cerrar formulario"); onClose(); }}
+          onClick={() => { onClose(); }}
           sx={{
             position: 'absolute',
             right: 8,
@@ -80,7 +79,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
       </DialogTitle>
       <form
         onSubmit={(e) => {
-          console.log(">>> onSubmit del formulario invocado");
+
           onSubmit(e);
         }}
       >
@@ -92,7 +91,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 name="concepto"
                 value={formData.concepto}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'concepto':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -106,7 +105,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 name="solicitante"
                 value={formData.solicitante}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'solicitante':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -120,7 +119,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 name="justificacion"
                 value={formData.justificacion}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'justificacion':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -136,7 +135,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 name="area"
                 value={formData.area}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'área':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -151,7 +150,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 type="date"
                 value={formData.fecha_requerida}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'fecha_requerida':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -167,7 +166,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 type="number"
                 value={formData.costos}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'costos':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -181,7 +180,7 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
                 name="link_cotizaciones"
                 value={formData.link_cotizaciones}
                 onChange={(e) => {
-                  console.log(">>> Cambio en 'link_cotizaciones':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -194,7 +193,6 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
           <Button
             // Además de type="submit", agregamos onClick para confirmar que se hace clic
             type="submit"
-            onClick={() => console.log(">>> Botón submit clickeado")}
             variant="contained"
             color="primary"
             sx={{
@@ -219,12 +217,12 @@ const RequisicionesFormDialog = ({ open, onClose, isEditing, formData, onChange,
 // Componente: RequisicionesTable
 // ─────────────────────────────────────────────
 const RequisicionesTable = ({ requisiciones, onEdit, onDelete, onToggleApproval }) => {
-  console.log(">>> RequisicionesTable renderizado - total requisiciones:", requisiciones.length);
+
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
 
   const handleChangePage = (event, newPage) => {
-    console.log(">>> Cambio de página en la tabla. Nueva página:", newPage);
+
     setPage(newPage);
   };
 
@@ -254,7 +252,7 @@ const RequisicionesTable = ({ requisiciones, onEdit, onDelete, onToggleApproval 
             {requisiciones
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((req) => {
-                console.log(">>> Renderizando requisición:", req);
+
                 return (
                   <TableRow key={req.id} hover>
                     <TableCell>{req.concepto}</TableCell>
@@ -268,7 +266,7 @@ const RequisicionesTable = ({ requisiciones, onEdit, onDelete, onToggleApproval 
                       <Switch
                         checked={!!req.aceptacion_gerente}
                         onChange={() => {
-                          console.log(">>> Toggle aprobación gerente para ID:", req.id);
+
                           onToggleApproval(req.id, 'gerente');
                         }}
                         color="primary"
@@ -278,7 +276,7 @@ const RequisicionesTable = ({ requisiciones, onEdit, onDelete, onToggleApproval 
                       <Switch
                         checked={!!req.aceptacion_direccion}
                         onChange={() => {
-                          console.log(">>> Toggle aprobación dirección para ID:", req.id);
+
                           onToggleApproval(req.id, 'direccion');
                         }}
                         color="primary"
@@ -287,12 +285,12 @@ const RequisicionesTable = ({ requisiciones, onEdit, onDelete, onToggleApproval 
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                         <Tooltip title="Editar">
-                          <IconButton onClick={() => { console.log(">>> Editar requisición:", req); onEdit(req); }} color="info">
+                          <IconButton onClick={() => { onEdit(req); }} color="info">
                             <FontAwesomeIcon icon={faEdit} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Eliminar">
-                          <IconButton onClick={() => { console.log(">>> Eliminar requisición ID:", req.id); onDelete(req.id); }} color="error">
+                          <IconButton onClick={() => { onDelete(req.id); }} color="error">
                             <FontAwesomeIcon icon={faTrash} />
                           </IconButton>
                         </Tooltip>
@@ -320,7 +318,7 @@ const RequisicionesTable = ({ requisiciones, onEdit, onDelete, onToggleApproval 
 // Componente Principal: RequisicionesModule
 // ─────────────────────────────────────────────
 const RequisicionesModule = () => {
-  console.log(">>> RequisicionesModule: Renderizado");
+
   const [requisiciones, setRequisiciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -342,31 +340,31 @@ const RequisicionesModule = () => {
 
   // Función para obtener requisiciones desde el backend
   const fetchRequisiciones = useCallback(async () => {
-    console.log(">>> fetchRequisiciones: Iniciando...");
+
     try {
       setLoading(true);
-      console.log(">>> Llamada GET a:", `${API_URL}/api/requisiciones`);
+
       const response = await axios.get(`${API_URL}/api/requisiciones`);
-      console.log(">>> fetchRequisiciones: Respuesta recibida:", response.data);
+
       setRequisiciones(response.data);
     } catch (error) {
       console.error(">>> fetchRequisiciones: Error al obtener requisiciones:", error);
       setSnackbar({ open: true, message: 'Error al cargar requisiciones', severity: 'error' });
     } finally {
       setLoading(false);
-      console.log(">>> fetchRequisiciones: Finalizado. Loading:", false);
+
     }
   }, []);
 
   useEffect(() => {
-    console.log(">>> useEffect: Componente montado, llamando a fetchRequisiciones");
+
     fetchRequisiciones();
   }, [fetchRequisiciones]);
 
   // Manejo de cambios en los inputs del formulario
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log(">>> handleInputChange:", { name, value, type, checked });
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -375,10 +373,10 @@ const RequisicionesModule = () => {
 
   // Abre o cierra el formulario y resetea si se cierra
   const toggleForm = () => {
-    console.log(">>> toggleForm: Estado anterior de showForm:", showForm);
+
     setShowForm((prev) => !prev);
     if (showForm) {
-      console.log(">>> toggleForm: Cerrando formulario, reseteando estado de edición");
+
       setIsEditing(false);
       setEditingId(null);
       resetForm();
@@ -386,7 +384,7 @@ const RequisicionesModule = () => {
   };
 
   const resetForm = () => {
-    console.log(">>> resetForm: Reseteando formulario");
+
     setFormData({
       concepto: '',
       solicitante: '',
@@ -403,17 +401,17 @@ const RequisicionesModule = () => {
   // Envía el formulario para crear o actualizar la requisición
   const handleSubmitForm = async (e) => {
     e.preventDefault();
-    console.log(">>> handleSubmitForm: Formulario enviado. Datos:", formData);
+
     try {
       if (isEditing) {
-        console.log(">>> handleSubmitForm: Editando requisición con ID:", editingId);
+
         await axios.put(`${API_URL}/api/requisiciones/${editingId}`, formData);
-        console.log(">>> handleSubmitForm: Requisición actualizada exitosamente.");
+
         setSnackbar({ open: true, message: 'Requisición actualizada', severity: 'success' });
       } else {
-        console.log(">>> handleSubmitForm: Creando nueva requisición");
+
         await axios.post(`${API_URL}/api/requisiciones`, formData);
-        console.log(">>> handleSubmitForm: Requisición creada exitosamente.");
+
         setSnackbar({ open: true, message: 'Requisición creada', severity: 'success' });
       }
       await fetchRequisiciones();
@@ -427,7 +425,7 @@ const RequisicionesModule = () => {
 
   // Prepara el formulario para editar
   const handleEdit = (req) => {
-    console.log(">>> handleEdit: Preparando edición para requisición:", req);
+
     setFormData({
       concepto: req.concepto,
       solicitante: req.solicitante,
@@ -446,11 +444,11 @@ const RequisicionesModule = () => {
 
   // Función para eliminar una requisición
   const handleDelete = async (id) => {
-    console.log(">>> handleDelete: Solicitado eliminar requisición con ID:", id);
+
     if (window.confirm('¿Estás seguro de eliminar esta requisición?')) {
       try {
         await axios.delete(`${API_URL}/api/requisiciones/${id}`);
-        console.log(">>> handleDelete: Requisición eliminada exitosamente.");
+
         setSnackbar({ open: true, message: 'Requisición eliminada', severity: 'success' });
         await fetchRequisiciones();
       } catch (error) {
@@ -458,17 +456,17 @@ const RequisicionesModule = () => {
         setSnackbar({ open: true, message: 'Error al eliminar requisición', severity: 'error' });
       }
     } else {
-      console.log(">>> handleDelete: Eliminación cancelada por el usuario.");
+
     }
   };
 
   // Alterna la aprobación de gerente o dirección
   const handleToggleApproval = async (id, tipo) => {
-    console.log(">>> handleToggleApproval: Iniciando para ID:", id, "Tipo:", tipo);
+
     try {
       const reqItem = requisiciones.find((r) => r.id === id);
       if (!reqItem) {
-        console.warn(">>> handleToggleApproval: No se encontró requisición con ID:", id);
+
         return;
       }
       const updatedData = {
@@ -482,9 +480,9 @@ const RequisicionesModule = () => {
         aceptacion_gerente: tipo === 'gerente' ? !reqItem.aceptacion_gerente : reqItem.aceptacion_gerente,
         aceptacion_direccion: tipo === 'direccion' ? !reqItem.aceptacion_direccion : reqItem.aceptacion_direccion,
       };
-      console.log(">>> handleToggleApproval: Datos actualizados a enviar:", updatedData);
+
       await axios.put(`${API_URL}/api/requisiciones/${id}`, updatedData);
-      console.log(">>> handleToggleApproval: Aprobación actualizada exitosamente.");
+
       setSnackbar({ open: true, message: 'Aprobación actualizada', severity: 'success' });
       await fetchRequisiciones();
     } catch (error) {
@@ -508,7 +506,7 @@ const RequisicionesModule = () => {
           placeholder="Buscar por concepto..."
           value={searchText}
           onChange={(e) => {
-            console.log(">>> Cambio en búsqueda:", e.target.value);
+
             setSearchText(e.target.value);
           }}
           variant="outlined"
@@ -529,7 +527,7 @@ const RequisicionesModule = () => {
           variant="contained"
           color="success"
           onClick={() => { 
-            console.log(">>> Botón 'Nueva Requisición' presionado");
+
             setShowForm(true); 
           }}
           sx={{ boxShadow: 2, textTransform: 'none', px: 4, py: 1 }}
@@ -541,7 +539,7 @@ const RequisicionesModule = () => {
         <RequisicionesFormDialog
           open={showForm}
           onClose={() => {
-            console.log(">>> Cerrando formulario desde RequisicionesModule");
+
             setShowForm(false);
             resetForm();
           }}
@@ -567,14 +565,14 @@ const RequisicionesModule = () => {
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => {
-          console.log(">>> Cerrando snackbar");
+
           setSnackbar({ ...snackbar, open: false });
         }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
           onClose={() => {
-            console.log(">>> Cerrando alert del snackbar");
+
             setSnackbar({ ...snackbar, open: false });
           }}
           severity={snackbar.severity}
@@ -588,5 +586,4 @@ const RequisicionesModule = () => {
 };
 
 export default RequisicionesModule;
-
 

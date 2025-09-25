@@ -164,7 +164,7 @@ const ExportDropdown = ({ projects, groups, onClose }) => (
         onClick={() => {
           const success = exportToExcel(projects, groups);
           if (success) {
-            console.log('✅ Exportación a Excel exitosa');
+
             toast.success({
               title: 'Exportación exitosa',
               description: 'Los datos se exportaron a Excel correctamente'
@@ -190,7 +190,7 @@ const ExportDropdown = ({ projects, groups, onClose }) => (
         onClick={() => {
           const success = exportToPDF(projects, groups);
           if (success) {
-            console.log('✅ Exportación a PDF exitosa');
+
             toast.success({
               title: 'PDF generado',
               description: 'El reporte se abrió en una nueva ventana'

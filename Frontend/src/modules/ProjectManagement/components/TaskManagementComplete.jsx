@@ -482,8 +482,6 @@ const TaskManagementComplete = ({ projectId, projectName, onClose }) => {
     done: 0
   });
 
-  console.log('🎯 TaskManagementComplete renderizado con:', { projectId, projectName });
-
   // Sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -595,15 +593,15 @@ const TaskManagementComplete = ({ projectId, projectName, onClose }) => {
 
   // CRUD handlers
   const handleAddTask = (status) => {
-    console.log('Agregar tarea en:', status);
+
   };
 
   const handleEditTask = (task) => {
-    console.log('Editar tarea:', task);
+
   };
 
   const handleViewTask = (task) => {
-    console.log('Ver tarea:', task);
+
   };
 
   const handleDeleteTask = (task) => {

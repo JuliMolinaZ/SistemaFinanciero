@@ -608,7 +608,7 @@ const ModernDataTable = ({
   // ===== FUNCIONES DE EXPORTACIÓN =====
   const handleExport = useCallback((format) => {
     // Implementar lógica de exportación según el formato
-    console.log(`Exportando en formato: ${format}`);
+
     setSnackbar({
       open: true,
       message: `Exportando datos en formato ${format}`,

@@ -531,8 +531,6 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
     overdue: 0
   });
 
-  console.log('🎯 TaskManagementFinal renderizado con:', { projectId, projectName });
-
   // Configurar sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -552,10 +550,8 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔄 Cargando tareas reales para proyecto:', projectId);
 
       const response = await taskManagementService.getTasksByProject(projectId);
-      console.log('✅ Respuesta de API:', response);
 
       const tasksData = response.data || response.tasks || [];
       setTasks(tasksData);
@@ -643,7 +639,6 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
   // 🔄 ACTUALIZAR TAREA EN API
   const updateTaskStatus = useCallback(async (taskId, newStatus) => {
     try {
-      console.log('🔄 Actualizando estado de tarea:', { taskId, newStatus });
 
       // Actualizar en el backend
       await taskManagementService.updateTask(taskId, { status: newStatus });
@@ -653,7 +648,6 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
         task.id === taskId ? { ...task, status: newStatus } : task
       ));
 
-      console.log('✅ Estado de tarea actualizado exitosamente');
     } catch (error) {
       console.error('❌ Error actualizando estado:', error);
       // Recargar tareas en caso de error
@@ -683,7 +677,7 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
     const { active } = event;
     const task = tasks.find(t => t.id === active.id);
     setDraggedTask(task);
-    console.log('🎯 Iniciando drag:', task?.title);
+
   }, [tasks]);
 
   const handleDragEnd = useCallback(async (event) => {
@@ -691,7 +685,7 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
     setDraggedTask(null);
 
     if (!over) {
-      console.log('❌ Drop cancelado - no hay destino válido');
+
       return;
     }
 
@@ -701,17 +695,12 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
     // Verificar que el destino sea una columna válida
     const validColumns = TASK_COLUMNS.map(col => col.id);
     if (!validColumns.includes(newStatus)) {
-      console.log('❌ Drop cancelado - destino no válido:', newStatus);
+
       return;
     }
 
     const task = tasks.find(t => t.id === taskId);
     if (task && task.status !== newStatus) {
-      console.log('🎯 Moviendo tarea:', {
-        taskTitle: task.title,
-        from: task.status,
-        to: newStatus
-      });
 
       // Actualizar optimistamente la UI
       setTasks(prev => prev.map(t =>
@@ -726,14 +715,11 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
   // 🎯 CRUD HANDLERS
   const handleCreateTask = useCallback(async (taskData) => {
     try {
-      console.log('📝 Creando nueva tarea:', taskData);
 
       const response = await taskManagementService.createTask({
         ...taskData,
         project_id: projectId
       });
-
-      console.log('✅ Tarea creada exitosamente:', response);
 
       // Recargar tareas para mostrar la nueva
       await loadTasks();
@@ -747,11 +733,8 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
 
   const handleUpdateTask = useCallback(async (taskId, updates) => {
     try {
-      console.log('✏️ Actualizando tarea:', { taskId, updates });
 
       const response = await taskManagementService.updateTask(taskId, updates);
-
-      console.log('✅ Tarea actualizada exitosamente:', response);
 
       // Actualizar estado local
       setTasks(prev => prev.map(task =>
@@ -771,11 +754,8 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
     }
 
     try {
-      console.log('🗑️ Eliminando tarea:', task.id);
 
       await taskManagementService.deleteTask(task.id);
-
-      console.log('✅ Tarea eliminada exitosamente');
 
       // Actualizar estado local
       setTasks(prev => prev.filter(t => t.id !== task.id));
@@ -1204,7 +1184,7 @@ const TaskManagementFinal = ({ projectId, projectName, onClose }) => {
               <button
                 onClick={() => {
                   // Crear/editar lógica aquí
-                  console.log('💾 Guardando tarea...');
+
                   setShowCreateModal(false);
                   setEditingTask(null);
                 }}

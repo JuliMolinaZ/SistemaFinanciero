@@ -46,8 +46,6 @@ router.post('/test-assignment', async (req, res) => {
       nombre: 'Proyecto SIGMA de Prueba'
     };
 
-    console.log('🧪 Enviando email de prueba a:', email);
-    
     await sendTaskAssignmentNotification(testTask, testAssignee, testProject);
 
     res.json({
@@ -107,8 +105,6 @@ router.post('/test-status-change', async (req, res) => {
       nombre: 'Proyecto SIGMA de Prueba'
     };
 
-    console.log('🧪 Enviando email de cambio de estado a:', email);
-    
     await sendTaskStatusChangeNotification(testTask, 'todo', 'in_progress', testAssignee, testProject);
 
     res.json({

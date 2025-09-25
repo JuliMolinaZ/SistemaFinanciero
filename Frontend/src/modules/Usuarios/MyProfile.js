@@ -100,7 +100,26 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
 const MyProfile = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { profileData, setProfileData } = useContext(GlobalContext);
+  const { profileData, updateUserProfile, profileComplete } = useContext(GlobalContext);
+  
+  // Redirección automática cuando el perfil esté completo
+  useEffect(() => {
+    if (profileComplete && profileData) {
+      const isActuallyComplete = !!(profileData.name &&
+                                   profileData.phone &&
+                                   profileData.phone_country_code &&
+                                   profileData.department &&
+                                   profileData.position &&
+                                   profileData.birth_date);
+      
+      if (isActuallyComplete) {
+        // Redirigir a project-management después de un breve delay
+        setTimeout(() => {
+          window.location.href = '/project-management';
+        }, 1000);
+      }
+    }
+  }, [profileComplete, profileData]);
   
   // Estados del componente
   const [loading, setLoading] = useState(true);
@@ -136,9 +155,48 @@ const MyProfile = () => {
 
   useEffect(() => {
     // Verificar si hay cambios
-    const changed = Object.keys(formData).some(key => 
-      formData[key] !== originalData[key]
-    );
+    const changed = Object.keys(formData).some(key => {
+      if (key === 'avatar') {
+        // Para el avatar, verificar si es una nueva imagen (base64) o si cambió la URL
+        const currentAvatar = formData[key];
+        const originalAvatar = originalData[key];
+        
+          current: currentAvatar?.substring(0, 50) + '...',
+          original: originalAvatar,
+          isBase64: currentAvatar?.startsWith('data:image/'),
+          isDifferent: currentAvatar !== originalAvatar
+        });
+        
+        // Si el avatar actual es base64, siempre hay cambios (nueva imagen)
+        if (currentAvatar && currentAvatar.startsWith('data:image/')) {
+          return true; // Siempre hay cambios si es base64
+        }
+        
+        // Si no es base64, comparar normalmente
+        return currentAvatar !== originalAvatar;
+      }
+      
+      // Para otros campos, comparar normalmente
+      const isDifferent = formData[key] !== originalData[key];
+      if (isDifferent) {
+        }
+      return isDifferent;
+    });
+    
+      changed,
+      hasChanges: changed,
+      formData: {
+        name: formData.name,
+        phone: formData.phone,
+        avatar: formData.avatar?.substring(0, 50) + '...'
+      },
+      originalData: {
+        name: originalData.name,
+        phone: originalData.phone,
+        avatar: originalData.avatar
+      }
+    });
+    
     setHasChanges(changed);
   }, [formData, originalData]);
 
@@ -190,43 +248,142 @@ const MyProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
     
     try {
       setSaving(true);
+      // Verificar si hay una nueva imagen (base64)
+      const hasNewImage = formData.avatar && 
+                         formData.avatar !== originalData.avatar && 
+                         formData.avatar.startsWith('data:image/');
       
-      // Preparar datos para enviar
-      const updateData = {
-        name: formData.name.trim(),
-        phone: formData.phone.trim() || null,
-        department: formData.department.trim() || null,
-        position: formData.position.trim() || null,
-        hire_date: formData.hire_date || null,
-        avatar: formData.avatar
-      };
+        hasNewImage,
+        currentAvatar: formData.avatar,
+        originalAvatar: originalData.avatar,
+        isBase64: formData.avatar?.startsWith('data:image/'),
+        hasAvatar: !!formData.avatar
+      });
       
-      // Actualizar en el backend
-      const response = await axios.put(`/api/user-registration/update-user/${profileData.id}`, updateData);
+      let response;
       
-      if (response.data.success) {
-        // Actualizar contexto global
-        setProfileData({
-          ...profileData,
-          ...updateData
-        });
+      // Siempre intentar usar el endpoint con soporte para archivos si hay avatar
+      if (formData.avatar && formData.avatar.startsWith('data:image/')) {
         
-        // Actualizar datos originales
-        setOriginalData(formData);
+        try {
+          // Usar endpoint con soporte para archivos
+          const formDataToSend = new FormData();
+          formDataToSend.append('name', formData.name.trim());
+          formDataToSend.append('phone', formData.phone.trim() || '');
+          formDataToSend.append('department', formData.department.trim() || '');
+          formDataToSend.append('position', formData.position.trim() || '');
+          formDataToSend.append('hire_date', formData.hire_date || '');
+          
+          // Convertir base64 a blob
+          const fetchResponse = await fetch(formData.avatar);
+          const blob = await fetchResponse.blob();
+          
+          // Determinar extensión del archivo basado en el tipo MIME
+          const mimeType = formData.avatar.split(';')[0].split(':')[1];
+          let extension = 'jpg';
+          if (mimeType.includes('png')) extension = 'png';
+          else if (mimeType.includes('gif')) extension = 'gif';
+          else if (mimeType.includes('webp')) extension = 'webp';
+          
+          formDataToSend.append('avatar', blob, `avatar.${extension}`);
+          
+          response = await axios.put(`/api/user-registration/update-profile/${profileData.id}`, formDataToSend, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+        } catch (formDataError) {
+
+          // Fallback: usar endpoint sin archivos
+          const updateData = {
+            name: formData.name.trim(),
+            phone: formData.phone.trim() || null,
+            department: formData.department.trim() || null,
+            position: formData.position.trim() || null,
+            hire_date: formData.hire_date || null,
+            avatar: formData.avatar
+          };
+          
+          response = await axios.put(`/api/user-registration/update-user/${profileData.id}`, updateData);
+        }
+      } else {
+        
+        // Usar endpoint sin archivos
+        const updateData = {
+          name: formData.name.trim(),
+          phone: formData.phone.trim() || null,
+          department: formData.department.trim() || null,
+          position: formData.position.trim() || null,
+          hire_date: formData.hire_date || null,
+          avatar: formData.avatar
+        };
+        
+        response = await axios.put(`/api/user-registration/update-user/${profileData.id}`, updateData);
+      }
+      
+      // Verificar si la respuesta es exitosa (status 200-299 y success: true)
+      const isSuccess = response.status >= 200 && response.status < 300 && response.data && response.data.success === true;
+      
+      if (isSuccess) {
+        // Preparar datos para actualizar el contexto
+        const newAvatarUrl = response.data.data?.avatar || formData.avatar;
+        
+        const updateData = {
+          name: formData.name.trim(),
+          phone: formData.phone.trim() || null,
+          department: formData.department.trim() || null,
+          position: formData.position.trim() || null,
+          hire_date: formData.hire_date || null,
+          avatar: newAvatarUrl
+        };
+        
+        // Usar la función del contexto para actualizar el perfil
+        updateUserProfile(updateData);
+        
+        // Actualizar datos originales con la nueva URL del avatar
+        setOriginalData({ ...formData, avatar: newAvatarUrl });
         setHasChanges(false);
         setEditing(false);
         
         showSnackbar('Perfil actualizado exitosamente', 'success');
+      } else {
+        const errorMessage = response.data?.message || 'Error al actualizar el perfil';
+        showSnackbar(errorMessage, 'error');
       }
     } catch (error) {
-      showSnackbar(
-        error.response?.data?.message || 'Error al actualizar el perfil',
-        'error'
-      );
+      console.error('❌ Error actualizando perfil:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error request:', error.request);
+      console.error('❌ Error message:', error.message);
+      
+      let errorMessage = 'Error al actualizar el perfil';
+      
+      if (error.response) {
+        // El servidor respondió con un código de error
+        const { data } = error.response;
+        if (data && data.message) {
+          errorMessage = data.message;
+        } else if (data && data.error) {
+          errorMessage = data.error;
+        } else {
+          errorMessage = `Error del servidor: ${error.response.status} - ${error.response.statusText}`;
+        }
+      } else if (error.request) {
+        // La petición se hizo pero no hubo respuesta
+        errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+      } else {
+        // Algo pasó configurando la petición
+        errorMessage = error.message || 'Error inesperado';
+      }
+      
+      showSnackbar(errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -246,6 +403,14 @@ const MyProfile = () => {
       reader.onloadend = () => {
         handleInputChange('avatar', reader.result);
         setAvatarDialog(false);
+        
+        // Activar modo edición automáticamente cuando se selecciona una imagen
+        if (!editing) {
+          setEditing(true);
+          showSnackbar('Imagen seleccionada. Haz clic en "Guardar" para confirmar los cambios.', 'info');
+        } else {
+          showSnackbar('Imagen seleccionada correctamente', 'success');
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -370,6 +535,10 @@ const MyProfile = () => {
                           >
                             Cancelar
                           </Button>
+                            saving,
+                            hasChanges,
+                            disabled: saving || !hasChanges
+                          })}
                           <Button
                             variant="contained"
                             startIcon={<SaveIcon />}
@@ -541,15 +710,16 @@ const MyProfile = () => {
                         </Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          <strong>Estado:</strong> 
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" color="text.secondary" component="span">
+                            <strong>Estado:</strong>
+                          </Typography>
                           <Chip
                             label={profileData.is_active ? 'Activo' : 'Inactivo'}
                             color={profileData.is_active ? 'success' : 'error'}
                             size="small"
-                            sx={{ ml: 1 }}
                           />
-                        </Typography>
+                        </Box>
                       </Grid>
                     </Grid>
                   </Box>

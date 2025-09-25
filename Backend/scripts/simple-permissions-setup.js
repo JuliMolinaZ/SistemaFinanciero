@@ -5,21 +5,17 @@ const prisma = new PrismaClient();
 
 async function setupSimplePermissions() {
   try {
-    console.log('🚀 Configurando permisos de manera simple...');
-    
+
     // Obtener roles
     const roles = await prisma.roles.findMany({
       where: { is_active: true },
       orderBy: { level: 'asc' }
     });
 
-    console.log(`📋 ${roles.length} roles encontrados`);
-
     // Configurar permisos para Super Administrador
     const superAdmin = roles.find(r => r.name === 'Super Administrador');
     if (superAdmin) {
-      console.log(`\n🔐 Configurando Super Administrador (ID: ${superAdmin.id})`);
-      
+
       const modules = ['usuarios', 'roles', 'configuracion', 'auditoria', 'clientes', 'proyectos', 'fases', 
                       'cuentas_por_pagar', 'cuentas_por_cobrar', 'contabilidad', 'impuestos_imss', 'costos_fijos',
                       'categorias', 'proveedores', 'dashboard', 'reportes', 'realtime_graph', 'cotizaciones',
@@ -42,9 +38,9 @@ async function setupSimplePermissions() {
               updated_at: new Date()
             }
           });
-          console.log(`  ✅ ${module} - Acceso completo`);
+
         } catch (error) {
-          console.log(`  ⚠️ ${module} - Ya existe o error: ${error.message}`);
+
         }
       }
     }
@@ -52,8 +48,7 @@ async function setupSimplePermissions() {
     // Configurar permisos para Gerente
     const gerente = roles.find(r => r.name === 'Gerente');
     if (gerente) {
-      console.log(`\n🔐 Configurando Gerente (ID: ${gerente.id})`);
-      
+
       const gerenteModules = {
         'usuarios': { read: true, create: true, update: true, delete: false, export: true, approve: true },
         'roles': { read: true, create: true, update: true, delete: false, export: true, approve: true },
@@ -100,9 +95,9 @@ async function setupSimplePermissions() {
               updated_at: new Date()
             }
           });
-          console.log(`  ✅ ${module} - Configurado`);
+
         } catch (error) {
-          console.log(`  ⚠️ ${module} - Ya existe o error: ${error.message}`);
+
         }
       }
     }
@@ -110,8 +105,7 @@ async function setupSimplePermissions() {
     // Configurar permisos para Admin
     const admin = roles.find(r => r.name === 'Admin');
     if (admin) {
-      console.log(`\n🔐 Configurando Admin (ID: ${admin.id})`);
-      
+
       const adminModules = {
         'usuarios': { read: true, create: false, update: false, delete: false, export: false, approve: false },
         'roles': { read: true, create: false, update: false, delete: false, export: false, approve: false },
@@ -158,9 +152,9 @@ async function setupSimplePermissions() {
               updated_at: new Date()
             }
           });
-          console.log(`  ✅ ${module} - Configurado`);
+
         } catch (error) {
-          console.log(`  ⚠️ ${module} - Ya existe o error: ${error.message}`);
+
         }
       }
     }
@@ -168,8 +162,7 @@ async function setupSimplePermissions() {
     // Configurar permisos para Contador
     const contador = roles.find(r => r.name === 'Contador');
     if (contador) {
-      console.log(`\n🔐 Configurando Contador (ID: ${contador.id})`);
-      
+
       const contadorModules = {
         'usuarios': { read: false, create: false, update: false, delete: false, export: false, approve: false },
         'roles': { read: false, create: false, update: false, delete: false, export: false, approve: false },
@@ -216,9 +209,9 @@ async function setupSimplePermissions() {
               updated_at: new Date()
             }
           });
-          console.log(`  ✅ ${module} - Configurado`);
+
         } catch (error) {
-          console.log(`  ⚠️ ${module} - Ya existe o error: ${error.message}`);
+
         }
       }
     }
@@ -226,8 +219,7 @@ async function setupSimplePermissions() {
     // Configurar permisos para Desarrollador
     const desarrollador = roles.find(r => r.name === 'Desarrollador');
     if (desarrollador) {
-      console.log(`\n🔐 Configurando Desarrollador (ID: ${desarrollador.id})`);
-      
+
       const desarrolladorModules = {
         'usuarios': { read: true, create: false, update: false, delete: false, export: false, approve: false },
         'roles': { read: true, create: false, update: false, delete: false, export: false, approve: false },
@@ -274,9 +266,9 @@ async function setupSimplePermissions() {
               updated_at: new Date()
             }
           });
-          console.log(`  ✅ ${module} - Configurado`);
+
         } catch (error) {
-          console.log(`  ⚠️ ${module} - Ya existe o error: ${error.message}`);
+
         }
       }
     }
@@ -284,8 +276,7 @@ async function setupSimplePermissions() {
     // Configurar permisos para Invitado
     const invitado = roles.find(r => r.name === 'Invitado');
     if (invitado) {
-      console.log(`\n🔐 Configurando Invitado (ID: ${invitado.id})`);
-      
+
       const invitadoModules = {
         'usuarios': { read: false, create: false, update: false, delete: false, export: false, approve: false },
         'roles': { read: false, create: false, update: false, delete: false, export: false, approve: false },
@@ -332,15 +323,13 @@ async function setupSimplePermissions() {
               updated_at: new Date()
             }
           });
-          console.log(`  ✅ ${module} - Configurado`);
+
         } catch (error) {
-          console.log(`  ⚠️ ${module} - Ya existe o error: ${error.message}`);
+
         }
       }
     }
 
-    console.log('\n🎉 Configuración de permisos completada exitosamente!');
-    
     // Mostrar resumen
     await showPermissionsSummary();
     
@@ -354,8 +343,6 @@ async function setupSimplePermissions() {
 
 async function showPermissionsSummary() {
   try {
-    console.log('\n📊 RESUMEN DE PERMISOS CONFIGURADOS:');
-    console.log('=====================================');
 
     const roles = await prisma.roles.findMany({
       where: { is_active: true },
@@ -369,29 +356,15 @@ async function showPermissionsSummary() {
     });
 
     for (const role of roles) {
-      console.log(`\n👤 ${role.name} (Nivel ${role.level}) - ${role._count.users} usuarios`);
-      console.log('─'.repeat(50));
-      
-      const modules = await prisma.systemModules.findMany({
-        where: { is_active: true },
-        orderBy: { name: 'asc' }
-      });
 
-      for (const module of modules) {
-        const permission = role.role_permissions.find(p => p.module === module.name);
-        
-        if (permission) {
-          const permissions = [];
-          if (permission.can_read) permissions.push('📖 Ver');
           if (permission.can_create) permissions.push('➕ Crear');
           if (permission.can_update) permissions.push('✏️ Editar');
           if (permission.can_delete) permissions.push('🗑️ Eliminar');
           if (permission.can_export) permissions.push('📤 Exportar');
           if (permission.can_approve) permissions.push('✅ Aprobar');
-          
-          console.log(`  📦 ${module.display_name}: ${permissions.join(' | ')}`);
+
         } else {
-          console.log(`  📦 ${module.display_name}: ❌ Sin acceso`);
+
         }
       }
     }
@@ -404,7 +377,7 @@ async function showPermissionsSummary() {
 if (require.main === module) {
   setupSimplePermissions()
     .then(() => {
-      console.log('\n✅ Script ejecutado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

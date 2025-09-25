@@ -44,19 +44,37 @@ const upload = multer({
 
 // Middleware para manejar errores de multer
 const handleMulterError = (error, req, res, next) => {
+
   if (error instanceof multer.MulterError) {
+
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
         message: 'El archivo es demasiado grande. Máximo 5MB'
       });
+    } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Campo de archivo inesperado'
+      });
+    } else if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        message: 'Demasiados archivos'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Error de archivo: ${error.message}`
+      });
     }
   } else if (error.message === 'Solo se permiten archivos de imagen') {
     return res.status(400).json({
       success: false,
-      message: 'Solo se permiten archivos de imagen'
+      message: 'Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)'
     });
   }
+
   next(error);
 };
 
@@ -67,9 +85,7 @@ const handleMulterError = (error, req, res, next) => {
 exports.registerUserBySuperAdmin = async (req, res) => {
   const start = Date.now();
   try {
-    console.log('🔍 Iniciando registro de usuario por Super Admin...');
-    console.log('📝 Datos recibidos:', req.body);
-    
+
     const { email, role_id } = req.body;
     
     // Validaciones básicas
@@ -139,8 +155,6 @@ exports.registerUserBySuperAdmin = async (req, res) => {
       }
     });
 
-    console.log('✅ Usuario registrado exitosamente:', newUser);
-
     // Registrar en auditoría (opcional)
     try {
       await auditEvent({
@@ -156,13 +170,12 @@ exports.registerUserBySuperAdmin = async (req, res) => {
         }
       });
     } catch (auditError) {
-      console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
+
     }
 
     // Enviar email de invitación automáticamente usando el nuevo servicio
     try {
-      console.log('📧 Enviando email de invitación automáticamente...');
-      
+
       // Generar token de acceso temporal
       const accessToken = require('crypto').randomBytes(32).toString('hex');
       const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
@@ -191,11 +204,9 @@ exports.registerUserBySuperAdmin = async (req, res) => {
 
       // Enviar notificación usando el nuevo servicio
       await sendUserInvitationNotification(newUser, invitedBy);
-      
-      console.log('✅ Email de invitación enviado exitosamente');
-      
+
     } catch (emailError) {
-      console.warn('⚠️ No se pudo enviar email de invitación:', emailError.message);
+
     }
 
     // Log de operación
@@ -236,9 +247,7 @@ exports.registerUserBySuperAdmin = async (req, res) => {
 exports.verifyAccessToken = async (req, res) => {
   try {
     const { token } = req.params;
-    
-    console.log('🔍 Verificando token de acceso:', token);
-    
+
     // Buscar usuario con el token
     const user = await prisma.user.findFirst({
       where: {
@@ -258,9 +267,7 @@ exports.verifyAccessToken = async (req, res) => {
         message: 'Token inválido o expirado'
       });
     }
-    
-    console.log('✅ Token válido para usuario:', user.email);
-    
+
     res.json({
       success: true,
       data: {
@@ -294,9 +301,7 @@ exports.verifyAccessToken = async (req, res) => {
 exports.verifyUserByFirebaseOrEmail = async (req, res) => {
   try {
     const { identifier } = req.params; // Puede ser firebase_uid o email
-    
-    console.log('🔍 Verificando usuario por identificador:', identifier);
-    
+
     // Buscar usuario por firebase_uid o email
     const user = await prisma.user.findFirst({
       where: {
@@ -316,9 +321,7 @@ exports.verifyUserByFirebaseOrEmail = async (req, res) => {
         message: 'Usuario no encontrado'
       });
     }
-    
-    console.log('✅ Usuario encontrado:', user.email);
-    
+
     res.json({
       success: true,
       data: {
@@ -353,19 +356,17 @@ exports.verifyUserByFirebaseOrEmail = async (req, res) => {
 exports.completeUserProfile = async (req, res) => {
   const start = Date.now();
   try {
-    console.log('🔍 Iniciando completado de perfil de usuario...');
-    console.log('📝 Datos recibidos:', req.body);
-    console.log('📁 Archivos recibidos:', req.files);
-    console.log('🔑 Token de URL:', req.params.token);
-    
+
     const { token } = req.params;
-    const { 
-      name, 
-      password, 
-      phone, 
-      department, 
-      position, 
+    const {
+      name,
+      password,
+      phone,
+      phone_country_code,
+      department,
+      position,
       hire_date,
+      birth_date,
       firebase_uid
     } = req.body;
     
@@ -374,7 +375,7 @@ exports.completeUserProfile = async (req, res) => {
     if (req.files && req.files.avatar) {
       const avatarFile = req.files.avatar;
       avatarPath = `/uploads/avatars/${avatarFile.filename}`;
-      console.log('📸 Avatar subido:', avatarPath);
+
     }
 
     // Validaciones básicas
@@ -428,20 +429,52 @@ exports.completeUserProfile = async (req, res) => {
       }
     }
 
+    // Validar y procesar la fecha de nacimiento
+    let processedBirthDate = null;
+    if (birth_date && birth_date.trim() !== '') {
+      const date = new Date(birth_date);
+      if (!isNaN(date.getTime())) {
+        // Validar que la edad esté entre 16 y 80 años
+        const today = new Date();
+        const age = today.getFullYear() - date.getFullYear();
+        if (age < 16 || age > 80) {
+          return res.status(400).json({
+            success: false,
+            message: 'La edad debe estar entre 16 y 80 años'
+          });
+        }
+        processedBirthDate = date;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha de nacimiento inválido'
+        });
+      }
+    }
+
     // Usar el Firebase UID enviado por el frontend si está disponible
-    console.log('🔐 Firebase UID enviado por frontend:', firebase_uid);
+
+    // Verificar si el perfil está completo (todos los campos requeridos)
+    const isProfileComplete = name?.trim() &&
+                               phone?.trim() &&
+                               phone_country_code?.trim() &&
+                               department?.trim() &&
+                               position?.trim() &&
+                               processedBirthDate;
 
     // Solo actualizar Firebase UID si se proporciona uno real
     let updateData = {
       name: name.trim(),
       password: hashedPassword,
       phone: phone?.trim(),
+      phone_country_code: phone_country_code?.trim(),
       department: department?.trim(),
       position: position?.trim(),
       hire_date: processedHireDate,
+      birth_date: processedBirthDate,
       avatar: avatarPath,
       is_first_login: false,
-      profile_complete: true,
+      profile_complete: isProfileComplete,
       is_active: true,
       updated_at: new Date()
     };
@@ -449,9 +482,9 @@ exports.completeUserProfile = async (req, res) => {
     // Solo incluir firebase_uid si se proporciona un UID real de Firebase
     if (firebase_uid && !firebase_uid.startsWith('temp_') && !firebase_uid.startsWith('user_')) {
       updateData.firebase_uid = firebase_uid;
-      console.log('🔐 Firebase UID real que se guardará:', firebase_uid);
+
     } else {
-      console.log('🔐 No se actualizará Firebase UID - se esperará actualización posterior');
+
     }
 
     // Actualizar el usuario usando el ID del usuario encontrado por token
@@ -469,8 +502,6 @@ exports.completeUserProfile = async (req, res) => {
         }
       }
     });
-
-    console.log('✅ Perfil de usuario completado exitosamente');
 
     // Registrar en auditoría
     await auditEvent({
@@ -582,28 +613,10 @@ exports.checkUserProfileStatus = async (req, res) => {
 
 exports.getPendingProfileUsers = async (req, res) => {
   try {
-    // Obtener usuarios que realmente necesiten completar perfil
-    // Solo usuarios que NO tienen nombre, teléfono, departamento, posición, etc.
-    const users = await prisma.user.findMany({
+    // Obtener TODOS los usuarios activos primero
+    const allUsers = await prisma.user.findMany({
       where: {
-        AND: [
-          { is_active: true },
-          {
-            OR: [
-              // Usuarios que nunca han iniciado sesión
-              { is_first_login: true },
-              // Usuarios que no tienen información básica del perfil
-              { name: null },
-              { name: '' },
-              { phone: null },
-              { phone: '' },
-              { department: null },
-              { department: '' },
-              { position: null },
-              { position: '' }
-            ]
-          }
-        ]
+        is_active: true
       },
       select: {
         id: true,
@@ -615,6 +628,7 @@ exports.getPendingProfileUsers = async (req, res) => {
         phone: true,
         department: true,
         position: true,
+        firebase_uid: true,
         roles: {
           select: {
             id: true,
@@ -627,15 +641,18 @@ exports.getPendingProfileUsers = async (req, res) => {
     });
 
     // Filtrar usuarios que realmente necesiten completar perfil
-    const pendingUsers = users.filter(user => {
-      // Si es primer login, necesita completar perfil
-      if (user.is_first_login) return true;
+    // Usar la misma lógica que el frontend para determinar perfil completo
+    const pendingUsers = allUsers.filter(user => {
+      // Determinar si el perfil está completo usando la misma lógica del frontend
+      const hasName = user.name && user.name.trim() !== '';
+      const hasEmail = user.email && user.email.trim() !== '';
+      const hasPhone = user.phone && user.phone.trim() !== '';
       
-      // Si no tiene información básica, necesita completar perfil
-      if (!user.name || !user.phone || !user.department || !user.position) return true;
+      // Un perfil se considera completo si tiene al menos nombre, email y teléfono
+      const isProfileComplete = hasName && hasEmail && hasPhone;
       
-      // Si ya tiene perfil completo, no está pendiente
-      return false;
+      // Solo mostrar usuarios que NO tienen perfil completo
+      return !isProfileComplete;
     });
 
     res.json({
@@ -707,8 +724,6 @@ exports.deleteInvitedUser = async (req, res) => {
       where: { id: parseInt(id) }
     });
 
-    console.log(`✅ Usuario invitado eliminado: ${user.email}`);
-
     // Registrar en auditoría (opcional)
     try {
       await auditEvent({
@@ -724,7 +739,7 @@ exports.deleteInvitedUser = async (req, res) => {
         }
       });
     } catch (auditError) {
-      console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
+
     }
 
     // Log de operación
@@ -870,11 +885,7 @@ exports.sendInvitationEmail = async (req, res) => {
     };
 
     // Enviar email (simulado por ahora)
-    console.log('📧 Email de invitación generado:');
-    console.log('   Destinatario:', user.email);
-    console.log('   Token de acceso:', accessToken);
-    console.log('   Enlace de acceso:', `${process.env.FRONTEND_URL || 'http://localhost:3000'}/complete-profile/${accessToken}`);
-    
+
     // TODO: Integrar con servicio de email real (SendGrid, AWS SES, etc.)
     // await sendEmail(emailData);
 
@@ -907,8 +918,7 @@ exports.sendInvitationEmail = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   const start = Date.now();
   try {
-    console.log('📋 Obteniendo todos los usuarios...');
-    
+
     // Obtener todos los usuarios con información de roles
     const users = await prisma.user.findMany({
       include: {
@@ -931,8 +941,6 @@ exports.getAllUsers = async (req, res) => {
       role: user.roles?.name || 'Sin rol' // Asegurar que role esté disponible
     }));
 
-    console.log(`✅ ${transformedUsers.length} usuarios obtenidos en ${Date.now() - start}ms`);
-    
     // Log de operación
     logDatabaseOperation('GET', 'all_users', Date.now() - start, true, `${transformedUsers.length} usuarios obtenidos`);
     
@@ -965,10 +973,7 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
-    console.log('📝 Actualizando usuario:', id);
-    console.log('📝 Datos a actualizar:', updateData);
-    
+
     // Verificar que el usuario existe
     const existingUser = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -1014,8 +1019,6 @@ exports.updateUser = async (req, res) => {
       }
     }
 
-    console.log('📝 Datos transformados para BD:', transformedUpdateData);
-
     // Actualizar el usuario
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
@@ -1037,8 +1040,6 @@ exports.updateUser = async (req, res) => {
       role: updatedUser.roles?.name || 'Sin rol'
     };
 
-    console.log(`✅ Usuario ${updatedUser.email} actualizado exitosamente`);
-
     // Registrar en auditoría
     try {
       await auditEvent({
@@ -1054,7 +1055,7 @@ exports.updateUser = async (req, res) => {
         }
       });
     } catch (auditError) {
-      console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
+
     }
 
     // Log de operación
@@ -1087,8 +1088,7 @@ exports.updateUser = async (req, res) => {
 exports.downloadUsersReport = async (req, res) => {
   const start = Date.now();
   try {
-    console.log('📊 Generando informe de usuarios...');
-    
+
     // Obtener todos los usuarios con información de roles
     const users = await prisma.user.findMany({
       include: {
@@ -1125,9 +1125,7 @@ exports.downloadUsersReport = async (req, res) => {
     // Configurar headers para descarga
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="informe_usuarios_${new Date().toISOString().split('T')[0]}.csv"`);
-    
-    console.log(`✅ Informe generado con ${users.length} usuarios en ${Date.now() - start}ms`);
-    
+
     // Log de operación
     logDatabaseOperation('GET', 'users_report', Date.now() - start, true, `Informe descargado con ${users.length} usuarios`);
     
@@ -1154,9 +1152,7 @@ exports.downloadUsersReport = async (req, res) => {
 exports.updateUserFirebaseUID = async (req, res) => {
   const start = Date.now();
   try {
-    console.log('🔍 Iniciando actualización de Firebase UID...');
-    console.log('📝 Datos recibidos:', req.body);
-    
+
     const { email } = req.params;
     const { firebase_uid } = req.body;
     
@@ -1221,8 +1217,6 @@ exports.updateUserFirebaseUID = async (req, res) => {
       }
     });
 
-    console.log('✅ Firebase UID actualizado exitosamente:', updatedUser);
-
     // Registrar en auditoría
     try {
       await auditEvent({
@@ -1239,7 +1233,7 @@ exports.updateUserFirebaseUID = async (req, res) => {
         }
       });
     } catch (auditError) {
-      console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
+
     }
 
     // Log de operación
@@ -1278,9 +1272,7 @@ exports.updateUserFirebaseUID = async (req, res) => {
 exports.createUserFromFirebase = async (req, res) => {
   const start = Date.now();
   try {
-    console.log('🔍 Creando usuario desde Firebase Auth...');
-    console.log('📝 Datos recibidos:', req.body);
-    
+
     const { firebase_uid, email, name, role, avatar } = req.body;
     
     // Validaciones básicas
@@ -1308,8 +1300,7 @@ exports.createUserFromFirebase = async (req, res) => {
     if (existingUser) {
       // Si existe pero no tiene firebase_uid, actualizarlo
       if (existingUser.email === email.trim().toLowerCase() && !existingUser.firebase_uid) {
-        console.log('🔄 Usuario existe sin Firebase UID, actualizando...');
-        
+
         const updatedUser = await prisma.user.update({
           where: { id: existingUser.id },
           data: {
@@ -1329,8 +1320,6 @@ exports.createUserFromFirebase = async (req, res) => {
             }
           }
         });
-
-        console.log('✅ Usuario actualizado con Firebase UID:', updatedUser);
 
         return res.status(200).json({
           success: true,
@@ -1398,8 +1387,6 @@ exports.createUserFromFirebase = async (req, res) => {
       }
     });
 
-    console.log('✅ Usuario creado exitosamente:', newUser);
-
     // Registrar en auditoría
     try {
       await auditEvent({
@@ -1415,7 +1402,7 @@ exports.createUserFromFirebase = async (req, res) => {
         }
       });
     } catch (auditError) {
-      console.warn('⚠️ No se pudo registrar en auditoría:', auditError.message);
+
     }
 
     logDatabaseOperation('INSERT', 'users', Date.now() - start, true);
@@ -1445,6 +1432,159 @@ exports.createUserFromFirebase = async (req, res) => {
       success: false,
       message: 'Error interno del servidor',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno'
+    });
+  }
+};
+
+// =====================================================
+// ACTUALIZAR PERFIL DE USUARIO (DESDE MI PERFIL)
+// =====================================================
+
+exports.updateUserProfile = async (req, res) => {
+  const start = Date.now();
+  try {
+
+    const { id } = req.params;
+    const {
+      name,
+      phone,
+      phone_country_code,
+      department,
+      position,
+      hire_date,
+      birth_date,
+      avatar
+    } = req.body;
+
+    // Verificar que el usuario existe
+    const existingUser = await prisma.user.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    // Validaciones
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'El nombre debe tener al menos 2 caracteres'
+      });
+    }
+
+    // Validar fecha de nacimiento si se proporciona
+    let processedBirthDate = existingUser.birth_date;
+    if (birth_date && birth_date.trim() !== '') {
+      const date = new Date(birth_date);
+      if (!isNaN(date.getTime())) {
+        const today = new Date();
+        const age = today.getFullYear() - date.getFullYear();
+        if (age < 16 || age > 80) {
+          return res.status(400).json({
+            success: false,
+            message: 'La edad debe estar entre 16 y 80 años'
+          });
+        }
+        processedBirthDate = date;
+      }
+    }
+
+    // Validar fecha de contratación si se proporciona
+    let processedHireDate = existingUser.hire_date;
+    if (hire_date && hire_date.trim() !== '') {
+      const date = new Date(hire_date);
+      if (!isNaN(date.getTime())) {
+        processedHireDate = date;
+      }
+    }
+
+    // Manejar la imagen si se subió
+    let avatarPath = existingUser.avatar;
+
+    if (req.file) {
+      // Si se subió un nuevo archivo, usar su ruta
+      avatarPath = `/uploads/avatars/${req.file.filename}`;
+
+    } else if (avatar) {
+      // Si se envió una URL existente, mantenerla
+      avatarPath = avatar;
+
+    } else {
+
+    }
+
+    // Preparar datos de actualización
+    const updateData = {
+      name: name.trim(),
+      phone: phone?.trim() || null,
+      phone_country_code: phone_country_code?.trim() || null,
+      department: department?.trim() || null,
+      position: position?.trim() || null,
+      hire_date: processedHireDate,
+      birth_date: processedBirthDate,
+      avatar: avatarPath,
+      updated_at: new Date()
+    };
+
+    // Verificar si el perfil está completo (todos los campos requeridos)
+    const isProfileComplete = !!(updateData.name &&
+                               updateData.phone &&
+                               updateData.phone_country_code &&
+                               updateData.department &&
+                               updateData.position &&
+                               updateData.birth_date);
+
+    updateData.profile_complete = Boolean(isProfileComplete);
+
+    // Construir URL completa del avatar
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://sigma.runsolutions-services.com' 
+      : `http://localhost:${process.env.PORT || 8765}`;
+    const fullAvatarUrl = updatedUser.avatar ? `${baseUrl}${updatedUser.avatar}` : null;
+
+    const responseData = {
+      success: true,
+      data: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        phone_country_code: updatedUser.phone_country_code,
+        department: updatedUser.department,
+        position: updatedUser.position,
+        hire_date: updatedUser.hire_date,
+        birth_date: updatedUser.birth_date,
+        avatar: fullAvatarUrl,
+        profile_complete: updatedUser.profile_complete,
+        role: updatedUser.roles?.name || existingUser.role,
+        updated_at: updatedUser.updated_at
+      },
+      message: 'Perfil actualizado exitosamente'
+    };
+
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('❌ Error al actualizar perfil:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
+    });
+
+    // Log de error
+    logDatabaseOperation('UPDATE', 'users', Date.now() - start, false, error.message);
+
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'Error al actualizar perfil',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };

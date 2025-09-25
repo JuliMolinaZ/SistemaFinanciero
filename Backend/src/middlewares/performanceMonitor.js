@@ -12,27 +12,6 @@ const queryPerformanceMonitor = (req, res, next) => {
 
     // Log solo queries lentas (más de 1 segundo)
     if (responseTime > 1000) {
-      console.warn(`🐌 Query lenta detectada:`, {
-        method: req.method,
-        url: req.originalUrl,
-        responseTime: `${responseTime}ms`,
-        timestamp: new Date().toISOString(),
-        userAgent: req.get('User-Agent'),
-        ip: req.ip
-      });
-    }
-
-    // Log para desarrollo
-    if (process.env.NODE_ENV === 'development' && responseTime > 500) {
-      console.log(`⚡ Performance Monitor:`, {
-        endpoint: `${req.method} ${req.originalUrl}`,
-        responseTime: `${responseTime}ms`,
-        status: res.statusCode
-      });
-    }
-
-    // Agregar header de performance
-    res.setHeader('X-Response-Time', `${responseTime}ms`);
 
     return originalSend.call(this, data);
   };

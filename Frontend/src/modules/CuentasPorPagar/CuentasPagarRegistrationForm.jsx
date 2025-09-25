@@ -271,10 +271,7 @@ const CuentasPagarRegistrationForm = () => {
         // Asegurar que los datos sean arrays
         const proveedoresData = Array.isArray(proveedoresRes.data?.data) ? proveedoresRes.data.data : proveedoresRes.data;
         const categoriasData = Array.isArray(categoriasRes.data?.data) ? categoriasRes.data.data : categoriasRes.data;
-        
-        console.log('Proveedores cargados:', proveedoresData);
-        console.log('Categorías cargadas:', categoriasData);
-        
+
         setProveedores(proveedoresData);
         setCategorias(categoriasData);
         
@@ -376,8 +373,6 @@ const CuentasPagarRegistrationForm = () => {
         pagado: false, // Siempre se crea como pendiente
         autorizado: false // Siempre se crea como no autorizada
       };
-
-      console.log('Enviando datos de cuenta:', cuentaData);
 
       const response = await axios.post('/api/cuentas-pagar', cuentaData);
       
@@ -668,7 +663,6 @@ const CuentasPagarRegistrationForm = () => {
             </Grid>
           </SectionCard>
         );
-
 
       default:
         return null;

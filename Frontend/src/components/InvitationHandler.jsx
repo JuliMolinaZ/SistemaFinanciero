@@ -24,12 +24,11 @@ const InvitationHandler = () => {
 
   const verifyToken = async () => {
     try {
-      console.log('🔍 Verificando token de invitación:', token);
-      
+
       const response = await axios.get(`${API_BASE_URL}/api/user-registration/verify-token/${token}`);
       
       if (response.data.success) {
-        console.log('✅ Token válido:', response.data.data);
+
         setUserData(response.data.data);
       } else {
         setError('Token inválido o expirado');
@@ -45,11 +44,11 @@ const InvitationHandler = () => {
   const checkFirebaseAuth = () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        console.log('🔐 Usuario Firebase autenticado:', user.email);
+
         setFirebaseUser(user);
         setIsAuthenticated(true);
       } else {
-        console.log('🔐 No hay usuario Firebase autenticado');
+
         setIsAuthenticated(false);
       }
     });

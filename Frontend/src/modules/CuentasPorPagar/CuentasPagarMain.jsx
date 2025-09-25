@@ -511,9 +511,6 @@ const CuentasPagarMain = () => {
         realStats.totalProveedores = Array.isArray(proveedores) ? proveedores.length : 0;
       }
 
-      console.log('📊 Estadísticas reales calculadas:', realStats);
-      console.log('📋 Actividad reciente real:', realActivity);
-
       setStats(realStats);
       setRecentActivity(realActivity);
       

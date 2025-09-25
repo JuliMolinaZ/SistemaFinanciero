@@ -129,7 +129,7 @@ export function getMessage(path, ...args) {
 
   for (const key of keys) {
     if (current[key] === undefined) {
-      console.warn(`Mensaje no encontrado: ${path}`);
+
       return path;
     }
     current = current[key];

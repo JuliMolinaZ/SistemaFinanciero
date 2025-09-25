@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { GlobalProvider } from './context/GlobalState';
 import { NotificationProvider } from './components/providers/NotificationProvider';
+import { NotificationsProvider } from './context/NotificationsContext';
 import './styles/global.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
@@ -19,7 +20,9 @@ root.render(
     <ThemeProvider theme={theme}>
       <GlobalProvider>
         <NotificationProvider>
-          <App />
+          <NotificationsProvider>
+            <App />
+          </NotificationsProvider>
         </NotificationProvider>
       </GlobalProvider>
     </ThemeProvider>

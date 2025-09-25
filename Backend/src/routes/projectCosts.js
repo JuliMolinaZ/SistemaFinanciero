@@ -9,5 +9,3 @@ router.delete('/:costId', projectCostsController.deleteCost);
 
 module.exports = router;
 
-
-

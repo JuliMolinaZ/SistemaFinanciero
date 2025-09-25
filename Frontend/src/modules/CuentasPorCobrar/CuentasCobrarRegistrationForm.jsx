@@ -271,10 +271,7 @@ const CuentasCobrarRegistrationForm = () => {
         // Asegurar que los datos sean arrays
         const clientesData = Array.isArray(clientesRes.data?.data) ? clientesRes.data.data : clientesRes.data;
         const categoriasData = Array.isArray(categoriasRes.data?.data) ? categoriasRes.data.data : categoriasRes.data;
-        
-        console.log('Clientes cargados:', clientesData);
-        console.log('Categorías cargadas:', categoriasData);
-        
+
         setClientes(clientesData);
         setCategorias(categoriasData);
         
@@ -370,8 +367,6 @@ const CuentasCobrarRegistrationForm = () => {
         cobrado: false, // Siempre se crea como pendiente
         autorizado: false // Siempre se crea como no autorizada
       };
-
-      console.log('Enviando datos de cuenta:', cuentaData);
 
       const response = await axios.post('/api/cuentas-cobrar', cuentaData);
       

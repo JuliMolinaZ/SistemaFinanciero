@@ -12,6 +12,9 @@ const {
   testEmailNotification
 } = require('../controllers/managementTaskController');
 
+// Importar middleware de autenticación
+const { verifyAuth } = require('../middlewares/auth');
+
 const { getTasksByUser, getRealTasksByUser, getAllTasksDebug } = require('../controllers/managementTaskControllerV2');
 
 // 🔍 GET /api/management-tasks/project/:projectId - Obtener tareas de un proyecto
@@ -27,13 +30,13 @@ router.get('/real/user/:userId', getRealTasksByUser);
 router.get('/project/:projectId/users', getAvailableUsers);
 
 // ✨ POST /api/management-tasks - Crear nueva tarea
-router.post('/', createTask);
+router.post('/', verifyAuth, createTask);
 
 // ✏️ PUT /api/management-tasks/:taskId - Actualizar tarea
-router.put('/:taskId', updateTask);
+router.put('/:taskId', verifyAuth, updateTask);
 
 // 🗑️ DELETE /api/management-tasks/:taskId - Eliminar tarea
-router.delete('/:taskId', deleteTask);
+router.delete('/:taskId', verifyAuth, deleteTask);
 
 // 🧪 POST /api/management-tasks/test-email - Probar envío de email
 router.post('/test-email', testEmailNotification);

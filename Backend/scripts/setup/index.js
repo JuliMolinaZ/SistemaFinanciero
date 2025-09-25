@@ -4,8 +4,6 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔧 SCRIPTS DE CONFIGURACIÓN DEL SISTEMA FINANCIERO\n');
-
 const scripts = {
   'setup-prisma': 'Configurar Prisma y generar cliente',
   'create-security-tables': 'Crear tablas de seguridad',
@@ -16,14 +14,11 @@ const scripts = {
 };
 
 function showMenu() {
-  console.log('📋 Scripts disponibles:\n');
-  
+
   Object.entries(scripts).forEach(([script, description], index) => {
-    console.log(`${index + 1}. ${script} - ${description}`);
+
   });
-  
-  console.log('\n0. Salir');
-  console.log('\n💡 Uso: node scripts/setup/index.js <número>');
+
 }
 
 function runScript(scriptName) {
@@ -33,9 +28,7 @@ function runScript(scriptName) {
     console.error(`❌ Script no encontrado: ${scriptPath}`);
     return;
   }
-  
-  console.log(`🚀 Ejecutando: ${scriptName}\n`);
-  
+
   try {
     execSync(`node ${scriptPath}`, { 
       stdio: 'inherit',
@@ -56,7 +49,7 @@ if (scriptNumber) {
   if (index >= 0 && index < scriptNames.length) {
     runScript(scriptNames[index]);
   } else if (scriptNumber === '0') {
-    console.log('👋 ¡Hasta luego!');
+
   } else {
     console.error('❌ Número de script inválido');
     showMenu();

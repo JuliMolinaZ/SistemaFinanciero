@@ -227,8 +227,18 @@ const UsersManagementMain = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [usersListRef, setUsersListRef] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Función para actualizar la lista de usuarios cuando se crea uno nuevo
+  const handleUserCreated = useCallback(() => {
+    if (usersListRef && usersListRef.fetchUsers) {
+      usersListRef.fetchUsers();
+    }
+    // También actualizar el dashboard
+    fetchDashboardData();
+  }, [usersListRef]);
 
   // Configuración de tabs mejorada
   const tabs = [
@@ -242,14 +252,14 @@ const UsersManagementMain = () => {
     {
       label: 'Lista de Usuarios',
       icon: <People />,
-      component: <UsersList />,
+      component: <UsersList ref={setUsersListRef} />,
       description: 'Gestiona y visualiza todos los usuarios',
       color: '#667eea'
     },
     {
       label: 'Registro',
       icon: <PersonAdd />,
-      component: <UserRegistrationForm />,
+      component: <UserRegistrationForm onUserCreated={handleUserCreated} />,
       description: 'Registra nuevos usuarios del sistema',
       color: '#27ae60'
     },
@@ -329,9 +339,6 @@ const UsersManagementMain = () => {
         const roles = rolesResponse.value.data.data;
         realStats.totalRoles = roles.length;
       }
-
-      console.log('📊 Estadísticas reales calculadas:', realStats);
-      console.log('📋 Actividad reciente real:', realActivity);
 
       setStats(realStats);
       setRecentActivity(realActivity);

@@ -541,7 +541,7 @@ export function ProjectListEnterprise({
           project={project}
           onUpdate={() => {
             // Callback para refrescar la tabla
-            console.log('🔄 Refrescando tabla después de actualizar proyecto');
+
             // Aquí podrías llamar a una función para recargar los datos
           }}
         />
@@ -565,7 +565,7 @@ export function ProjectListEnterprise({
             variant="primary" 
             icon={Plus} 
             onClick={() => {
-              console.log('🚀 Creando proyecto desde empty state');
+
               // Llamar a función global para crear proyecto
               if (window.createNewProject) {
                 window.createNewProject();

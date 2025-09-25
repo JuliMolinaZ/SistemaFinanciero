@@ -126,8 +126,7 @@ const ExportButton = ({
   };
 
   const defaultExport = async (exportData) => {
-    console.log('Exportando datos:', exportData);
-    
+
     // Simular delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     

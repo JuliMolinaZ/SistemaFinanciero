@@ -25,9 +25,11 @@ model User {
   locked_until     DateTime?        @map("locked_until") @db.Timestamp(0)
   department       String?          @db.VarChar(100)
   hire_date        DateTime?        @map("hire_date") @db.Date
+  birth_date       DateTime?        @map("birth_date") @db.Date
   is_first_login   Boolean?         @default(true) @map("is_first_login")
   password         String?          @db.VarChar(255)
   phone            String?          @db.VarChar(20)
+  phone_country_code String?        @map("phone_country_code") @db.VarChar(10)
   position         String?          @db.VarChar(100)
   profile_complete Boolean?         @default(false) @map("profile_complete")
   access_token     String?          @db.VarChar(255)
@@ -38,26 +40,31 @@ model User {
   userPermissions  UserPermission[]
   userSessions     UserSession[]
   roles            Roles?           @relation(fields: [role_id], references: [id])
-  
+
   // Relaciones para gestión de proyectos (NUEVAS TABLAS)
-  managedManagementProjects  ManagementProject[]        @relation("ManagementProjectManager")
-  managementProjectMembers   ManagementProjectMember[] @relation("ManagementProjectMemberUser")
-  assignedManagementTasks    ManagementTask[]          @relation("ManagementTaskAssignee")
-  managementDocuments        ManagementProjectDocument[] @relation("ManagementDocumentUploader")
-  managementNotifications    ManagementProjectNotification[] @relation("ManagementNotificationUser")
+  managedManagementProjects ManagementProject[]             @relation("ManagementProjectManager")
+  createdManagementProjects ManagementProject[]             @relation("ManagementProjectCreator")
+  managementProjectMembers  ManagementProjectMember[]       @relation("ManagementProjectMemberUser")
+  assignedManagementTasks   ManagementTask[]                @relation("ManagementTaskAssignee")
+  createdManagementTasks    ManagementTask[]                @relation("ManagementTaskCreator")
+  managementDocuments       ManagementProjectDocument[]     @relation("ManagementDocumentUploader")
+  managementNotifications   ManagementProjectNotification[] @relation("ManagementNotificationUser")
+
+  // Relaciones para notificaciones del sistema
+  systemNotifications       SystemNotification[]            @relation("SystemNotificationUser")
 
   // Relaciones para proyectos tradicionales
-  managedProjects           Project[]               @relation("ProjectManager")
-  projectMemberships        ProjectMember[]         @relation("ProjectMemberUser")
-  assignedTasks             Task[]                  @relation("TaskAssignee")
-  reportedTasks             Task[]                  @relation("TaskReporter")
-  taskComments              TaskComment[]           @relation("TaskCommentUser")
-  taskAttachments           TaskAttachment[]        @relation("TaskAttachmentUser")
-  dailyStandups             DailyStandup[]          @relation("DailyStandupUser")
-  retrospectives            Retrospective[]         @relation("RetrospectiveUser")
-  timeEntries               TimeEntry[]             @relation("TimeEntryUser")
-  projectDocuments          ProjectDocument[]       @relation("ProjectDocumentUser")
-  projectNotifications      ProjectNotification[]   @relation("ProjectNotificationUser")
+  managedProjects      Project[]             @relation("ProjectManager")
+  projectMemberships   ProjectMember[]       @relation("ProjectMemberUser")
+  assignedTasks        Task[]                @relation("TaskAssignee")
+  reportedTasks        Task[]                @relation("TaskReporter")
+  taskComments         TaskComment[]         @relation("TaskCommentUser")
+  taskAttachments      TaskAttachment[]      @relation("TaskAttachmentUser")
+  dailyStandups        DailyStandup[]        @relation("DailyStandupUser")
+  retrospectives       Retrospective[]       @relation("RetrospectiveUser")
+  timeEntries          TimeEntry[]           @relation("TimeEntryUser")
+  projectDocuments     ProjectDocument[]     @relation("ProjectDocumentUser")
+  projectNotifications ProjectNotification[] @relation("ProjectNotificationUser")
 
   @@map("users")
 }
@@ -145,7 +152,7 @@ model Client {
   projects         Project[]
   recuperacion     recuperacion[]
   flow_recovery_v2 flow_recovery_v2[]
-  
+
   // Relación con proyectos de gestión
   managementProjects ManagementProject[] @relation("ManagementProjectClient")
 
@@ -154,29 +161,29 @@ model Client {
 }
 
 model Project {
-  id                 Int                @id @default(autoincrement())
-  nombre             String?            @db.VarChar(255)
-  cliente_id         Int?               @map("cliente_id")
-  monto_sin_iva      Decimal?           @db.Decimal(10, 2)
-  monto_con_iva      Decimal?           @db.Decimal(10, 2)
-  created_at         DateTime?          @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at         DateTime?          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  phase_id           Int?
-  descripcion        String?            @db.Text
-  estado             String?            @default("activo") @db.VarChar(50)
+  id            Int       @id @default(autoincrement())
+  nombre        String?   @db.VarChar(255)
+  cliente_id    Int?      @map("cliente_id")
+  monto_sin_iva Decimal?  @db.Decimal(10, 2)
+  monto_con_iva Decimal?  @db.Decimal(10, 2)
+  created_at    DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  phase_id      Int?
+  descripcion   String?   @db.Text
+  estado        String?   @default("activo") @db.VarChar(50)
 
   // Campos adicionales para gestión de proyectos
-  methodology_id     Int?               @map("methodology_id")
-  start_date         DateTime?          @map("start_date") @db.Date
-  end_date           DateTime?          @map("end_date") @db.Date
-  budget             Decimal?           @db.Decimal(15, 2)
-  progress           Int                @default(0) // 0-100
-  priority           String?            @default("medium") @db.VarChar(20)
-  status             String?            @default("planning") @db.VarChar(50) // planning, active, on_hold, completed, cancelled
-  project_manager_id Int?               @map("project_manager_id")
+  methodology_id     Int?      @map("methodology_id")
+  start_date         DateTime? @map("start_date") @db.Date
+  end_date           DateTime? @map("end_date") @db.Date
+  budget             Decimal?  @db.Decimal(15, 2)
+  progress           Int       @default(0) // 0-100
+  priority           String?   @default("medium") @db.VarChar(20)
+  status             String?   @default("planning") @db.VarChar(50) // planning, active, on_hold, completed, cancelled
+  project_manager_id Int?      @map("project_manager_id")
 
   // Nuevos campos para fases
-  current_phase_id   String?            @map("current_phase_id") @db.VarChar(36)
+  current_phase_id String? @map("current_phase_id") @db.VarChar(36)
 
   cuentas_por_cobrar CuentaCobrar[]
   projectCosts       ProjectCost[]
@@ -186,18 +193,18 @@ model Project {
   flow_recovery_v2   flow_recovery_v2[]
 
   // Nuevas relaciones para gestión de proyectos
-  methodology        ProjectMethodology? @relation(fields: [methodology_id], references: [id])
-  project_manager    User?              @relation("ProjectManager", fields: [project_manager_id], references: [id])
-  members            ProjectMember[]
-  sprints            Sprint[]
-  tasks              Task[]
-  documents          ProjectDocument[]
-  notifications      ProjectNotification[]
-  milestones         Milestone[]
+  methodology     ProjectMethodology?   @relation(fields: [methodology_id], references: [id])
+  project_manager User?                 @relation("ProjectManager", fields: [project_manager_id], references: [id])
+  members         ProjectMember[]
+  sprints         Sprint[]
+  tasks           Task[]
+  documents       ProjectDocument[]
+  notifications   ProjectNotification[]
+  milestones      Milestone[]
 
   // Nuevas relaciones para fases personalizadas
-  current_phase      ProjectPhase?      @relation("CurrentPhase", fields: [current_phase_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  project_phases     ProjectPhase[]     @relation("ProjectPhases")
+  current_phase  ProjectPhase?  @relation("CurrentPhase", fields: [current_phase_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  project_phases ProjectPhase[] @relation("ProjectPhases")
 
   @@index([cliente_id], map: "cliente_id")
   @@index([phase_id], map: "fk_project_phase")
@@ -217,43 +224,47 @@ model Project {
 
 // TABLA DE GESTIÓN DE PROYECTOS (NUEVA E INDEPENDIENTE)
 model ManagementProject {
-  id                 Int                    @id @default(autoincrement())
-  nombre             String                 @db.VarChar(255)
-  descripcion        String?                @db.Text
-  cliente_id         Int?                   @map("cliente_id")
-  
+  id          Int     @id @default(autoincrement())
+  nombre      String  @db.VarChar(255)
+  descripcion String? @db.Text
+  cliente_id  Int?    @map("cliente_id")
+
   // Gestión y metodología
-  methodology_id     Int?                   @map("methodology_id")
-  project_manager_id Int?                   @map("project_manager_id")
-  current_phase_id   String?                @map("current_phase_id") @db.VarChar(36)
-  
+  methodology_id     Int?    @map("methodology_id")
+  project_manager_id Int?    @map("project_manager_id")
+  current_phase_id   String? @map("current_phase_id") @db.VarChar(36)
+
   // Cronograma
-  start_date         DateTime?              @map("start_date") @db.Date
-  end_date           DateTime?              @map("end_date") @db.Date
-  
+  start_date DateTime? @map("start_date") @db.Date
+  end_date   DateTime? @map("end_date") @db.Date
+
   // Estado y progreso
-  status             String                 @default("planning") @db.VarChar(50) // planning, active, on_hold, completed, cancelled
-  priority           String                 @default("medium") @db.VarChar(20)   // low, medium, high, critical
-  progress           Int                    @default(0) // 0-100
-  
+  status   String @default("planning") @db.VarChar(50) // planning, active, on_hold, completed, cancelled
+  priority String @default("medium") @db.VarChar(20) // low, medium, high, critical
+  progress Int    @default(0) // 0-100
+
+  // Control de permisos
+  created_by Int? @map("created_by")
+
   // Auditoría
-  created_at         DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at         DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relaciones de gestión de proyectos
-  client             Client?                @relation("ManagementProjectClient", fields: [cliente_id], references: [id])
-  methodology        ProjectMethodology?    @relation("ManagementProjectMethodology", fields: [methodology_id], references: [id])
-  project_manager    User?                  @relation("ManagementProjectManager", fields: [project_manager_id], references: [id])
-  current_phase      ManagementProjectPhase? @relation("ManagementCurrentPhase", fields: [current_phase_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  
+  client          Client?                 @relation("ManagementProjectClient", fields: [cliente_id], references: [id])
+  methodology     ProjectMethodology?     @relation("ManagementProjectMethodology", fields: [methodology_id], references: [id])
+  project_manager User?                   @relation("ManagementProjectManager", fields: [project_manager_id], references: [id])
+  creator         User?                   @relation("ManagementProjectCreator", fields: [created_by], references: [id])
+  current_phase   ManagementProjectPhase? @relation("ManagementCurrentPhase", fields: [current_phase_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
   // Relaciones uno-a-muchos
-  members            ManagementProjectMember[]
-  phases             ManagementProjectPhase[] @relation("ManagementProjectPhases")
-  sprints            ManagementSprint[]
-  tasks              ManagementTask[]
-  documents          ManagementProjectDocument[]
-  notifications      ManagementProjectNotification[]
-  milestones         ManagementMilestone[]
+  members       ManagementProjectMember[]
+  phases        ManagementProjectPhase[]        @relation("ManagementProjectPhases")
+  sprints       ManagementSprint[]
+  tasks         ManagementTask[]
+  documents     ManagementProjectDocument[]
+  notifications ManagementProjectNotification[]
+  milestones    ManagementMilestone[]
 
   @@index([cliente_id])
   @@index([methodology_id])
@@ -268,21 +279,21 @@ model ManagementProject {
 
 // Tabla de miembros del proyecto de gestión
 model ManagementProjectMember {
-  id          Int       @id @default(autoincrement())
-  project_id  Int       @map("project_id")
-  user_id     Int       @map("user_id")
-  role_id     Int       @map("role_id")
-  team_type   String    @default("operations") @map("team_type") @db.VarChar(20) // operations, it
-  joined_at   DateTime? @default(now()) @map("joined_at") @db.Timestamp(0)
-  left_at     DateTime? @map("left_at") @db.Timestamp(0)
-  is_active   Boolean   @default(true) @map("is_active")
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  user        User              @relation("ManagementProjectMemberUser", fields: [user_id], references: [id], onDelete: Cascade)
-  role        ProjectRole       @relation("ManagementProjectMemberRole", fields: [role_id], references: [id])
-  
+  id         Int       @id @default(autoincrement())
+  project_id Int       @map("project_id")
+  user_id    Int       @map("user_id")
+  role_id    Int       @map("role_id")
+  team_type  String    @default("operations") @map("team_type") @db.VarChar(20) // operations, it
+  joined_at  DateTime? @default(now()) @map("joined_at") @db.Timestamp(0)
+  left_at    DateTime? @map("left_at") @db.Timestamp(0)
+  is_active  Boolean   @default(true) @map("is_active")
+  created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User              @relation("ManagementProjectMemberUser", fields: [user_id], references: [id], onDelete: Cascade)
+  role    ProjectRole       @relation("ManagementProjectMemberRole", fields: [role_id], references: [id])
+
   @@unique([project_id, user_id, team_type])
   @@index([project_id])
   @@index([user_id])
@@ -293,20 +304,20 @@ model ManagementProjectMember {
 
 // Tabla de fases de gestión de proyectos
 model ManagementProjectPhase {
-  id                String              @id @default(uuid()) @db.VarChar(36)
-  project_id        Int                 @map("project_id")
-  name              String              @db.VarChar(100)
-  description       String?             @db.Text
-  position          Int                 @default(0)
-  is_completed      Boolean             @default(false) @map("is_completed")
-  completed_at      DateTime?           @map("completed_at") @db.Timestamp(0)
-  created_at        DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at        DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project           ManagementProject   @relation("ManagementProjectPhases", fields: [project_id], references: [id], onDelete: Cascade)
-  current_projects  ManagementProject[] @relation("ManagementCurrentPhase")
-  tasks             ManagementTask[]
-  
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  project_id   Int       @map("project_id")
+  name         String    @db.VarChar(100)
+  description  String?   @db.Text
+  position     Int       @default(0)
+  is_completed Boolean   @default(false) @map("is_completed")
+  completed_at DateTime? @map("completed_at") @db.Timestamp(0)
+  created_at   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project          ManagementProject   @relation("ManagementProjectPhases", fields: [project_id], references: [id], onDelete: Cascade)
+  current_projects ManagementProject[] @relation("ManagementCurrentPhase")
+  tasks            ManagementTask[]
+
   @@unique([project_id, name])
   @@index([project_id])
   @@index([position])
@@ -315,19 +326,19 @@ model ManagementProjectPhase {
 
 // Tabla de sprints de gestión
 model ManagementSprint {
-  id          Int               @id @default(autoincrement())
-  project_id  Int               @map("project_id")
-  name        String            @db.VarChar(100)
-  description String?           @db.Text
-  start_date  DateTime?         @map("start_date") @db.Date
-  end_date    DateTime?         @map("end_date") @db.Date
-  status      String            @default("planning") @db.VarChar(50) // planning, active, completed
-  created_at  DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  tasks       ManagementTask[]
-  
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  start_date  DateTime? @map("start_date") @db.Date
+  end_date    DateTime? @map("end_date") @db.Date
+  status      String    @default("planning") @db.VarChar(50) // planning, active, completed
+  created_at  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks   ManagementTask[]
+
   @@index([project_id])
   @@index([status])
   @@map("management_sprints")
@@ -335,24 +346,29 @@ model ManagementSprint {
 
 // Tabla de tareas de gestión
 model ManagementTask {
-  id          Int                     @id @default(autoincrement())
-  project_id  Int                     @map("project_id")
-  sprint_id   Int?                    @map("sprint_id")
-  phase_id    String?                 @map("phase_id") @db.VarChar(36)
-  title       String                  @db.VarChar(255)
-  description String?                 @db.Text
-  status      String                  @default("todo") @db.VarChar(50) // todo, in_progress, done
-  priority    String                  @default("medium") @db.VarChar(20)
-  assigned_to Int?                    @map("assigned_to")
-  due_date    DateTime?               @map("due_date") @db.Date
-  created_at  DateTime                @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     ManagementProject       @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  sprint      ManagementSprint?       @relation(fields: [sprint_id], references: [id], onDelete: SetNull)
-  phase       ManagementProjectPhase? @relation(fields: [phase_id], references: [id], onDelete: SetNull)
-  assignee    User?                   @relation("ManagementTaskAssignee", fields: [assigned_to], references: [id])
-  
+  id          Int       @id @default(autoincrement())
+  project_id  Int       @map("project_id")
+  sprint_id   Int?      @map("sprint_id")
+  phase_id    String?   @map("phase_id") @db.VarChar(36)
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  status      String    @default("todo") @db.VarChar(50) // todo, in_progress, done
+  priority    String    @default("medium") @db.VarChar(20)
+  assigned_to Int?      @map("assigned_to")
+  due_date    DateTime? @map("due_date") @db.Date
+
+  // Control de permisos
+  created_by Int? @map("created_by")
+
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project  ManagementProject       @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  sprint   ManagementSprint?       @relation(fields: [sprint_id], references: [id], onDelete: SetNull)
+  phase    ManagementProjectPhase? @relation(fields: [phase_id], references: [id], onDelete: SetNull)
+  assignee User?                   @relation("ManagementTaskAssignee", fields: [assigned_to], references: [id])
+  creator  User?                   @relation("ManagementTaskCreator", fields: [created_by], references: [id])
+
   @@index([project_id])
   @@index([sprint_id])
   @@index([phase_id])
@@ -363,18 +379,18 @@ model ManagementTask {
 
 // Tabla de documentos de gestión
 model ManagementProjectDocument {
-  id          Int               @id @default(autoincrement())
-  project_id  Int               @map("project_id")
-  name        String            @db.VarChar(255)
-  file_path   String            @db.VarChar(500)
-  file_size   Int?              @map("file_size")
-  mime_type   String?           @map("mime_type") @db.VarChar(100)
-  uploaded_by Int               @map("uploaded_by")
-  created_at  DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
-  
-  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  uploader    User              @relation("ManagementDocumentUploader", fields: [uploaded_by], references: [id])
-  
+  id          Int      @id @default(autoincrement())
+  project_id  Int      @map("project_id")
+  name        String   @db.VarChar(255)
+  file_path   String   @db.VarChar(500)
+  file_size   Int?     @map("file_size")
+  mime_type   String?  @map("mime_type") @db.VarChar(100)
+  uploaded_by Int      @map("uploaded_by")
+  created_at  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  project  ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  uploader User              @relation("ManagementDocumentUploader", fields: [uploaded_by], references: [id])
+
   @@index([project_id])
   @@index([uploaded_by])
   @@map("management_project_documents")
@@ -382,18 +398,18 @@ model ManagementProjectDocument {
 
 // Tabla de notificaciones de gestión
 model ManagementProjectNotification {
-  id         Int               @id @default(autoincrement())
-  project_id Int               @map("project_id")
-  user_id    Int               @map("user_id")
-  title      String            @db.VarChar(255)
-  message    String            @db.Text
-  type       String            @db.VarChar(50) // info, warning, success, error
-  is_read    Boolean           @default(false) @map("is_read")
-  created_at DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
-  
-  project    ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  user       User              @relation("ManagementNotificationUser", fields: [user_id], references: [id])
-  
+  id         Int      @id @default(autoincrement())
+  project_id Int      @map("project_id")
+  user_id    Int      @map("user_id")
+  title      String   @db.VarChar(255)
+  message    String   @db.Text
+  type       String   @db.VarChar(50) // info, warning, success, error
+  is_read    Boolean  @default(false) @map("is_read")
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  project ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User              @relation("ManagementNotificationUser", fields: [user_id], references: [id])
+
   @@index([project_id])
   @@index([user_id])
   @@index([is_read])
@@ -402,18 +418,18 @@ model ManagementProjectNotification {
 
 // Tabla de hitos de gestión
 model ManagementMilestone {
-  id          Int               @id @default(autoincrement())
-  project_id  Int               @map("project_id")
-  name        String            @db.VarChar(255)
-  description String?           @db.Text
-  due_date    DateTime?         @map("due_date") @db.Date
-  is_completed Boolean          @default(false) @map("is_completed")
-  completed_at DateTime?        @map("completed_at") @db.Timestamp(0)
-  created_at  DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  
+  id           Int       @id @default(autoincrement())
+  project_id   Int       @map("project_id")
+  name         String    @db.VarChar(255)
+  description  String?   @db.Text
+  due_date     DateTime? @map("due_date") @db.Date
+  is_completed Boolean   @default(false) @map("is_completed")
+  completed_at DateTime? @map("completed_at") @db.Timestamp(0)
+  created_at   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project ManagementProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
   @@index([project_id])
   @@index([due_date])
   @@map("management_milestones")
@@ -899,47 +915,47 @@ model ProjectMethodology {
   created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
   updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
   projects    Project[]
-  
+
   // Relación con proyectos de gestión
   managementProjects ManagementProject[] @relation("ManagementProjectMethodology")
-  
+
   @@map("project_methodologies")
 }
 
 // Tabla de roles en proyectos
 model ProjectRole {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique @db.VarChar(100)
-  description String?   @db.Text
-  level       Int       @default(1) // 1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Manager
-  is_active   Boolean   @default(true) @map("is_active")
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  id          Int             @id @default(autoincrement())
+  name        String          @unique @db.VarChar(100)
+  description String?         @db.Text
+  level       Int             @default(1) // 1=Junior, 2=Mid, 3=Senior, 4=Lead, 5=Manager
+  is_active   Boolean         @default(true) @map("is_active")
+  created_at  DateTime?       @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
   members     ProjectMember[]
-  
+
   // Relación con miembros de gestión
   managementMembers ManagementProjectMember[] @relation("ManagementProjectMemberRole")
-  
+
   @@map("project_roles")
 }
 
 // Tabla de miembros del proyecto
 model ProjectMember {
-  id          Int       @id @default(autoincrement())
-  project_id  Int       @map("project_id")
-  user_id     Int       @map("user_id")
-  role_id     Int       @map("role_id")
-  team_type   String    @default("operations") @map("team_type") @db.VarChar(20) // operations, it
-  joined_at   DateTime? @default(now()) @map("joined_at") @db.Timestamp(0)
-  left_at     DateTime? @map("left_at") @db.Timestamp(0)
-  is_active   Boolean   @default(true) @map("is_active")
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  role        ProjectRole @relation(fields: [role_id], references: [id])
-  
+  id         Int       @id @default(autoincrement())
+  project_id Int       @map("project_id")
+  user_id    Int       @map("user_id")
+  role_id    Int       @map("role_id")
+  team_type  String    @default("operations") @map("team_type") @db.VarChar(20) // operations, it
+  joined_at  DateTime? @default(now()) @map("joined_at") @db.Timestamp(0)
+  left_at    DateTime? @map("left_at") @db.Timestamp(0)
+  is_active  Boolean   @default(true) @map("is_active")
+  created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User        @relation("ProjectMemberUser", fields: [user_id], references: [id], onDelete: Cascade)
+  role    ProjectRole @relation(fields: [role_id], references: [id])
+
   @@unique([project_id, user_id, team_type])
   @@index([project_id])
   @@index([user_id])
@@ -960,12 +976,12 @@ model Sprint {
   goal        String?   @db.Text
   created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
   updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  tasks       Task[]
-  dailies     DailyStandup[]
+
+  project        Project         @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks          Task[]
+  dailies        DailyStandup[]
   retrospectives Retrospective[]
-  
+
   @@index([project_id])
   @@index([status])
   @@index([start_date])
@@ -990,15 +1006,15 @@ model Task {
   actual_hours    Decimal?  @map("actual_hours") @db.Decimal(5, 2)
   created_at      DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
   updated_at      DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project         Project     @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  sprint          Sprint?     @relation(fields: [sprint_id], references: [id], onDelete: SetNull)
-  assignee        User?       @relation("TaskAssignee", fields: [assignee_id], references: [id], onDelete: SetNull)
-  reporter        User?       @relation("TaskReporter", fields: [reporter_id], references: [id], onDelete: SetNull)
-  comments        TaskComment[]
-  attachments     TaskAttachment[]
-  timeEntries     TimeEntry[]
-  
+
+  project     Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  sprint      Sprint?          @relation(fields: [sprint_id], references: [id], onDelete: SetNull)
+  assignee    User?            @relation("TaskAssignee", fields: [assignee_id], references: [id], onDelete: SetNull)
+  reporter    User?            @relation("TaskReporter", fields: [reporter_id], references: [id], onDelete: SetNull)
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+  timeEntries TimeEntry[]
+
   @@index([project_id])
   @@index([sprint_id])
   @@index([assignee_id])
@@ -1016,10 +1032,10 @@ model TaskComment {
   comment    String    @db.Text
   created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
   updated_at DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  task       Task      @relation(fields: [task_id], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+
+  task Task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user User @relation("TaskCommentUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@index([task_id])
   @@index([user_id])
   @@map("task_comments")
@@ -1027,19 +1043,19 @@ model TaskComment {
 
 // Tabla de archivos adjuntos
 model TaskAttachment {
-  id          Int       @id @default(autoincrement())
-  task_id     Int       @map("task_id")
-  user_id     Int       @map("user_id")
-  filename    String    @db.VarChar(255)
-  original_name String  @map("original_name") @db.VarChar(255)
-  file_path   String    @map("file_path") @db.VarChar(500)
-  file_size   BigInt?   @map("file_size")
-  mime_type   String?   @map("mime_type") @db.VarChar(100)
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  
-  task        Task      @relation(fields: [task_id], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+  id            Int       @id @default(autoincrement())
+  task_id       Int       @map("task_id")
+  user_id       Int       @map("user_id")
+  filename      String    @db.VarChar(255)
+  original_name String    @map("original_name") @db.VarChar(255)
+  file_path     String    @map("file_path") @db.VarChar(500)
+  file_size     BigInt?   @map("file_size")
+  mime_type     String?   @map("mime_type") @db.VarChar(100)
+  created_at    DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+
+  task Task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user User @relation("TaskAttachmentUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@index([task_id])
   @@index([user_id])
   @@map("task_attachments")
@@ -1047,19 +1063,19 @@ model TaskAttachment {
 
 // Tabla de daily standups
 model DailyStandup {
-  id          Int       @id @default(autoincrement())
-  sprint_id   Int       @map("sprint_id")
-  user_id     Int       @map("user_id")
-  date        DateTime  @db.Date
-  yesterday   String?   @db.Text
-  today       String?   @db.Text
-  blockers    String?   @db.Text
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  sprint      Sprint    @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+  id         Int       @id @default(autoincrement())
+  sprint_id  Int       @map("sprint_id")
+  user_id    Int       @map("user_id")
+  date       DateTime  @db.Date
+  yesterday  String?   @db.Text
+  today      String?   @db.Text
+  blockers   String?   @db.Text
+  created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  sprint Sprint @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
+  user   User   @relation("DailyStandupUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@unique([sprint_id, user_id, date])
   @@index([sprint_id])
   @@index([user_id])
@@ -1069,19 +1085,19 @@ model DailyStandup {
 
 // Tabla de retrospectivas
 model Retrospective {
-  id          Int       @id @default(autoincrement())
-  sprint_id   Int       @map("sprint_id")
-  user_id     Int       @map("user_id")
-  what_went_well String? @map("what_went_well") @db.Text
-  what_could_improve String? @map("what_could_improve") @db.Text
-  action_items String?  @map("action_items") @db.Text
-  rating      Int?      // 1-5 scale
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  sprint      Sprint    @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+  id                 Int       @id @default(autoincrement())
+  sprint_id          Int       @map("sprint_id")
+  user_id            Int       @map("user_id")
+  what_went_well     String?   @map("what_went_well") @db.Text
+  what_could_improve String?   @map("what_could_improve") @db.Text
+  action_items       String?   @map("action_items") @db.Text
+  rating             Int? // 1-5 scale
+  created_at         DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at         DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  sprint Sprint @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
+  user   User   @relation("RetrospectiveUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@unique([sprint_id, user_id])
   @@index([sprint_id])
   @@index([user_id])
@@ -1098,10 +1114,10 @@ model TimeEntry {
   date        DateTime  @db.Date
   created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
   updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  task        Task      @relation(fields: [task_id], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+
+  task Task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user User @relation("TimeEntryUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@index([task_id])
   @@index([user_id])
   @@index([date])
@@ -1110,21 +1126,21 @@ model TimeEntry {
 
 // Tabla de documentación del proyecto
 model ProjectDocument {
-  id          Int       @id @default(autoincrement())
-  project_id  Int       @map("project_id")
-  user_id     Int       @map("user_id")
-  title       String    @db.VarChar(255)
-  content     String?   @db.Text
-  file_path   String?   @map("file_path") @db.VarChar(500)
-  file_type   String?   @map("file_type") @db.VarChar(50)
-  category    String?   @db.VarChar(100)
-  is_public   Boolean   @default(false) @map("is_public")
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  
-  project     Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+  id         Int       @id @default(autoincrement())
+  project_id Int       @map("project_id")
+  user_id    Int       @map("user_id")
+  title      String    @db.VarChar(255)
+  content    String?   @db.Text
+  file_path  String?   @map("file_path") @db.VarChar(500)
+  file_type  String?   @map("file_type") @db.VarChar(50)
+  category   String?   @db.VarChar(100)
+  is_public  Boolean   @default(false) @map("is_public")
+  created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User    @relation("ProjectDocumentUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@index([project_id])
   @@index([user_id])
   @@index([category])
@@ -1133,18 +1149,18 @@ model ProjectDocument {
 
 // Tabla de notificaciones del proyecto
 model ProjectNotification {
-  id          Int       @id @default(autoincrement())
-  project_id  Int       @map("project_id")
-  user_id     Int       @map("user_id")
-  type        String    @db.VarChar(50) // task_assigned, task_completed, sprint_started, etc.
-  title       String    @db.VarChar(255)
-  message     String    @db.Text
-  is_read     Boolean   @default(false) @map("is_read")
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  
-  project     Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+  id         Int       @id @default(autoincrement())
+  project_id Int       @map("project_id")
+  user_id    Int       @map("user_id")
+  type       String    @db.VarChar(50) // task_assigned, task_completed, sprint_started, etc.
+  title      String    @db.VarChar(255)
+  message    String    @db.Text
+  is_read    Boolean   @default(false) @map("is_read")
+  created_at DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  user    User    @relation("ProjectNotificationUser", fields: [user_id], references: [id], onDelete: Cascade)
+
   @@index([project_id])
   @@index([user_id])
   @@index([is_read])
@@ -1154,17 +1170,17 @@ model ProjectNotification {
 
 // Tabla de milestones
 model Milestone {
-  id          Int       @id @default(autoincrement())
-  project_id  Int       @map("project_id")
-  name        String    @db.VarChar(255)
-  description String?   @db.Text
-  due_date    DateTime? @map("due_date") @db.Date
+  id           Int       @id @default(autoincrement())
+  project_id   Int       @map("project_id")
+  name         String    @db.VarChar(255)
+  description  String?   @db.Text
+  due_date     DateTime? @map("due_date") @db.Date
   completed_at DateTime? @map("completed_at") @db.Timestamp(0)
-  status      String    @default("pending") @db.VarChar(50) // pending, completed, overdue
-  created_at  DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  status       String    @default("pending") @db.VarChar(50) // pending, completed, overdue
+  created_at   DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  project     Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
 
   @@index([project_id])
   @@index([status])
@@ -1174,14 +1190,14 @@ model Milestone {
 
 // Tabla de fases personalizadas por proyecto
 model ProjectPhase {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  project_id  Int      @map("project_id")
-  name        String   @db.VarChar(100)
-  position    Int      // orden dentro del proyecto (0..n)
-  created_at  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updated_at  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  project_id Int      @map("project_id")
+  name       String   @db.VarChar(100)
+  position   Int // orden dentro del proyecto (0..n)
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  project     Project  @relation("ProjectPhases", fields: [project_id], references: [id], onDelete: Cascade)
+  project Project @relation("ProjectPhases", fields: [project_id], references: [id], onDelete: Cascade)
 
   // Relación inversa para current_phase
   current_in_projects Project[] @relation("CurrentPhase")
@@ -1189,4 +1205,35 @@ model ProjectPhase {
   @@unique([project_id, position])
   @@index([project_id])
   @@map("project_phases")
+}
+
+// =====================================================
+// SISTEMA DE NOTIFICACIONES GENERALES
+// =====================================================
+
+// Tabla de notificaciones del sistema
+model SystemNotification {
+  id          Int       @id @default(autoincrement())
+  user_id     Int       @map("user_id")
+  title       String    @db.VarChar(255)
+  message     String    @db.Text
+  type        String    @db.VarChar(50) // info, success, warning, error, system
+  category    String    @db.VarChar(50) // project, task, system, security, etc.
+  is_read     Boolean   @default(false) @map("is_read")
+  read_at     DateTime? @map("read_at") @db.Timestamp(0)
+  priority    String    @default("medium") @db.VarChar(20) // low, medium, high, critical
+  action_url  String?   @map("action_url") @db.VarChar(500) // URL para acción opcional
+  metadata    Json? // Datos adicionales en formato JSON
+  created_at  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updated_at  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  user User @relation("SystemNotificationUser", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([is_read])
+  @@index([type])
+  @@index([category])
+  @@index([priority])
+  @@index([created_at])
+  @@map("system_notifications")
 }

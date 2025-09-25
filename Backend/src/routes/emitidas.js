@@ -10,13 +10,13 @@ const storage = multer.diskStorage({
   destination: function(req, file, cb) {
     // Usar path.join para construir la ruta correcta desde la raíz del backend
     const uploadPath = path.join(__dirname, '..', '..', 'uploads');
-    console.log('🔍 MULTER DEBUG - Ruta de destino:', uploadPath);
+
     cb(null, uploadPath); 
   },
   filename: function(req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const filename = uniqueSuffix + '-' + file.originalname;
-    console.log('🔍 MULTER DEBUG - Nombre de archivo:', filename);
+
     cb(null, filename);
   }
 });
@@ -51,10 +51,7 @@ const upload = multer({
 
 // Middleware de debug para multer
 const debugMulter = (req, res, next) => {
-  console.log('🔍 MULTER DEBUG - Iniciando procesamiento de archivos...');
-  console.log('🔍 MULTER DEBUG - Content-Type:', req.headers['content-type']);
-  console.log('🔍 MULTER DEBUG - Content-Length:', req.headers['content-length']);
-  
+
   next();
 };
 
@@ -71,7 +68,7 @@ const fieldsConfig = upload.fields([
 // Middleware de timeout para evitar peticiones colgadas
 const timeoutMiddleware = (req, res, next) => {
   const timeout = setTimeout(() => {
-    console.log('⏰ TIMEOUT - Petición excedió el tiempo límite');
+
     res.status(408).json({ 
       success: false, 
       error: 'Request Timeout',
@@ -95,10 +92,9 @@ router.delete('/:id', emitidasController.deleteEmitida);
 
 // Manejo de errores Multer mejorado
 router.use((err, req, res, next) => {
-  console.log('🚨 ERROR - Error en ruta emitidas:', err);
-  
+
   if (err instanceof multer.MulterError) {
-    console.log('🚨 MULTER ERROR:', err.code, err.message);
+
     return res.status(400).json({ 
       success: false,
       error: err.message,
@@ -106,7 +102,7 @@ router.use((err, req, res, next) => {
       message: 'Error en el procesamiento de archivos'
     });
   } else if (err) {
-    console.log('🚨 GENERAL ERROR:', err.message);
+
     return res.status(500).json({ 
       success: false,
       error: err.message,

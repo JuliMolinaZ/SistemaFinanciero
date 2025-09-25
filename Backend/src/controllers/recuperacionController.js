@@ -81,15 +81,6 @@ exports.createRecuperacion = async (req, res) => {
     const { concepto, monto, fecha, cliente_id, proyecto_id, categoria, recuperado } = req.body;
 
     // Registrar en consola los datos recibidos para depuración
-    console.log("Datos recibidos en createRecuperacion:", {
-      concepto,
-      monto,
-      fecha,
-      cliente_id,
-      proyecto_id,
-      categoria,
-      recuperado
-    });
 
     // Insertar en la base de datos usando Prisma
     const recuperacion = await prisma.recuperacion.create({

@@ -7,7 +7,7 @@ const healthCheck = async (req, res, next) => {
     const isConnected = await checkConnection();
     
     if (!isConnected) {
-      console.warn('⚠️ Base de datos no disponible, reintentando...');
+
       // Esperar un poco y reintentar
       await new Promise(resolve => setTimeout(resolve, 1000));
       const retryConnection = await checkConnection();

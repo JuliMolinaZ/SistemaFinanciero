@@ -40,7 +40,6 @@ import {
 
 // Configuración de la URL base para la API
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
-console.log(">>> API_URL =", API_URL);
 
 // Formateador de moneda MXN
 const formatCurrency = (value) =>
@@ -50,7 +49,7 @@ const formatCurrency = (value) =>
 // COMPONENTE: TitleHeader
 // =====================
 const TitleHeader = () => {
-  console.log(">>> TitleHeader renderizado");
+
   return (
     <Typography
       variant="h3"
@@ -80,13 +79,13 @@ const FormDialog = ({
   onSubmit,
   error,
 }) => {
-  console.log(">>> FormDialog renderizado - isEditing:", isEditing, "movimiento:", movimiento);
+
   return (
-    <Dialog open={open} onClose={() => { console.log(">>> Dialog: Cierre solicitado"); onClose(); }} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={() => { onClose(); }} fullWidth maxWidth="sm">
       {/* Todo el contenido está envuelto en un form */}
       <form
         onSubmit={(e) => {
-          console.log(">>> FormDialog: onSubmit invocado");
+
           onSubmit(e);
         }}
       >
@@ -101,7 +100,7 @@ const FormDialog = ({
         >
           {isEditing ? 'Actualizar Movimiento' : 'Registrar Movimiento'}
           <IconButton
-            onClick={() => { console.log(">>> IconButton: Cerrar formulario"); onClose(); }}
+            onClick={() => { onClose(); }}
             sx={{
               position: 'absolute',
               right: 8,
@@ -127,7 +126,7 @@ const FormDialog = ({
                 type="date"
                 value={movimiento.fecha}
                 onChange={(e) => {
-                  console.log(">>> FormDialog: Cambio en 'fecha':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -143,7 +142,7 @@ const FormDialog = ({
                 name="concepto"
                 value={movimiento.concepto}
                 onChange={(e) => {
-                  console.log(">>> FormDialog: Cambio en 'concepto':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -159,7 +158,7 @@ const FormDialog = ({
                 type="number"
                 value={movimiento.cargo}
                 onChange={(e) => {
-                  console.log(">>> FormDialog: Cambio en 'cargo':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -176,7 +175,7 @@ const FormDialog = ({
                 type="number"
                 value={movimiento.abono}
                 onChange={(e) => {
-                  console.log(">>> FormDialog: Cambio en 'abono':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -195,7 +194,7 @@ const FormDialog = ({
                   value={movimiento.tipo}
                   label="Tipo"
                   onChange={(e) => {
-                    console.log(">>> FormDialog: Cambio en 'tipo':", e.target.value);
+
                     onChange(e);
                   }}
                 >
@@ -210,7 +209,7 @@ const FormDialog = ({
                 name="notas"
                 value={movimiento.notas}
                 onChange={(e) => {
-                  console.log(">>> FormDialog: Cambio en 'notas':", e.target.value);
+
                   onChange(e);
                 }}
                 fullWidth
@@ -233,7 +232,7 @@ const FormDialog = ({
                   accept="application/pdf"
                   hidden
                   onChange={(e) => {
-                    console.log(">>> FormDialog: Archivo facturaPDF seleccionado");
+
                     onChange(e);
                   }}
                 />
@@ -251,7 +250,7 @@ const FormDialog = ({
                   accept=".xml,.xlsx,.csv"
                   hidden
                   onChange={(e) => {
-                    console.log(">>> FormDialog: Archivo facturaXML seleccionado");
+
                     onChange(e);
                   }}
                 />
@@ -262,7 +261,6 @@ const FormDialog = ({
         <DialogActions sx={{ p: 2, justifyContent: 'center', backgroundColor: '#fff' }}>
           <Button
             type="submit"
-            onClick={() => console.log(">>> Botón submit clickeado")}
             variant="contained"
             sx={{
               backgroundColor: '#007bff',
@@ -289,7 +287,7 @@ const FormDialog = ({
 const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, handleSelectMovement, handleEdit, handleDelete }) => {
   // Asegurar que movimientos sea siempre un array
   const movimientosArray = Array.isArray(movimientos) ? movimientos : [];
-  console.log(">>> MovementsTable renderizado - total movimientos:", movimientosArray.length);
+
   return (
     <TableContainer component={Paper} sx={{ width: '100%', maxWidth: 1100, mt: 4, mb: 6, borderRadius: 2, boxShadow: 2, mx: 'auto' }}>
       <Table>
@@ -300,7 +298,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
                 color="primary"
                 checked={movimientosArray.length > 0 && selectedMovimientos.length === movimientosArray.length}
                 onChange={(e) => {
-                  console.log(">>> MovementsTable: Selección total =", e.target.checked);
+
                   handleSelectAll(e.target.checked);
                 }}
               />
@@ -320,7 +318,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
         </TableHead>
         <TableBody>
           {movimientosArray.map((m) => {
-            console.log(">>> MovementsTable: Renderizando movimiento:", m);
+
             return (
               <TableRow key={m.id} sx={{ '&:hover': { backgroundColor: '#fefefe' } }}>
                 <TableCell padding="checkbox">
@@ -328,7 +326,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
                     color="primary"
                     checked={selectedMovimientos.includes(m.id)}
                     onChange={(e) => {
-                      console.log(">>> MovementsTable: Selección para ID", m.id, "=", e.target.checked);
+
                       handleSelectMovement(m.id, e.target.checked);
                     }}
                   />
@@ -372,7 +370,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
                     <Tooltip title="Editar">
                       <IconButton
                         onClick={() => {
-                          console.log(">>> MovementsTable: Editar movimiento con ID", m.id);
+
                           handleEdit(m.id);
                         }}
                         sx={{ backgroundColor: '#17a2b8', color: '#fff', '&:hover': { backgroundColor: '#138496' } }}
@@ -383,7 +381,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
                     <Tooltip title="Eliminar">
                       <IconButton
                         onClick={() => {
-                          console.log(">>> MovementsTable: Eliminar movimiento con ID", m.id);
+
                           handleDelete(m.id);
                         }}
                         sx={{ backgroundColor: '#e63946', color: '#fff', '&:hover': { backgroundColor: '#c12c33' } }}
@@ -406,7 +404,7 @@ const MovementsTable = ({ movimientos, selectedMovimientos, handleSelectAll, han
 // COMPONENTE: ContabilidadForm (Principal)
 // =====================
 const ContabilidadForm = () => {
-  console.log(">>> ContabilidadForm: Renderizado");
+
   const notify = useNotify();
   const [movimientos, setMovimientos] = useState([]);
   const [movimiento, setMovimiento] = useState({
@@ -427,18 +425,18 @@ const ContabilidadForm = () => {
   const [selectedMovimientos, setSelectedMovimientos] = useState([]);
 
   useEffect(() => {
-    console.log(">>> useEffect: Componente montado, llamando a fetchMovimientos");
+
     fetchMovimientos();
   }, []);
 
   const fetchMovimientos = async () => {
-    console.log(">>> fetchMovimientos: Iniciando...");
+
     try {
       const response = await axios.get(`${API_URL}/api/contabilidad`);
       // La API devuelve {success: true, data: [...], pagination: {...}}
       const movimientosData = response.data.data || [];
       setMovimientos(movimientosData);
-      console.log(">>> fetchMovimientos: Movimientos recibidos:", movimientosData.length);
+
     } catch (error) {
       console.error(">>> fetchMovimientos: Error al obtener movimientos:", error);
       notify.error({
@@ -448,12 +446,12 @@ const ContabilidadForm = () => {
       });
     } finally {
       setLoading(false);
-      console.log(">>> fetchMovimientos: Finalizado. Loading:", false);
+
     }
   };
 
   const resetFormulario = () => {
-    console.log(">>> resetFormulario: Reseteando formulario");
+
     setIsEditing(false);
     setEditingId(null);
     setMovimiento({
@@ -470,17 +468,17 @@ const ContabilidadForm = () => {
   };
 
   const toggleForm = () => {
-    console.log(">>> toggleForm: Estado anterior showForm:", showForm);
+
     if (showForm) {
       resetFormulario();
     }
     setShowForm((prev) => !prev);
-    console.log(">>> toggleForm: Nuevo estado showForm:", !showForm);
+
   };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    console.log(`>>> handleChange: Campo ${name} cambiado a:`, value, files ? "Con archivos" : "");
+
     if (name === 'facturaPDF' || name === 'facturaXML') {
       setMovimiento((prev) => ({ ...prev, [name]: files[0] }));
     } else if (name === 'tipo') {
@@ -492,12 +490,11 @@ const ContabilidadForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(">>> handleSubmit: Enviando formulario con datos:", movimiento);
+
     setError('');
 
     const cargo = parseFloat(movimiento.cargo) || 0;
     const abono = parseFloat(movimiento.abono) || 0;
-    console.log(`>>> handleSubmit: Valores -> Cargo: ${cargo}, Abono: ${abono}`);
 
     if ((cargo > 0 && abono > 0) || (cargo === 0 && abono === 0)) {
       console.error(">>> handleSubmit: Error de validación. Ingrese solo un valor en 'Cargo' o 'Abono' y mayor a 0.");
@@ -516,19 +513,18 @@ const ContabilidadForm = () => {
       if (movimiento.facturaPDF) formData.append('facturaPDF', movimiento.facturaPDF);
       if (movimiento.facturaXML) formData.append('facturaXML', movimiento.facturaXML);
 
-      console.log(">>> handleSubmit: FormData preparado. Enviando solicitud...");
       if (isEditing) {
-        console.log(`>>> handleSubmit: Actualizando movimiento con id: ${editingId}`);
+
         await axios.put(`${API_URL}/api/contabilidad/${editingId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       } else {
-        console.log(">>> handleSubmit: Registrando nuevo movimiento.");
+
         await axios.post(`${API_URL}/api/contabilidad`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-      console.log(">>> handleSubmit: Solicitud completada. Actualizando lista de movimientos.");
+
       resetFormulario();
       fetchMovimientos();
       setShowForm(false);
@@ -552,7 +548,7 @@ const ContabilidadForm = () => {
 
   const handleEdit = (id) => {
     const movToEdit = movimientos.find((m) => m.id === id);
-    console.log(">>> handleEdit: Editando movimiento:", movToEdit);
+
     setMovimiento({
       fecha: formatDate(movToEdit.fecha),
       concepto: movToEdit.concepto || '',
@@ -570,14 +566,14 @@ const ContabilidadForm = () => {
   };
 
   const handleDelete = async (id) => {
-    console.log(">>> handleDelete: Solicitado eliminar movimiento con id:", id);
+
     if (!window.confirm("¿Seguro que deseas eliminar este movimiento?")) {
-      console.log(">>> handleDelete: Eliminación cancelada por el usuario");
+
       return;
     }
     try {
       await axios.delete(`${API_URL}/api/contabilidad/${id}`);
-      console.log(`>>> handleDelete: Movimiento con id ${id} eliminado.`);
+
       setMovimientos((prev) => prev.filter((m) => m.id !== id));
       setSelectedMovimientos((prev) => prev.filter((selId) => selId !== id));
     } catch (error) {
@@ -592,7 +588,7 @@ const ContabilidadForm = () => {
 
   // Manejo de selección de movimientos
   const handleSelectMovement = (id, isSelected) => {
-    console.log(">>> handleSelectMovement: Movimiento id", id, "seleccionado:", isSelected);
+
     if (isSelected) {
       setSelectedMovimientos((prev) => [...prev, id]);
     } else {
@@ -601,7 +597,7 @@ const ContabilidadForm = () => {
   };
 
   const handleSelectAll = (isSelected) => {
-    console.log(">>> handleSelectAll: Selección total =", isSelected);
+
     if (isSelected) {
       const allIds = movimientos.map((m) => m.id);
       setSelectedMovimientos(allIds);
@@ -616,7 +612,7 @@ const ContabilidadForm = () => {
     if (selectedMovimientos.length > 0) {
       url += `?ids=${selectedMovimientos.join(',')}`;
     }
-    console.log(">>> downloadXLS: Abriendo URL:", url);
+
     window.open(url, '_blank');
   };
 
@@ -626,7 +622,7 @@ const ContabilidadForm = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2 }}>
         <Button
           onClick={() => {
-            console.log(">>> Botón: Toggle formulario");
+
             toggleForm();
           }}
           variant="contained"

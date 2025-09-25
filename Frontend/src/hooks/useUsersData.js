@@ -20,7 +20,7 @@ const useUsersData = () => {
         } else if (Array.isArray(responseData)) {
           users = responseData;
         } else {
-          console.warn("Estructura de usuarios inesperada:", responseData);
+
           users = [];
         }
         

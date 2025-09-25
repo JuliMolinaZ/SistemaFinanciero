@@ -2,9 +2,12 @@
 // =================================================
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { Search, Filter, X, Building, ChevronRight, Eye, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProjectTablePure from './ProjectTablePure';
-import ProjectDialogWorking from '../../../components/ui/ProjectDialogWorking';
+import ProjectFormModal from './ProjectFormModal';
 import { useNotifications } from '../../../hooks/useNotifications';
+import { useConfirmDialog } from '../../../hooks/useConfirm';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 
 // 🔍 TOOLBAR SIMPLE
@@ -439,40 +442,28 @@ const ProjectTableOnly = ({
   onDelete,
   loading = false
 }) => {
-  // Log para debugging cuando cambian los props
-  console.log('🔄 ProjectTableOnly re-renderizado:', {
-    projectsCount: projects.length,
-    groupsCount: groups.length,
-    timestamp: new Date().toLocaleTimeString(),
-    firstProject: projects[0]?.nombre || 'N/A',
-    firstProjectProgress: projects[0]?.progress || 'N/A'
-  });
-
-  const [selectedProject, setSelectedProject] = useState(null);
+  // Estados para el modal y confirmación
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState('view'); // 'view' or 'edit'
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [drawerMode, setDrawerMode] = useState('view');
   const [forceRender, setForceRender] = useState(0);
 
-  // Forzar re-renderizado cuando cambien los datos críticos
+  // Hook para notificaciones
+  const { showNotification } = useNotifications();
+
+  // Hook para confirmación
+  const confirm = useConfirmDialog();
+
+  // Log para debugging cuando cambian los props
   useEffect(() => {
-    setForceRender(prev => prev + 1);
-    console.log('🔄 Datos de proyectos actualizados, forzando re-renderizado');
-  }, [projects, groups]);
-  
-  const { notify, confirm } = useNotifications();
+    }, [projects, groups, loading]);
 
-  const handleView = useCallback((project, rowElement = null) => {
-    console.log('👁️ Ver proyecto:', project.nombre || project.name);
-
-    // OPCIONAL: Centrar la fila antes de abrir el modal
-    if (rowElement) {
-      console.log('📍 Centrando fila antes de abrir modal...');
-      rowElement.scrollIntoView({
-        block: 'center',
-        behavior: 'smooth'
-      });
-
-      // Esperar un poco para que termine el scroll antes de abrir
+  const handleView = useCallback((project) => {
+    // Verificar si hay un elemento con la clase específica
+    const element = document.querySelector('.project-row-animation');
+    
+    if (element) {
+      // Esperar a que termine la animación
       setTimeout(() => {
         setSelectedProject(project);
         setDrawerMode('view');
@@ -489,15 +480,14 @@ const ProjectTableOnly = ({
   }, [onView]);
 
   const handleEdit = useCallback((project) => {
-    console.log('✏️ Editar proyecto:', project.nombre || project.name);
+
     setSelectedProject(project);
     setDrawerMode('edit');
     setDrawerOpen(true);
   }, []);
 
   const handleDelete = useCallback(async (project) => {
-    console.log('🗑️ Solicitud de eliminar proyecto:', project.nombre || project.name);
-    
+
     try {
       // Mostrar confirmación personalizada
       const confirmed = await confirm.confirmDelete(
@@ -506,10 +496,10 @@ const ProjectTableOnly = ({
       );
       
       if (confirmed) {
-        console.log('✅ Confirmado - Eliminando proyecto:', project.nombre);
+
         onDelete?.(project);
       } else {
-        console.log('❌ Cancelado - No se eliminó el proyecto');
+
       }
     } catch (error) {
       console.error('Error en confirmación de eliminación:', error);
@@ -528,46 +518,61 @@ const ProjectTableOnly = ({
         loading={loading}
       />
 
-      {/* PROJECT DIALOG - MODAL CENTRADO */}
-      <ProjectDialogWorking
-        open={drawerOpen}
+      {/* PROJECT FORM MODAL - CON DISEÑO DEL FORMULARIO DE TAREAS */}
+      <ProjectFormModal
+        isOpen={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
           setSelectedProject(null);
           setDrawerMode('view');
         }}
         project={selectedProject}
-        initialEditMode={drawerMode === 'edit'}
-        onUpdate={(projectId, updatedProject) => {
-          console.log('🔄 Proyecto actualizado desde modal:', { projectId, updatedProject });
+        mode={drawerMode}
+        onSave={async (updatedData) => {
+          try {
+            // Validar que tenemos un ID válido
+            if (!selectedProject?.id) {
+              console.error('❌ ID de proyecto inválido:', selectedProject?.id);
+              return;
+            }
 
-          // Validar que tenemos un ID válido
-          if (!projectId || projectId === 'undefined' || projectId === null) {
-            console.error('❌ ID de proyecto inválido en onUpdate:', projectId);
-            return;
+            // Llamar al manejador de actualización del padre
+            await onEdit?.(selectedProject.id, updatedData);
+
+            // Actualizar el proyecto seleccionado inmediatamente
+            setSelectedProject(prev => ({ ...prev, ...updatedData }));
+
+            notify.success({
+              title: 'Proyecto actualizado',
+              description: 'El proyecto se ha actualizado correctamente'
+            });
+          } catch (error) {
+            console.error('Error actualizando proyecto:', error);
+            notify.error({
+              title: 'Error',
+              description: 'No se pudo actualizar el proyecto'
+            });
           }
-
-          // Llamar al manejador de actualización del padre que actualiza el estado
-          onEdit?.(projectId, updatedProject);
-
-          // Actualizar el proyecto seleccionado en el modal inmediatamente
-          // Solo actualizar si tenemos un proyecto válido
-          if (updatedProject && typeof updatedProject === 'object' && updatedProject.id) {
-            setSelectedProject(updatedProject);
-            console.log('✅ Modal actualizado con proyecto:', updatedProject.nombre);
-          } else {
-            console.warn('⚠️ Proyecto actualizado inválido:', updatedProject);
-          }
-
-          console.log('✅ Modal y tabla actualizados automáticamente');
-          // Mantener el modal abierto para ver los cambios
         }}
-        onDelete={(deletedProject) => {
-          console.log('🗑️ Proyecto eliminado desde modal:', deletedProject);
-          setDrawerOpen(false);
-          setSelectedProject(null);
-          setDrawerMode('view');
-          onDelete?.(deletedProject);
+        onDelete={async (projectId) => {
+          try {
+            const projectToDelete = selectedProject;
+            setDrawerOpen(false);
+            setSelectedProject(null);
+            setDrawerMode('view');
+            await onDelete?.(projectToDelete);
+
+            notify.success({
+              title: 'Proyecto eliminado',
+              description: 'El proyecto se ha eliminado correctamente'
+            });
+          } catch (error) {
+            console.error('Error eliminando proyecto:', error);
+            notify.error({
+              title: 'Error',
+              description: 'No se pudo eliminar el proyecto'
+            });
+          }
         }}
       />
 

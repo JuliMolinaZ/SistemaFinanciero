@@ -4,7 +4,7 @@ const { prisma } = require('../config/database');
 // Obtener todos los registros de money flow recovery
 exports.getAllMoneyFlowRecovery = async (req, res) => {
   try {
-    console.log('🔍 Iniciando getAllMoneyFlowRecovery...');
+
     const { page = 1, limit = 50, fecha_inicio, fecha_fin, concepto, monto_min, monto_max } = req.query;
     const offset = (page - 1) * limit;
 
@@ -27,8 +27,6 @@ exports.getAllMoneyFlowRecovery = async (req, res) => {
       if (monto_min) whereClause.monto.gte = parseFloat(monto_min);
       if (monto_max) whereClause.monto.lte = parseFloat(monto_max);
     }
-
-    console.log('🔍 Consultando base de datos con whereClause:', whereClause);
 
     const [moneyFlowRecovery, total] = await Promise.all([
       prisma.flow_recovery_v2.findMany({
@@ -55,8 +53,6 @@ exports.getAllMoneyFlowRecovery = async (req, res) => {
       }),
       prisma.flow_recovery_v2.count({ where: whereClause })
     ]);
-
-    console.log('✅ Datos obtenidos:', { count: moneyFlowRecovery.length, total });
 
     res.json({
       success: true,
@@ -128,9 +124,7 @@ exports.getMoneyFlowRecoveryById = async (req, res) => {
 // Crear un nuevo registro de money flow recovery
 exports.createMoneyFlowRecovery = async (req, res) => {
   try {
-    console.log('🔍 Iniciando createMoneyFlowRecovery...');
-    console.log('📝 Datos recibidos en req.body:', req.body);
-    
+
     const { 
       concepto, 
       monto, 
@@ -152,21 +146,6 @@ exports.createMoneyFlowRecovery = async (req, res) => {
         message: 'Concepto y monto son requeridos' 
       });
     }
-
-    console.log('📊 Datos procesados para crear:', {
-      concepto: concepto.trim(),
-      monto: parseFloat(monto),
-      fecha: fecha ? new Date(fecha) : new Date(),
-      cliente_id: cliente_id ? parseInt(cliente_id) : null,
-      proyecto_id: proyecto_id ? parseInt(proyecto_id) : null,
-      categoria: categoria?.trim() || '',
-      estado: estado?.trim() || 'pendiente',
-      descripcion: descripcion?.trim() || '',
-      prioridad: prioridad?.trim() || 'media',
-      notas: notas?.trim() || '',
-      fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento) : null,
-      recuperado: recuperado || false
-    });
 
     // PROTECCIÓN CRÍTICA: Validar que el monto sea válido para creación
     const montoFinal = parseFloat(monto);
@@ -194,8 +173,6 @@ exports.createMoneyFlowRecovery = async (req, res) => {
       }
     });
 
-    console.log('✅ Money flow recovery creado exitosamente:', moneyFlowRecovery);
-
     res.status(201).json({
       success: true,
       data: moneyFlowRecovery,
@@ -214,10 +191,7 @@ exports.createMoneyFlowRecovery = async (req, res) => {
 // Actualizar un registro de money flow recovery
 exports.updateMoneyFlowRecovery = async (req, res) => {
   try {
-    console.log('🔍 Iniciando updateMoneyFlowRecovery...');
-    console.log('📝 ID a actualizar:', req.params.id);
-    console.log('📝 Datos recibidos en req.body:', req.body);
-    
+
     const { id } = req.params;
     const { 
       concepto, 
@@ -253,7 +227,7 @@ exports.updateMoneyFlowRecovery = async (req, res) => {
       if (!isNaN(montoNuevo) && montoNuevo > 0) {
         montoFinal = montoNuevo;
       } else {
-        console.log(`⚠️ Monto no válido recibido: ${monto}, manteniendo valor original: ${montoFinal}`);
+
       }
     }
 
@@ -308,9 +282,7 @@ exports.updateMoneyFlowRecovery = async (req, res) => {
     if (recuperado !== undefined && recuperado !== null) {
       updateData.recuperado = Boolean(recuperado);
     }
-    
-    console.log('🛡️ Datos a actualizar (solo campos modificados):', updateData);
-    
+
     const moneyFlowRecovery = await prisma.flow_recovery_v2.update({
       where: { id: parseInt(id) },
       data: updateData

@@ -11,7 +11,3 @@ router.delete('/:id', permisosController.deletePermiso);
 
 module.exports = router;
 
-
-
-
-

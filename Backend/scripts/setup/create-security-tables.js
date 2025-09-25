@@ -4,17 +4,13 @@ const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🔧 Creando tablas de seguridad...\n');
-
 async function createSecurityTables() {
   const prisma = new PrismaClient();
   
   try {
-    console.log('📋 1. Conectando a la base de datos...');
+
     await prisma.$connect();
-    console.log('✅ Conexión exitosa!');
-    
-    console.log('\n📋 2. Leyendo script SQL...');
+
     const sqlPath = path.join(__dirname, '..', 'sql', 'create-security-tables.sql');
     
     if (!fs.existsSync(sqlPath)) {
@@ -22,10 +18,7 @@ async function createSecurityTables() {
     }
     
     const sqlContent = fs.readFileSync(sqlPath, 'utf8');
-    console.log('✅ Script SQL leído correctamente');
-    
-    console.log('\n📋 3. Ejecutando script SQL...');
-    
+
     // Dividir el script en comandos individuales
     const commands = sqlContent
       .split(';')
@@ -40,27 +33,21 @@ async function createSecurityTables() {
         if (command.trim()) {
           await prisma.$executeRawUnsafe(command);
           successCount++;
-          console.log(`   ✅ Comando ejecutado: ${command.substring(0, 50)}...`);
+
         }
       } catch (error) {
         errorCount++;
-        console.log(`   ❌ Error en comando: ${error.message}`);
+
         // Continuar con el siguiente comando
       }
     }
-    
-    console.log(`\n📊 Resumen de ejecución:`);
-    console.log(`   ✅ Comandos exitosos: ${successCount}`);
-    console.log(`   ❌ Comandos con error: ${errorCount}`);
-    
+
     if (errorCount === 0) {
-      console.log('\n🎉 ¡Todas las tablas de seguridad creadas exitosamente!');
+
     } else {
-      console.log('\n⚠️  Algunos comandos tuvieron errores, pero el proceso continuó.');
+
     }
-    
-    console.log('\n📋 4. Verificando tablas creadas...');
-    
+
     const securityTables = [
       'audit_logs',
       'jwt_tokens', 
@@ -78,30 +65,22 @@ async function createSecurityTables() {
       try {
         const result = await prisma.$queryRaw`SHOW TABLES LIKE ${tableName}`;
         if (result.length > 0) {
-          console.log(`   ✅ Tabla ${tableName} existe`);
+
         } else {
-          console.log(`   ❌ Tabla ${tableName} NO existe`);
+
         }
       } catch (error) {
-        console.log(`   ❌ Error verificando ${tableName}: ${error.message}`);
+
       }
     }
-    
-    console.log('\n📋 5. Verificando configuración de seguridad...');
-    
+
     try {
       const configCount = await prisma.securityConfig.count();
-      console.log(`   ✅ Configuraciones de seguridad: ${configCount}`);
+
     } catch (error) {
-      console.log(`   ❌ Error verificando configuración: ${error.message}`);
+
     }
-    
-    console.log('\n🎉 ¡Proceso completado!');
-    console.log('\n📋 Próximos pasos:');
-    console.log('   1. Ejecutar: npx prisma generate');
-    console.log('   2. Probar las nuevas funcionalidades');
-    console.log('   3. Configurar las rutas de seguridad');
-    
+
   } catch (error) {
     console.error('❌ Error durante la creación de tablas:', error);
     console.error('\n💡 Posibles soluciones:');
@@ -111,7 +90,7 @@ async function createSecurityTables() {
     
   } finally {
     await prisma.$disconnect();
-    console.log('\n🔌 Conexión cerrada');
+
   }
 }
 

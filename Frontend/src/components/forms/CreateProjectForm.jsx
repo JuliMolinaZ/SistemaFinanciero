@@ -31,8 +31,7 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
   useEffect(() => {
     const loadFormData = async () => {
       try {
-        console.log('🔄 Cargando clientes y usuarios...');
-        
+
         // Obtener clientes reales
         const clientsResponse = await fetch('http://localhost:8765/api/clients', {
           method: 'GET',
@@ -41,7 +40,7 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
         
         if (clientsResponse.ok) {
           const clientsData = await clientsResponse.json();
-          console.log('✅ Clientes obtenidos:', clientsData.data?.length || 0);
+
           setClients(clientsData.data || []);
         } else {
           console.error('❌ Error al obtener clientes:', clientsResponse.status);
@@ -55,7 +54,7 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
         
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
-          console.log('✅ Usuarios obtenidos:', usersData.data?.length || 0);
+
           setUsers(usersData.data || []);
         } else {
           console.error('❌ Error al obtener usuarios:', usersResponse.status);
@@ -99,27 +98,21 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
       }
     }
 
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    console.log('🚀 Iniciando creación de proyecto...');
-    console.log('📝 Datos del formulario:', formData);
-    console.log('👥 Equipo operaciones:', selectedOperationsUsers);
-    console.log('💻 Equipo TI:', selectedItUsers);
-    
+
     // Prevenir múltiples submits
     if (loading) {
-      console.log('⚠️ Submit ya en progreso, ignorando...');
+
       return;
     }
     
     if (!validateForm()) {
-      console.log('❌ Validación falló');
+
       return;
     }
 
@@ -147,11 +140,8 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
         ]
       };
 
-      console.log('📤 Enviando datos al backend:', projectData);
       const result = await projectManagementService.createProject(projectData);
-      
-      console.log('✅ Proyecto creado exitosamente:', result);
-      
+
       // Llamar a onSuccess con los datos del proyecto creado
       onSuccess?.(result.data || result);
       
@@ -177,11 +167,10 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
 
   // No renderizar si no está abierto
   if (!open) {
-    console.log('🚫 CreateProjectForm: Modal cerrado, no renderizando');
+
     return null;
   }
 
-  console.log('✅ CreateProjectForm: Modal abierto, renderizando...');
   return (
     <div className={`enterprise-modal-overlay ${className}`} {...props}>
       <div className="enterprise-modal-content">
@@ -330,7 +319,6 @@ export default function CreateProjectForm({ open = true, onClose, onSuccess, cla
               )}
             </div>
           </div>
-
 
           {/* Gerente del proyecto */}
           <div className="enterprise-form-field">

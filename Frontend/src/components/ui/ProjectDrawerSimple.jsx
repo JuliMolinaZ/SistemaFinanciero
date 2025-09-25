@@ -6,7 +6,6 @@ import { createPortal } from 'react-dom';
 import { X as CloseIcon } from 'lucide-react';
 
 export function ProjectDrawerSimple({ open, onClose, project }) {
-  console.log('🐛 ProjectDrawerSimple:', { open, project: project?.nombre });
 
   if (!open || !project) return null;
 

@@ -21,7 +21,7 @@ const getTasksByProject = async (req, res) => {
     if (assignee_id) whereClause.assignee_id = parseInt(assignee_id);
     if (sprint_id) whereClause.sprint_id = parseInt(sprint_id);
 
-    const tasks = await prisma.task.findMany({
+    const tasks = await prisma.managementTask.findMany({
       where: whereClause,
       include: {
         assignee: {
@@ -32,7 +32,7 @@ const getTasksByProject = async (req, res) => {
             avatar: true
           }
         },
-        reporter: {
+        creator: {
           select: {
             id: true,
             name: true,
@@ -103,7 +103,7 @@ const getTaskById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task = await prisma.task.findUnique({
+    const task = await prisma.managementTask.findUnique({
       where: { id: parseInt(id) },
       include: {
         project: {
@@ -120,7 +120,7 @@ const getTaskById = async (req, res) => {
             avatar: true
           }
         },
-        reporter: {
+        creator: {
           select: {
             id: true,
             name: true,
@@ -198,6 +198,28 @@ const getTaskById = async (req, res) => {
 // Crear una nueva tarea
 const createTask = async (req, res) => {
   try {
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
     const {
       project_id,
       sprint_id,
@@ -206,12 +228,12 @@ const createTask = async (req, res) => {
       priority,
       story_points,
       assignee_id,
-      reporter_id,
+      creator_id,
       due_date,
       estimated_hours
     } = req.body;
 
-    const task = await prisma.task.create({
+    const task = await prisma.managementTask.create({
       data: {
         project_id: parseInt(project_id),
         sprint_id: sprint_id ? parseInt(sprint_id) : null,
@@ -220,7 +242,8 @@ const createTask = async (req, res) => {
         priority: priority || 'medium',
         story_points: story_points ? parseInt(story_points) : null,
         assignee_id: assignee_id ? parseInt(assignee_id) : null,
-        reporter_id: reporter_id ? parseInt(reporter_id) : null,
+        creator_id: creator_id ? parseInt(creator_id) : null,
+        created_by: user.id, // Agregar el ID del usuario que crea la tarea
         due_date: due_date ? new Date(due_date) : null,
         estimated_hours: estimated_hours ? parseFloat(estimated_hours) : null,
         status: 'todo'
@@ -234,7 +257,7 @@ const createTask = async (req, res) => {
             avatar: true
           }
         },
-        reporter: {
+        creator: {
           select: {
             id: true,
             name: true,
@@ -289,7 +312,7 @@ const updateTask = async (req, res) => {
       updateData.actual_hours = parseFloat(updateData.actual_hours);
     }
 
-    const task = await prisma.task.update({
+    const task = await prisma.managementTask.update({
       where: { id: parseInt(id) },
       data: updateData,
       include: {
@@ -301,7 +324,7 @@ const updateTask = async (req, res) => {
             avatar: true
           }
         },
-        reporter: {
+        creator: {
           select: {
             id: true,
             name: true,
@@ -339,7 +362,51 @@ const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.task.delete({
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
+    // Buscar la tarea para verificar permisos
+    const existingTask = await prisma.managementTask.findUnique({
+      where: { id: parseInt(id) },
+      select: { id: true, title: true, created_by: true }
+    });
+
+    if (!existingTask) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tarea no encontrada'
+      });
+    }
+
+    // Validar que solo el creador pueda eliminar la tarea
+    if (existingTask.created_by !== user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tienes permisos para eliminar esta tarea. Solo el creador puede eliminarla.'
+      });
+    }
+
+    // Eliminar la tarea
+    await prisma.managementTask.delete({
       where: { id: parseInt(id) }
     });
 
@@ -363,7 +430,7 @@ const addComment = async (req, res) => {
     const { id } = req.params;
     const { user_id, comment } = req.body;
 
-    const taskComment = await prisma.taskComment.create({
+    const taskComment = await prisma.managementTaskComment.create({
       data: {
         task_id: parseInt(id),
         user_id: parseInt(user_id),
@@ -421,14 +488,14 @@ const logTime = async (req, res) => {
     });
 
     // Actualizar las horas actuales de la tarea
-    const task = await prisma.task.findUnique({
+    const task = await prisma.managementTask.findUnique({
       where: { id: parseInt(id) },
       select: { actual_hours: true }
     });
 
     const newActualHours = (task.actual_hours || 0) + parseFloat(hours);
 
-    await prisma.task.update({
+    await prisma.managementTask.update({
       where: { id: parseInt(id) },
       data: { actual_hours: newActualHours }
     });
@@ -453,7 +520,7 @@ const getTaskMetrics = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const tasks = await prisma.task.findMany({
+    const tasks = await prisma.managementTask.findMany({
       where: { project_id: parseInt(projectId) },
       select: {
         status: true,

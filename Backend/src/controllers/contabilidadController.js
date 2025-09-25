@@ -94,10 +94,6 @@ exports.getMovimientoById = async (req, res) => {
 exports.createMovimiento = async (req, res) => {
   try {
     const { fecha, concepto, monto, tipo, categoria, descripcion, estado } = req.body;
-    
-    console.log('🔍 DEBUG - Creando movimiento:', { fecha, concepto, monto, tipo, categoria, descripcion, estado });
-    console.log('🔍 DEBUG - Body completo:', req.body);
-    console.log('🔍 DEBUG - Archivos:', req.files);
 
     // Obtener el último saldo para calcular el nuevo saldo
     const ultimoMovimiento = await prisma.contabilidad.findFirst({
@@ -180,10 +176,6 @@ exports.updateMovimiento = async (req, res) => {
   try {
     const { id } = req.params;
     const { fecha, concepto, monto, tipo, categoria, descripcion, estado } = req.body;
-    
-    console.log('🔍 DEBUG - Actualizando movimiento:', { id, fecha, concepto, monto, tipo, categoria, descripcion, estado });
-    console.log('🔍 DEBUG - Body completo:', req.body);
-    console.log('🔍 DEBUG - Archivos:', req.files);
 
     // Verificar si existe el movimiento
     const movimientoExistente = await prisma.contabilidad.findUnique({
@@ -466,8 +458,7 @@ exports.generarReporteExcel = async (req, res) => {
 // Función para recalcular todos los saldos de la contabilidad
 exports.recalcularSaldos = async (req, res) => {
   try {
-    console.log('🔄 Iniciando recálculo de saldos contables...');
-    
+
     // Obtener todos los movimientos ordenados por fecha e ID
     const movimientos = await prisma.contabilidad.findMany({
       orderBy: [
@@ -513,11 +504,8 @@ exports.recalcularSaldos = async (req, res) => {
       });
 
       movimientosActualizados.push(movimientoActualizado);
-      console.log(`✅ Movimiento ${movimiento.id} actualizado - Saldo: ${saldoAcumulado.toFixed(2)}`);
-    }
 
-    console.log(`🎉 Recálculo completado. Total de movimientos procesados: ${movimientosActualizados.length}`);
-    console.log(`💰 Saldo final: ${saldoAcumulado.toFixed(2)}`);
+    }
 
     res.json({
       success: true,

@@ -11,14 +11,10 @@ router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    console.log('🧪 TEST - Obteniendo tareas del usuario:', userId);
-
     // Primero ver qué tareas existen en total
     const allTasks = await prisma.$queryRaw`
       SELECT COUNT(*) as total FROM management_tasks
     `;
-
-    console.log('🧪 Total de tareas en BD:', allTasks[0]?.total || 0);
 
     // Ver tareas asignadas a este usuario específico
     const userTasks = await prisma.$queryRaw`
@@ -38,9 +34,6 @@ router.get('/:userId', async (req, res) => {
       WHERE t.assigned_to = ${parseInt(userId)}
       ORDER BY t.created_at DESC
     `;
-
-    console.log(`🧪 Tareas encontradas para usuario ${userId}:`, userTasks.length);
-    console.log('🧪 Tareas detalle:', userTasks);
 
     res.json({
       success: true,

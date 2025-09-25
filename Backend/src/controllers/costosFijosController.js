@@ -30,7 +30,7 @@ exports.getCostosFijos = async (req, res) => {
       });
     } catch (dateError) {
       // Si falla por fechas inválidas, intentar sin la columna fecha
-      console.log('⚠️ Error con fechas, intentando sin filtro de fecha...');
+
       costos = await prisma.costoFijo.findMany({
         where: whereClause,
         select: {

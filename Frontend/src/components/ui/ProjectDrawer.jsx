@@ -166,8 +166,6 @@ export function ProjectDrawer({
 }) {
   // const notify = useNotify();
   const notify = {
-    success: (opts) => console.log('✅', opts.title),
-    error: (opts) => console.log('❌', opts.title)
   };
   const [activeTab, setActiveTab] = useState('overview');
   const [editMode, setEditMode] = useState(false);
@@ -313,11 +311,9 @@ export function ProjectDrawer({
   };
 
   if (!project) {
-    console.log('❌ ProjectDrawer: No project provided');
+
     return null;
   }
-
-  console.log('🎯 ProjectDrawer rendering:', { open, project: project.nombre });
 
   const sheetContent = (
     <AnimatePresence>

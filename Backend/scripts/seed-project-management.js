@@ -5,10 +5,9 @@ const prisma = new PrismaClient();
 
 async function seedProjectManagement() {
   try {
-    console.log('🌱 Iniciando seed del módulo de gestión de proyectos...');
 
     // 1. Crear metodologías de proyecto
-    console.log('📋 Creando metodologías de proyecto...');
+
     const methodologies = await Promise.all([
       prisma.projectMethodology.upsert({
         where: { name: 'Scrum' },
@@ -48,10 +47,8 @@ async function seedProjectManagement() {
       })
     ]);
 
-    console.log(`✅ ${methodologies.length} metodologías creadas`);
-
     // 2. Crear roles de proyecto
-    console.log('👥 Creando roles de proyecto...');
+
     const roles = await Promise.all([
       prisma.projectRole.upsert({
         where: { name: 'Project Manager' },
@@ -155,17 +152,15 @@ async function seedProjectManagement() {
       })
     ]);
 
-    console.log(`✅ ${roles.length} roles de proyecto creados`);
-
     // 3. Obtener usuarios existentes para asignar como project managers
-    console.log('👤 Obteniendo usuarios existentes...');
+
     const users = await prisma.user.findMany({
       where: { is_active: true },
       take: 5
     });
 
     if (users.length === 0) {
-      console.log('⚠️ No hay usuarios activos en el sistema. Creando usuario de ejemplo...');
+
       const exampleUser = await prisma.user.create({
         data: {
           email: 'pm@example.com',
@@ -179,14 +174,14 @@ async function seedProjectManagement() {
     }
 
     // 4. Obtener clientes existentes
-    console.log('🏢 Obteniendo clientes existentes...');
+
     const clients = await prisma.client.findMany({
       where: { status: 'activo' },
       take: 3
     });
 
     if (clients.length === 0) {
-      console.log('⚠️ No hay clientes activos. Creando cliente de ejemplo...');
+
       const exampleClient = await prisma.client.create({
         data: {
           run_cliente: '12345678-9',
@@ -199,7 +194,7 @@ async function seedProjectManagement() {
     }
 
     // 5. Crear proyectos de ejemplo
-    console.log('🚀 Creando proyectos de ejemplo...');
+
     const projects = await Promise.all([
       prisma.project.upsert({
         where: { id: 1 },
@@ -260,10 +255,8 @@ async function seedProjectManagement() {
       })
     ]);
 
-    console.log(`✅ ${projects.length} proyectos creados`);
-
     // 6. Crear miembros de proyecto
-    console.log('👥 Asignando miembros a proyectos...');
+
     const projectMembers = [];
     
     for (const project of projects) {
@@ -311,10 +304,8 @@ async function seedProjectManagement() {
       });
     }
 
-    console.log(`✅ ${projectMembers.length} miembros asignados a proyectos`);
-
     // 7. Crear sprints para el primer proyecto (Scrum)
-    console.log('🏃 Creando sprints de ejemplo...');
+
     const scrumProject = projects.find(p => p.methodology_id === methodologies.find(m => m.name === 'Scrum')?.id);
     
     if (scrumProject) {
@@ -365,10 +356,8 @@ async function seedProjectManagement() {
         })
       ]);
 
-      console.log(`✅ ${sprints.length} sprints creados para proyecto Scrum`);
-
       // 8. Crear tareas de ejemplo para el sprint activo
-      console.log('📝 Creando tareas de ejemplo...');
+
       const activeSprint = sprints.find(s => s.status === 'active');
       const projectMembersList = await prisma.projectMember.findMany({
         where: { project_id: scrumProject.id, is_active: true },
@@ -456,10 +445,8 @@ async function seedProjectManagement() {
           })
         ]);
 
-        console.log(`✅ ${tasks.length} tareas creadas para el sprint activo`);
-
         // 9. Crear algunos daily standups de ejemplo
-        console.log('📅 Creando daily standups de ejemplo...');
+
         const standupDates = [
           new Date('2024-02-14'),
           new Date('2024-02-15'),
@@ -483,10 +470,8 @@ async function seedProjectManagement() {
           }
         }
 
-        console.log(`✅ Daily standups de ejemplo creados`);
-
         // 10. Crear algunos comentarios en tareas
-        console.log('💬 Creando comentarios de ejemplo...');
+
         const taskWithComments = tasks[1]; // Tarea en progreso
         if (taskWithComments) {
           await prisma.taskComment.createMany({
@@ -510,10 +495,8 @@ async function seedProjectManagement() {
           });
         }
 
-        console.log(`✅ Comentarios de ejemplo creados`);
-
         // 11. Crear entradas de tiempo de ejemplo
-        console.log('⏱️ Creando entradas de tiempo de ejemplo...');
+
         const taskWithTime = tasks[1];
         if (taskWithTime) {
           await prisma.timeEntry.createMany({
@@ -543,10 +526,8 @@ async function seedProjectManagement() {
           });
         }
 
-        console.log(`✅ Entradas de tiempo de ejemplo creadas`);
-
         // 12. Crear milestones del proyecto
-        console.log('🎯 Creando milestones de ejemplo...');
+
         await prisma.milestone.createMany({
           data: [
             {
@@ -589,17 +570,8 @@ async function seedProjectManagement() {
           ]
         });
 
-        console.log(`✅ Milestones de ejemplo creados`);
       }
     }
-
-    console.log('🎉 ¡Seed del módulo de gestión de proyectos completado exitosamente!');
-    console.log('\n📊 Resumen:');
-    console.log(`- ${methodologies.length} metodologías creadas`);
-    console.log(`- ${roles.length} roles de proyecto creados`);
-    console.log(`- ${projects.length} proyectos creados`);
-    console.log(`- ${projectMembers.length} miembros asignados`);
-    console.log(`- Sprints, tareas, standups y más datos de ejemplo creados`);
 
   } catch (error) {
     console.error('❌ Error durante el seed:', error);
@@ -613,7 +585,7 @@ async function seedProjectManagement() {
 if (require.main === module) {
   seedProjectManagement()
     .then(() => {
-      console.log('✅ Seed completado');
+
       process.exit(0);
     })
     .catch((error) => {

@@ -3,9 +3,6 @@ const express = require('express');
 const router = express.Router();
 const userRegistrationController = require('../controllers/userRegistrationController');
 
-console.log('🚀 Cargando rutas de registro de usuarios...');
-console.log('📋 Controlador cargado:', Object.keys(userRegistrationController));
-
 // =====================================================
 // RUTAS PARA SUPER ADMINISTRADOR
 // =====================================================
@@ -56,6 +53,13 @@ router.post('/send-invitation/:userId', userRegistrationController.sendInvitatio
 
 // Actualizar usuario
 router.put('/update-user/:id', userRegistrationController.updateUser);
+
+// Actualizar perfil de usuario (desde frontend)
+router.put('/update-profile/:id', 
+  userRegistrationController.upload.single('avatar'), 
+  userRegistrationController.handleMulterError,
+  userRegistrationController.updateUserProfile
+);
 
 // Descargar informe de usuarios
 router.get('/download/report', userRegistrationController.downloadUsersReport);

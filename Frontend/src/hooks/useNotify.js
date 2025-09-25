@@ -28,7 +28,7 @@ export function useNotify() {
     notificationSystem = useNotificationContext();
   } catch (error) {
     // Si no hay NotificationProvider, usar fallback
-    console.warn('NotificationProvider no disponible, usando fallback con console');
+
   }
 
   // 🎯 Funciones de conveniencia por tipo
@@ -37,7 +37,7 @@ export function useNotify() {
       return notificationSystem.notify.success(options);
     } else {
       // Fallback con console (sin alert)
-      console.log(`✅ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
+
     }
   }, [notificationSystem]);
 
@@ -55,7 +55,7 @@ export function useNotify() {
       return notificationSystem.notify.warning(options);
     } else {
       // Fallback con console (sin alert)
-      console.warn(`⚠️ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
+
     }
   }, [notificationSystem]);
 
@@ -64,7 +64,7 @@ export function useNotify() {
       return notificationSystem.notify.info(options);
     } else {
       // Fallback con console (sin alert)
-      console.info(`ℹ️ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
+
     }
   }, [notificationSystem]);
 
@@ -73,7 +73,7 @@ export function useNotify() {
       return notificationSystem.notify.loading(options);
     } else {
       // Fallback con console
-      console.log(`⏳ ${options.title}${options.description ? ` - ${options.description}` : ''}`);
+
     }
   }, [notificationSystem]);
 
@@ -91,7 +91,7 @@ export function useNotify() {
 
   // 📊 Log para debugging
   useEffect(() => {
-    console.log('🔔 Sistema de notificaciones inicializado:', notificationSystem ? 'Notification UI' : 'Alert fallback');
+
   }, [notificationSystem]);
 
   return {

@@ -10,14 +10,12 @@ const { PrismaClient } = require('@prisma/client');
  */
 const testDatabaseConnection = async (req, res) => {
   try {
-    console.log('🧪 Probando conexión a la base de datos...');
-    
+
     const prisma = new PrismaClient();
     
     // Probar conexión básica
     await prisma.$connect();
-    console.log('✅ Conexión a la base de datos establecida');
-    
+
     // Obtener información básica
     const roles = await prisma.roles.findMany({
       select: {
@@ -62,8 +60,7 @@ const testDatabaseConnection = async (req, res) => {
  */
 const configureDevOperatorPermissionsSimple = async (req, res) => {
   try {
-    console.log('🔐 Configurando permisos básicos para DESARROLLADOR y OPERADOR...');
-    
+
     const prisma = new PrismaClient();
     await prisma.$connect();
     
@@ -75,9 +72,7 @@ const configureDevOperatorPermissionsSimple = async (req, res) => {
         }
       }
     });
-    
-    console.log(`👥 Roles encontrados: ${roles.length}`, roles.map(r => r.name));
-    
+
     if (roles.length === 0) {
       return res.status(404).json({
         success: false,
@@ -97,20 +92,14 @@ const configureDevOperatorPermissionsSimple = async (req, res) => {
     const dashboardModule = await prisma.modules.findFirst({
       where: { name: 'dashboard' }
     });
-    
-    console.log('📦 Módulos encontrados:');
-    console.log('  - project_management:', projectManagementModule ? '✅' : '❌');
-    console.log('  - mi_perfil:', miPerfilModule ? '✅' : '❌');
-    console.log('  - dashboard:', dashboardModule ? '✅' : '❌');
-    
+
     const allowedModules = [projectManagementModule, miPerfilModule, dashboardModule].filter(Boolean);
     
     const results = [];
     
     // Configurar permisos para cada rol
     for (const role of roles) {
-      console.log(`\n🔧 Configurando permisos para rol: ${role.name}`);
-      
+
       for (const module of allowedModules) {
         const permissions = {
           can_read: true,
@@ -136,7 +125,7 @@ const configureDevOperatorPermissionsSimple = async (req, res) => {
             where: { id: existingPermission.id },
             data: permissions
           });
-          console.log(`   ✅ Actualizado: ${module.name}`);
+
         } else {
           // Crear nuevo permiso
           result = await prisma.permissions.create({
@@ -146,7 +135,7 @@ const configureDevOperatorPermissionsSimple = async (req, res) => {
               ...permissions
             }
           });
-          console.log(`   ➕ Creado: ${module.name}`);
+
         }
         
         results.push({
@@ -159,9 +148,7 @@ const configureDevOperatorPermissionsSimple = async (req, res) => {
     }
     
     await prisma.$disconnect();
-    
-    console.log('\n🎉 ¡Permisos configurados exitosamente!');
-    
+
     res.json({
       success: true,
       message: 'Permisos configurados exitosamente para DESARROLLADOR y OPERADOR',

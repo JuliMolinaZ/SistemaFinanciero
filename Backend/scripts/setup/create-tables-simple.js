@@ -2,18 +2,13 @@
 
 const { PrismaClient } = require('@prisma/client');
 
-console.log('🔧 Creando tablas de seguridad (método simplificado)...\n');
-
 async function createTablesSimple() {
   const prisma = new PrismaClient();
   
   try {
-    console.log('📋 1. Conectando a la base de datos...');
+
     await prisma.$connect();
-    console.log('✅ Conexión exitosa!');
-    
-    console.log('\n📋 2. Creando tablas de seguridad...');
-    
+
     const tables = [
       {
         name: 'audit_logs',
@@ -93,16 +88,14 @@ async function createTablesSimple() {
     
     for (const table of tables) {
       try {
-        console.log(`   📋 Creando tabla: ${table.name}`);
+
         await prisma.$executeRawUnsafe(table.sql);
-        console.log(`   ✅ Tabla ${table.name} creada exitosamente`);
+
       } catch (error) {
-        console.log(`   ❌ Error creando ${table.name}: ${error.message}`);
+
       }
     }
-    
-    console.log('\n📋 3. Insertando configuración de seguridad...');
-    
+
     try {
       const configSQL = `
         INSERT IGNORE INTO security_config (config_key, config_value, description) VALUES
@@ -115,38 +108,30 @@ async function createTablesSimple() {
       `;
       
       await prisma.$executeRawUnsafe(configSQL);
-      console.log('   ✅ Configuración de seguridad insertada');
+
     } catch (error) {
-      console.log(`   ❌ Error insertando configuración: ${error.message}`);
+
     }
-    
-    console.log('\n📋 4. Verificando tablas creadas...');
-    
+
     for (const table of tables) {
       try {
         const result = await prisma.$queryRawUnsafe(`SHOW TABLES LIKE '${table.name}'`);
         if (result.length > 0) {
-          console.log(`   ✅ Tabla ${table.name} existe`);
+
         } else {
-          console.log(`   ❌ Tabla ${table.name} NO existe`);
+
         }
       } catch (error) {
-        console.log(`   ❌ Error verificando ${table.name}: ${error.message}`);
+
       }
     }
-    
-    console.log('\n🎉 ¡Proceso completado!');
-    console.log('\n📋 Próximos pasos:');
-    console.log('   1. Ejecutar: npx prisma generate');
-    console.log('   2. Probar las nuevas funcionalidades');
-    console.log('   3. Configurar las rutas de seguridad');
-    
+
   } catch (error) {
     console.error('❌ Error durante la creación de tablas:', error);
     
   } finally {
     await prisma.$disconnect();
-    console.log('\n🔌 Conexión cerrada');
+
   }
 }
 

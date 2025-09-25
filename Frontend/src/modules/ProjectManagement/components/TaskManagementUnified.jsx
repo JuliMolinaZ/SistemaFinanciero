@@ -27,9 +27,7 @@ import '../ProjectManagementUnified.css';
 const TaskManagementUnified = ({ projectId, projectName, onClose, projects = [], onProjectSelect }) => {
   const { notify } = useNotifications();
   const { confirmState, handleConfirm, handleCancel } = useConfirm();
-  
-  console.log('🎯 TaskManagementUnified renderizado con:', { projectId, projectName });
-  
+
   // Estados principales
   const [tasks, setTasks] = useState([]);
   const [tasksByStatus, setTasksByStatus] = useState({
@@ -60,9 +58,6 @@ const TaskManagementUnified = ({ projectId, projectName, onClose, projects = [],
       setLoading(true);
       const response = await taskManagementService.getTasksByProject(projectId);
       const tasksData = response.data?.tasks || [];
-
-      console.log('📋 Tareas cargadas:', tasksData.length);
-      console.log('📋 Estructura de respuesta:', response.data);
 
       setTasks(tasksData);
 
@@ -136,7 +131,7 @@ const TaskManagementUnified = ({ projectId, projectName, onClose, projects = [],
     try {
       const response = await taskManagementService.getUsersByProject(projectId);
       const usersData = response.data || [];
-      console.log('👥 Usuarios cargados:', usersData.length);
+
       setUsers(usersData);
     } catch (err) {
       console.error('❌ Error cargando usuarios:', err);
@@ -205,13 +200,13 @@ const TaskManagementUnified = ({ projectId, projectName, onClose, projects = [],
           projectId={projectId}
           projectName={projectName}
           onTaskCreate={(task) => {
-            console.log('✨ Nueva tarea creada:', task);
+
           }}
           onTaskUpdate={(task) => {
-            console.log('✏️ Tarea actualizada:', task);
+
           }}
           onTaskDelete={(taskId) => {
-            console.log('🗑️ Tarea eliminada:', taskId);
+
           }}
         />
       </Box>

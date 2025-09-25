@@ -532,7 +532,7 @@ const UltraProjectRow = ({ project, index, onView, onEdit, onDelete, isSelected,
                   <ExternalLink />
                   Ver Detalles
                 </button>
-                <button onClick={() => { console.log('Copy', project); setMenuOpen(false); }} className="ultra-menu-item">
+                <button onClick={() => { setMenuOpen(false); }} className="ultra-menu-item">
                   <Copy />
                   Duplicar
                 </button>
@@ -845,7 +845,7 @@ const ProjectTableUltraModern = ({
   }, []);
 
   const handleExport = useCallback(() => {
-    console.log('Exportar proyectos seleccionados:', selectedProjects);
+
   }, [selectedProjects]);
 
   if (loading) {

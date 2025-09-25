@@ -222,7 +222,6 @@ const ProjectDashboard = ({
                   variant="secondary"
                   size="sm"
                   icon={Download}
-                  onClick={() => console.log('Export')}
                   aria-label="Exportar proyectos"
                 />
                 
@@ -321,7 +320,6 @@ const ProjectDashboard = ({
                           variant="ghost"
                           size="sm"
                           icon={Edit}
-                          onClick={() => console.log('Edit', project)}
                           aria-label="Editar proyecto"
                         />
                       </div>
@@ -367,7 +365,6 @@ const ProjectDashboard = ({
               <QuickAction
                 variant="secondary"
                 icon={Users}
-                onClick={() => console.log('Manage Teams')}
                 className="project-dashboard__quick-action"
               >
                 Gestionar Equipos
@@ -376,7 +373,6 @@ const ProjectDashboard = ({
               <QuickAction
                 variant="secondary"
                 icon={TrendingUp}
-                onClick={() => console.log('View Reports')}
                 className="project-dashboard__quick-action"
               >
                 Ver Reportes
@@ -385,7 +381,6 @@ const ProjectDashboard = ({
               <QuickAction
                 variant="secondary"
                 icon={Filter}
-                onClick={() => console.log('Advanced Filters')}
                 className="project-dashboard__quick-action"
               >
                 Filtros Avanzados

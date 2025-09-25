@@ -220,7 +220,7 @@ const ImpuestosIMSSModule = () => {
       } else if (response.data && Array.isArray(response.data.data)) {
         setProveedores(response.data.data);
       } else {
-        console.warn('Respuesta de proveedores no es un array:', response.data);
+
         setProveedores([]);
       }
     } catch (error) {

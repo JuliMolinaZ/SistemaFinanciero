@@ -35,7 +35,7 @@ const Sidebar = () => {
       try {
         const response = await axios.get(`${API_URL}/api/permisos`);
         setPermisos(response.data);
-        console.log('Permisos obtenidos:', response.data);
+
       } catch (error) {
         console.error('Error al obtener los permisos:', error.response?.data || error.message);
       }
@@ -52,9 +52,6 @@ const Sidebar = () => {
   const normalizedRole = userRole.trim().toLowerCase();
   const isJuanCarlos = normalizedRole === 'juan carlos';
   const isAdmin = normalizedRole === 'administrador';
-
-  console.log('Perfil del usuario:', profileData);
-  console.log('Rol normalizado:', normalizedRole);
 
   // Función que retorna true para cualquier módulo si el usuario es Juan Carlos.
   // Para otros, se evalúa según el permiso (acceso_administrador === 1)

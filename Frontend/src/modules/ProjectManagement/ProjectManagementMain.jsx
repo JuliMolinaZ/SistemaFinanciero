@@ -66,6 +66,7 @@ import ProjectMetrics from './components/ProjectMetrics';
 import { NavTabs } from '../../components/navigation/NavTabs.tsx';
 import ContextualFab from '../../components/ui/ContextualFab';
 import CreateProjectForm from '../../components/forms/CreateProjectForm';
+import ProjectFormDialog from '../../components/modals/ProjectFormDialog';
 import BrutalFAB from '../../components/ui/BrutalFAB';
 import BrutalCreateButton from '../../components/ui/BrutalCreateButton';
 import UltraBrutalButton from '../../components/ui/UltraBrutalButton';
@@ -247,14 +248,14 @@ const ProjectManagementContent = () => {
           
           if (phasesResponse.ok) {
             const phasesData = await phasesResponse.json();
-            console.log('✅ Fases cargadas:', phasesData.data?.length || 0);
+
             phases = phasesData.data || [];
           } else {
-            console.warn('⚠️ Error cargando fases:', phasesResponse.status);
+
             phases = [];
           }
         } catch (phasesError) {
-          console.warn('⚠️ Error al cargar fases:', phasesError);
+
           phases = [];
         }
         
@@ -266,11 +267,6 @@ const ProjectManagementContent = () => {
           sprints: mockData.sprints // Mantener mock por ahora
         });
 
-      console.log('✅ Datos recargados exitosamente:');
-        console.log('   - Proyectos:', projectData.projects.length);
-        console.log('   - Grupos:', projectData.groups.length);
-        console.log('   - Fases:', phases.length);
-        
       } catch (err) {
       console.error('❌ Error en reloadData:', err);
       captureError(err, { context: 'reloadData' });
@@ -304,7 +300,7 @@ const ProjectManagementContent = () => {
   // 🚀 Función global para crear proyectos
   useEffect(() => {
     window.createNewProject = () => {
-      console.log('🚀 Función global createNewProject ejecutada');
+
       updateState({ modalType: 'createProject', modalOpen: true });
     };
     
@@ -321,16 +317,13 @@ const ProjectManagementContent = () => {
   // 🔄 Manejadores de operaciones CRUD con recarga automática
   const handleProjectCreate = useCallback(async (projectData) => {
     try {
-      console.log('📝 Creando proyecto:', projectData);
-      
+
       // Importar el servicio
       const { projectManagementService } = await import('../../services/projectManagementService');
       
       // Crear el proyecto
       const result = await projectManagementService.createProject(projectData);
-      
-      console.log('✅ Proyecto creado exitosamente:', result);
-      
+
       // Recargar datos para mostrar el nuevo proyecto
       await reloadData(false);
       
@@ -353,8 +346,7 @@ const ProjectManagementContent = () => {
 
   const handleProjectUpdate = useCallback(async (projectId, updates) => {
     try {
-      console.log('✏️ Actualizando proyecto:', projectId, updates);
-      
+
       // Validar que el ID sea válido
       if (!projectId || projectId === 'undefined' || projectId === null) {
         console.error('❌ ID de proyecto inválido en handleProjectUpdate:', projectId);
@@ -370,9 +362,7 @@ const ProjectManagementContent = () => {
       
       // Actualizar el proyecto
       const result = await projectManagementService.updateProject(projectId, updates);
-      
-      console.log('✅ Proyecto actualizado exitosamente:', result);
-      
+
       // Recargar datos para mostrar los cambios
       await reloadData(false);
       
@@ -395,16 +385,13 @@ const ProjectManagementContent = () => {
 
   const handleProjectDelete = useCallback(async (projectId) => {
     try {
-      console.log('🗑️ Eliminando proyecto:', projectId);
-      
+
       // Importar el servicio
       const { projectManagementService } = await import('../../services/projectManagementService');
       
       // Eliminar el proyecto
       const result = await projectManagementService.deleteProject(projectId);
-      
-      console.log('✅ Proyecto eliminado exitosamente:', result);
-      
+
       // Recargar datos para reflejar la eliminación
       await reloadData(false);
       
@@ -478,7 +465,6 @@ const ProjectManagementContent = () => {
               try {
                 // Si se pasa un ID y un objeto actualizado (desde onUpdate del modal)
                 if (typeof projectId === 'number' && updatesOrProject && typeof updatesOrProject === 'object') {
-                  console.log('🔄 Actualizando proyecto desde modal:', { projectId, updatesOrProject });
 
                   // Actualización optimizada: solo actualizar el proyecto específico en el estado local
                   updateState(prevState => {
@@ -496,16 +482,6 @@ const ProjectManagementContent = () => {
 
                     const updatedProject = updatedProjects.find(p => p.id === projectId);
 
-                    console.log('🔄 Estado actualizado con nuevas referencias:', {
-                      projectId,
-                      totalProjects: updatedProjects.length,
-                      totalGroups: updatedGroups.length,
-                      updatedProject: updatedProject,
-                      updatedProjectProgress: updatedProject?.progress,
-                      projectsArrayChanged: updatedProjects !== prevState.projects,
-                      groupsArrayChanged: updatedGroups !== prevState.groups
-                    });
-
                     return {
                       ...prevState,
                       projects: updatedProjects,
@@ -519,17 +495,10 @@ const ProjectManagementContent = () => {
                     description: `${updatesOrProject.nombre || 'Proyecto'} se actualizó correctamente`
                   });
 
-                  console.log('🔔 Notificación de éxito enviada');
-
-                  console.log('✅ Proyecto actualizado localmente sin recargar toda la página');
-                  console.log('📊 Estado final:', {
-                    totalProjects: state.projects.length,
-                    totalGroups: state.groups.length
-                  });
                 }
                 // Si se pasa solo un proyecto (desde otras acciones)
                 else if (typeof projectId === 'object' && projectId.id) {
-                  console.log('✏️ Editando proyecto:', projectId.nombre || projectId.name);
+
                   await handleProjectUpdate(projectId.id, projectId);
                 }
                 else {
@@ -542,7 +511,7 @@ const ProjectManagementContent = () => {
             }}
             onDelete={async (project) => {
               try {
-                console.log('🗑️ Proyecto eliminado:', project.nombre || project.name);
+
                 await handleProjectDelete(project.id);
               } catch (error) {
                 console.error('❌ Error eliminando proyecto:', error);
@@ -550,12 +519,12 @@ const ProjectManagementContent = () => {
               }
             }}
             onView={(project) => {
-              console.log('👁️ Ver proyecto:', project.nombre || project.name);
+
               setSelectedProject(project);
               setDrawerOpen(true);
             }}
             onExport={(project) => {
-              console.log('📊 Exportar reporte:', project.nombre || project.name);
+
             }}
           />
         );
@@ -600,8 +569,6 @@ const ProjectManagementContent = () => {
           <SprintManagement
             sprints={sprints}
             projects={projects}
-            onSprintStart={(sprintId) => console.log('Start sprint:', sprintId)}
-            onSprintComplete={(sprintId) => console.log('Complete sprint:', sprintId)}
           />
         );
       case 'Analytics':
@@ -666,7 +633,7 @@ const ProjectManagementContent = () => {
                 <ContextualBrutalButton
               activeTab={state.activeTab}
                   onClick={() => {
-                    console.log(`🚀 Crear desde ${state.activeTab}`);
+
                     // Lógica contextual según el tab
                     switch (state.activeTab) {
                       case 'Proyectos':
@@ -679,7 +646,7 @@ const ProjectManagementContent = () => {
                       window.dispatchEvent(new CustomEvent('createNewTask', {
                         detail: { projectId: selectedProjectForTasks.id, status: 'todo' }
                       }));
-                      console.log('🎯 Evento createNewTask disparado para proyecto:', selectedProjectForTasks.id);
+
                     } else {
                       notify.warning({
                         title: 'Selecciona un proyecto',
@@ -721,33 +688,43 @@ const ProjectManagementContent = () => {
       {state.modalOpen && (
         <>
           {state.modalType === 'createProject' && (
-            <CreateProjectForm
+            <ProjectFormDialog
+              mode="create"
               open={state.modalOpen}
-              onClose={() => updateState({ modalOpen: false, modalType: null })}
-              onSuccess={async (projectData) => {
+              onOpenChange={(open) => {
+                if (!open) {
+                  updateState({ modalOpen: false, modalType: null });
+                }
+              }}
+              onSubmit={async (projectData) => {
                 try {
-                  console.log('📝 Proyecto creado exitosamente:', projectData);
-                  
-                  // Solo recargar datos, no crear el proyecto otra vez
-                  // porque CreateProjectForm ya lo creó
+                  // Crear el proyecto usando el servicio
+                  const { projectManagementService } = await import('../../services/projectManagementService');
+                  const result = await projectManagementService.createProject(projectData);
+
+                  // Recargar datos
                   await reloadData(false);
-                  
+
                   // Mostrar notificación de éxito
                   notify.success({
                     title: 'Proyecto creado',
                     description: `"${projectData.nombre}" se creó exitosamente`
                   });
-                  
+
                   // Cerrar el modal
                   updateState({ modalOpen: false, modalType: null });
+
+                  return result;
                 } catch (error) {
-                  console.error('❌ Error en onSuccess:', error);
+                  console.error('❌ Error en onSubmit:', error);
                   notify.error({
-                    title: 'Error al recargar datos',
-                    description: 'El proyecto se creó pero hubo un error al actualizar la lista'
+                    title: 'Error al crear proyecto',
+                    description: error.message || 'No se pudo crear el proyecto'
                   });
+                  throw error;
                 }
               }}
+              submitLabel="Crear Proyecto"
             />
           )}
 

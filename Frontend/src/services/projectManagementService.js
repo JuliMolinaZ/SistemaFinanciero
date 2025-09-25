@@ -44,9 +44,7 @@ export const projectManagementService = {
       if (search) {
         url += `?search=${encodeURIComponent(search)}`;
       }
-      
-      console.log('🔍 Fetching projects from:', url);
-      
+
       const response = await fetch(url, createRequest('GET'));
 
       let data;
@@ -67,8 +65,7 @@ export const projectManagementService = {
       
       // Nuestra API devuelve un objeto con data, groups, meta
       if (data.success && data.data && Array.isArray(data.data)) {
-        console.log('✅ Datos recibidos del backend:', data.data.length, 'proyectos');
-        
+
         projects = data.data.map(project => ({
           ...project,
           // Asegurar que todos los campos necesarios estén presentes
@@ -103,8 +100,7 @@ export const projectManagementService = {
         }));
       } else if (Array.isArray(data)) {
         // Fallback para array directo
-        console.log('✅ Datos recibidos del backend (array):', data.length, 'proyectos');
-        
+
         projects = data.map(project => ({
           ...project,
           // Asegurar que todos los campos necesarios estén presentes
@@ -139,7 +135,7 @@ export const projectManagementService = {
         }));
       } else {
         // Si no hay datos, usar datos mock para desarrollo
-        console.warn('⚠️ No se encontraron datos reales, usando datos mock');
+
         projects = this.getMockProjects();
       }
 
@@ -165,10 +161,6 @@ export const projectManagementService = {
       });
 
       groups = Array.from(groupMap.values());
-      console.log('✅ Grupos creados localmente:', groups.length);
-
-      console.log('✅ Proyectos procesados:', projects.length);
-      console.log('✅ Grupos creados:', groups.length);
 
       return {
         projects,
@@ -236,8 +228,7 @@ export const projectManagementService = {
       }
 
       const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
-      console.log('🔍 Updating project:', url, updates);
-      
+
       const response = await fetch(url, createRequest('PUT', updates));
       const data = await response.json();
 
@@ -246,7 +237,6 @@ export const projectManagementService = {
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      console.log('✅ Project updated successfully:', data);
       return data.data || data; // Devolver data.data si existe, sino data
     } catch (error) {
       console.error('Error updating project:', error);
@@ -258,8 +248,7 @@ export const projectManagementService = {
   async deleteProject(id) {
     try {
       const url = `${API_BASE_URL}${API_ENDPOINTS.projects}/${id}`;
-      console.log('🔍 Deleting project:', url);
-      
+
       const response = await fetch(url, createRequest('DELETE'));
       const data = await response.json();
 
@@ -268,7 +257,6 @@ export const projectManagementService = {
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      console.log('✅ Project deleted successfully:', data);
       return data; // La respuesta de delete no tiene data.data
     } catch (error) {
       console.error('Error deleting project:', error);

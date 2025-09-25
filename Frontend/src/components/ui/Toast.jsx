@@ -198,16 +198,16 @@ export function useToast() {
 // 🎯 FUNCIONES DE CONVENIENCIA GLOBALES
 export const toast = {
   success: (options) => {
-    console.log('✅', options.title, options.description);
+
   },
   error: (options) => {
-    console.log('❌', options.title, options.description);
+
   },
   warning: (options) => {
-    console.log('⚠️', options.title, options.description);
+
   },
   info: (options) => {
-    console.log('ℹ️', options.title, options.description);
+
   }
 };
 

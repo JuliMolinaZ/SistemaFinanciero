@@ -117,8 +117,6 @@ exports.updateProveedor = async (req, res) => {
       estado
     } = req.body;
 
-
-
     // Verificar si existe el proveedor
     const proveedorExistente = await prisma.provider.findUnique({
       where: { id: parseInt(id) }

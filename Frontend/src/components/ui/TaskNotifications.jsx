@@ -333,10 +333,24 @@ export const useTaskNotifications = () => {
     );
   }, [success]);
 
-  const taskError = useCallback((action, error) => {
+  const taskError = useCallback((action, errorObj) => {
+    let errorMessage = 'Ocurrió un error inesperado';
+    
+    if (errorObj) {
+      if (typeof errorObj === 'string') {
+        errorMessage = errorObj;
+      } else if (errorObj.message) {
+        errorMessage = errorObj.message;
+      } else if (errorObj.response && errorObj.response.data && errorObj.response.data.message) {
+        errorMessage = errorObj.response.data.message;
+      } else if (errorObj.data && errorObj.data.message) {
+        errorMessage = errorObj.data.message;
+      }
+    }
+    
     return error(
       `Error al ${action}`,
-      error.message || 'Ocurrió un error inesperado'
+      errorMessage
     );
   }, [error]);
 

@@ -76,7 +76,7 @@ const SimpleModal = ({ open, onClose, title, children }) => {
           <Button
             variant="contained"
             onClick={() => {
-              console.log('✅ Acción confirmada');
+
               onClose();
             }}
           >

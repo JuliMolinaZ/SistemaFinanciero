@@ -5,14 +5,7 @@ const blockInvitedUsers = (req, res, next) => {
   const referer = req.get('Referer') || '';
   const userAgent = req.get('User-Agent') || '';
   const origin = req.get('Origin') || '';
-  
-  console.log('🔒 MIDDLEWARE INVITATION BLOCK - Verificando solicitud');
-  console.log('🔒 Referer:', referer);
-  console.log('🔒 User-Agent:', userAgent);
-  console.log('🔒 Origin:', origin);
-  console.log('🔒 URL solicitada:', req.originalUrl);
-  console.log('🔒 Método:', req.method);
-  
+
   // Solo bloquear si es una llamada específica a /api/usuarios (crear usuario)
   // Y NO bloquear las llamadas de GET para obtener perfiles existentes
   if (req.originalUrl === '/api/usuarios' && req.method === 'POST') {
@@ -38,22 +31,10 @@ const blockInvitedUsers = (req, res, next) => {
                                     !body.firebase_uid && 
                                     !body.token && 
                                     !body.invitation_token;
-    
-    console.log('🔍 DETECCIÓN INTELIGENTE:');
-    console.log('🔍 - Desde página de invitación:', isFromInvitationPage);
-    console.log('🔍 - Datos de invitación en body:', hasInvitationData);
-    console.log('🔍 - Headers de invitación:', invitationHeader);
-    console.log('🔍 - Creación de perfil sin Firebase:', isFirebaseProfileCreation);
-    console.log('🔍 - Body completo:', JSON.stringify(body));
-    
+
     // Solo bloquear si se detecta como usuario invitado O intento de crear perfil sin Firebase
     if (isFromInvitationPage || hasInvitationData || invitationHeader || isFirebaseProfileCreation) {
-      console.log('🚫 MIDDLEWARE: USUARIO INVITADO O PERFIL SIN FIREBASE DETECTADO - BLOQUEANDO LLAMADA');
-      console.log('🚫 URL bloqueada:', req.originalUrl);
-      console.log('🚫 Método:', req.method);
-      console.log('🚫 Referer:', referer);
-      console.log('🚫 Body:', JSON.stringify(body));
-      
+
       return res.status(403).json({
         success: false,
         message: 'Acceso denegado para usuarios invitados o perfiles sin Firebase',
@@ -73,7 +54,7 @@ const blockInvitedUsers = (req, res, next) => {
   }
   
   // Si no es un usuario invitado o es una llamada GET, continuar
-  console.log('✅ MIDDLEWARE: Usuario normal o llamada GET - Continuando');
+
   next();
 };
 

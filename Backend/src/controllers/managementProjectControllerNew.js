@@ -10,7 +10,6 @@ const prisma = new PrismaClient();
  */
 const getAllProjects = async (req, res) => {
   try {
-    console.log('🔍 GET /api/management-projects - Tabla management_projects');
 
     const { search } = req.query;
 
@@ -141,7 +140,6 @@ const getAllProjects = async (req, res) => {
 
     const groupsArray = Object.values(groups);
 
-    console.log(`✅ Encontrados ${convertedProjects.length} proyectos de gestión`);
     res.json({
       success: true,
       message: 'Proyectos obtenidos exitosamente',
@@ -169,7 +167,6 @@ const getAllProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`🔍 GET /api/management-projects/${id}`);
 
     const project = await prisma.$queryRaw`
       SELECT
@@ -255,7 +252,6 @@ const getProjectById = async (req, res) => {
       members: formattedMembers
     };
 
-    console.log(`✅ Proyecto de gestión encontrado: ${convertedProject.nombre}`);
     res.json({
       success: true,
       message: 'Proyecto obtenido exitosamente',
@@ -276,6 +272,28 @@ const getProjectById = async (req, res) => {
  */
 const createProject = async (req, res) => {
   try {
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
     const {
       nombre,
       descripcion,
@@ -289,9 +307,6 @@ const createProject = async (req, res) => {
       end_date,
       members = []
     } = req.body;
-
-    console.log('🔍 POST /api/management-projects');
-    console.log('📝 Datos recibidos:', { nombre, cliente_id, project_manager_id, members: members.length });
 
     // Validar datos requeridos
     if (!nombre) {
@@ -318,7 +333,7 @@ const createProject = async (req, res) => {
     const project = await prisma.$queryRaw`
       INSERT INTO management_projects (
         nombre, descripcion, cliente_id, project_manager_id, methodology_id,
-        status, priority, progress, start_date, end_date,
+        status, priority, progress, start_date, end_date, created_by,
         created_at, updated_at
       ) VALUES (
         ${nombre},
@@ -331,6 +346,7 @@ const createProject = async (req, res) => {
         ${parseInt(progress)},
         ${start_date ? new Date(start_date) : null},
         ${end_date ? new Date(end_date) : null},
+        ${user.id},
         NOW(),
         NOW()
       )
@@ -364,7 +380,6 @@ const createProject = async (req, res) => {
     // Guardar miembros del proyecto en la base de datos
     const savedMembers = [];
     if (members && members.length > 0) {
-      console.log('💾 Guardando miembros del proyecto:', members);
 
       for (const member of members) {
         try {
@@ -418,7 +433,7 @@ const createProject = async (req, res) => {
         `;
         clientName = clientResult.length > 0 ? clientResult[0].nombre : `Cliente #${projectData.cliente_id}`;
       } catch (clientError) {
-        console.warn('⚠️ No se pudo obtener nombre del cliente:', clientError.message);
+
         clientName = `Cliente #${projectData.cliente_id}`;
       }
     }
@@ -445,7 +460,6 @@ const createProject = async (req, res) => {
       members: savedMembers  // Incluir los miembros guardados en la base de datos
     };
 
-    console.log(`✅ Proyecto de gestión creado: ${convertedProject.nombre} (ID: ${convertedProject.id})`);
     res.status(201).json({
       success: true,
       message: 'Proyecto de gestión creado exitosamente',
@@ -467,14 +481,10 @@ const createProject = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    console.log('🔍 DEBUG - ID recibido:', id, 'Tipo:', typeof id);
-    console.log('🔍 DEBUG - Headers:', req.headers);
-    console.log('🔍 DEBUG - Body length:', req.headers['content-length']);
-    
+
     // Validar que el ID sea válido
     if (!id || id === 'undefined' || isNaN(parseInt(id))) {
-      console.log('❌ ID inválido detectado:', id);
+
       return res.status(400).json({
         success: false,
         message: 'ID de proyecto inválido'
@@ -495,21 +505,6 @@ const updateProject = async (req, res) => {
       current_phase_id,
       client_color
     } = req.body;
-
-    console.log(`🔍 PUT /api/management-projects/${id}`);
-    console.log('📝 Datos a actualizar:', { 
-      nombre, 
-      descripcion, 
-      cliente_id, 
-      project_manager_id, 
-      status, 
-      priority, 
-      progress, 
-      start_date, 
-      end_date,
-      current_phase_id,
-      client_color
-    });
 
     // Verificar que el proyecto existe
     const existingProject = await prisma.$queryRaw`
@@ -583,9 +578,6 @@ const updateProject = async (req, res) => {
       WHERE id = ?
     `;
 
-    console.log('🔧 Query de actualización:', updateQuery);
-    console.log('🔧 Valores:', updateValues);
-
     await prisma.$executeRawUnsafe(updateQuery, ...updateValues);
 
     // Si se envió client_color, actualizar el color del cliente
@@ -596,9 +588,9 @@ const updateProject = async (req, res) => {
           SET color = ${client_color}
           WHERE id = ${parseInt(cliente_id)}
         `;
-        console.log('✅ Color del cliente actualizado:', client_color);
+
       } catch (clientColorError) {
-        console.warn('⚠️ Error al actualizar color del cliente:', clientColorError.message);
+
         // No fallar la actualización del proyecto por este error
       }
     }
@@ -650,7 +642,6 @@ const updateProject = async (req, res) => {
       members: []
     };
 
-    console.log(`✅ Proyecto de gestión actualizado: ${convertedProject.nombre} (ID: ${convertedProject.id})`);
     res.json({
       success: true,
       message: 'Proyecto de gestión actualizado exitosamente',
@@ -672,11 +663,32 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`🔍 DELETE /api/management-projects/${id}`);
 
-    // Verificar que el proyecto existe
+    // Obtener el usuario actual desde el token de autenticación
+    const currentUser = req.user;
+    if (!currentUser || !currentUser.firebase_uid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no autenticado'
+      });
+    }
+
+    // Buscar el usuario en la base de datos para obtener su ID
+    const user = await prisma.user.findUnique({
+      where: { firebase_uid: currentUser.firebase_uid },
+      select: { id: true, name: true, email: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado en la base de datos'
+      });
+    }
+
+    // Verificar que el proyecto existe y obtener el creador
     const existingProject = await prisma.$queryRaw`
-      SELECT id, nombre FROM management_projects WHERE id = ${parseInt(id)}
+      SELECT id, nombre, created_by FROM management_projects WHERE id = ${parseInt(id)}
     `;
 
     if (existingProject.length === 0) {
@@ -686,14 +698,23 @@ const deleteProject = async (req, res) => {
       });
     }
 
-    const projectName = existingProject[0].nombre;
+    const project = existingProject[0];
+
+    // Verificar permisos: solo el creador puede eliminar
+    if (project.created_by !== user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tienes permisos para eliminar este proyecto. Solo el creador puede eliminarlo.'
+      });
+    }
+
+    const projectName = project.nombre;
 
     // Eliminar el proyecto (esto eliminará automáticamente todas las tareas, sprints y miembros)
     await prisma.$executeRaw`
       DELETE FROM management_projects WHERE id = ${parseInt(id)}
     `;
 
-    console.log(`✅ Proyecto de gestión eliminado: ${projectName} (ID: ${id})`);
     res.json({
       success: true,
       message: 'Proyecto de gestión eliminado exitosamente'
@@ -715,9 +736,6 @@ const addProjectMember = async (req, res) => {
   try {
     const { id } = req.params;
     const { user_id, team_type, role_id = 1 } = req.body;
-
-    console.log(`🔍 POST /api/management-projects/${id}/members`);
-    console.log('📝 Datos del miembro:', { user_id, team_type, role_id });
 
     // Verificar que el proyecto existe
     const existingProject = await prisma.$queryRaw`
@@ -861,7 +879,6 @@ const addProjectMember = async (req, res) => {
       members: formattedMembers
     };
 
-    console.log(`✅ Miembro agregado al proyecto: ${convertedProject.nombre}`);
     res.json({
       success: true,
       message: 'Miembro agregado exitosamente',
@@ -878,13 +895,85 @@ const addProjectMember = async (req, res) => {
 };
 
 /**
+ * Obtener miembros de un proyecto
+ */
+const getProjectMembers = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verificar que el proyecto existe
+    const existingProject = await prisma.$queryRaw`
+      SELECT id, nombre FROM management_projects WHERE id = ${parseInt(id)}
+    `;
+
+    if (existingProject.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Proyecto de gestión no encontrado'
+      });
+    }
+
+    // Obtener todos los miembros del proyecto
+    const members = await prisma.$queryRaw`
+      SELECT
+        m.id,
+        m.user_id,
+        m.role_id,
+        m.team_type,
+        u.name as user_name,
+        u.email as user_email,
+        r.name as role_name
+      FROM management_project_members m
+      LEFT JOIN users u ON m.user_id = u.id
+      LEFT JOIN project_roles r ON m.role_id = r.id
+      WHERE m.project_id = ${parseInt(id)} AND m.is_active = true
+      ORDER BY u.name ASC
+    `;
+
+    // Convertir miembros al formato esperado
+    const formattedMembers = members.map(member => ({
+      id: Number(member.id),
+      user_id: Number(member.user_id),
+      role_id: Number(member.role_id),
+      team_type: member.team_type,
+      user: {
+        id: Number(member.user_id),
+        name: member.user_name || `Usuario #${member.user_id}`,
+        email: member.user_email || ''
+      },
+      role: {
+        id: Number(member.role_id),
+        name: member.role_name || `Rol #${member.role_id}`
+      }
+    }));
+
+    res.json({
+      success: true,
+      message: 'Miembros del proyecto obtenidos exitosamente',
+      data: {
+        project_id: Number(id),
+        project_name: existingProject[0].nombre,
+        members: formattedMembers,
+        total_members: formattedMembers.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error al obtener miembros del proyecto:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener miembros del proyecto',
+      error: error.message
+    });
+  }
+};
+
+/**
  * Remover miembro de un proyecto
  */
 const removeProjectMember = async (req, res) => {
   try {
     const { id, memberId } = req.params;
-
-    console.log(`🔍 DELETE /api/management-projects/${id}/members/${memberId}`);
 
     // Verificar que el proyecto existe
     const existingProject = await prisma.$queryRaw`
@@ -996,7 +1085,6 @@ const removeProjectMember = async (req, res) => {
       members: formattedMembers
     };
 
-    console.log(`✅ Miembro removido del proyecto: ${convertedProject.nombre}`);
     res.json({
       success: true,
       message: 'Miembro removido exitosamente',
@@ -1019,5 +1107,6 @@ module.exports = {
   updateProject,
   deleteProject,
   addProjectMember,
+  getProjectMembers,
   removeProjectMember
 };

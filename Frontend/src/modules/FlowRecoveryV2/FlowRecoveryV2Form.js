@@ -7,6 +7,3 @@
 import FlowRecoveryV2FormV2 from './FlowRecoveryV2FormV2';
 export default FlowRecoveryV2FormV2;
 
-
-
-

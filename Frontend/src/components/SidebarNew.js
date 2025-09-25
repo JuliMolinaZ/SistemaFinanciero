@@ -342,63 +342,46 @@ const SidebarNew = () => {
 
   // Función para verificar si un módulo debe ser visible
   const isModuleVisible = (module) => {
-    console.log(`🔍 Verificando visibilidad del módulo: ${module.name}`);
-    console.log(`🔍 - isSuperAdmin: ${isSuperAdmin}`);
-    console.log(`🔍 - profileComplete: ${profileComplete}`);
-    console.log(`🔍 - profileData:`, profileData);
-    console.log(`🔍 - module.requiredPermission: ${module.requiredPermission}`);
-    console.log(`🔍 - module.requiredRole:`, module.requiredRole);
-    
-    // SOLUCIÓN DIRECTA: Si es Gestión de Proyectos y el usuario es Desarrollador, SIEMPRE mostrar
-    if (module.id === 'project_management' && profileData?.role?.toLowerCase() === 'desarrollador') {
-      console.log(`🚀 FORZANDO VISIBILIDAD: Gestión de Proyectos para Desarrollador`);
-      return true;
+    const userRole = profileData?.role?.toLowerCase();
+
+    // RESTRICCIÓN ESPECÍFICA: Desarrollador y Operador solo pueden ver project_management y mi_perfil
+    if (userRole === 'desarrollador' || userRole === 'operador') {
+      return module.id === 'project_management' || module.id === 'mi_perfil';
     }
-    
+
     // Si es Super Admin, puede ver todo
     if (isSuperAdmin) {
-      console.log(`✅ Módulo ${module.name} visible: Super Admin`);
       return true;
     }
-    
+
     // Si el perfil no está completo, solo mostrar "Mi Perfil" Y Gestión de Proyectos para Desarrolladores
     if (!profileComplete && module.id !== 'mi_perfil' && module.id !== 'project_management') {
-      console.log(`❌ Módulo ${module.name} oculto: Perfil incompleto`);
       return false;
     }
-    
+
     // Verificar permisos específicos primero
     if (module.requiredPermission && canViewModule) {
       const hasPermission = canViewModule(module.requiredPermission);
-      console.log(`🔍 - canViewModule(${module.requiredPermission}): ${hasPermission}`);
       if (hasPermission) {
-        console.log(`✅ Módulo ${module.name} visible: Tiene permiso ${module.requiredPermission}`);
         return true;
       }
     }
-    
+
     // Verificar roles específicos
     if (module.requiredRole && profileData?.role) {
-      const userRole = profileData.role.toLowerCase();
-      const hasRole = module.requiredRole.some(role => 
+      const hasRole = module.requiredRole.some(role =>
         role.toLowerCase() === userRole
       );
-      console.log(`🔍 - userRole: ${userRole}`);
-      console.log(`🔍 - requiredRoles:`, module.requiredRole);
-      console.log(`🔍 - hasRole: ${hasRole}`);
       if (hasRole) {
-        console.log(`✅ Módulo ${module.name} visible: Tiene rol ${userRole}`);
         return true;
       }
     }
-    
+
     // Si no tiene ni permisos ni roles requeridos, es visible para todos
     if (!module.requiredPermission && !module.requiredRole) {
-      console.log(`✅ Módulo ${module.name} visible: Sin restricciones`);
       return true;
     }
-    
-    console.log(`❌ Módulo ${module.name} oculto: No cumple criterios`);
+
     return false;
   };
 
@@ -578,9 +561,9 @@ const SidebarNew = () => {
             onClick={toggleFullMinimize}
             sx={{
               position: 'fixed',
-              top: 20,
+              top: 100, // Cambiado de 20 a 100 para evitar superposición con el header
               left: 20,
-              zIndex: 1300,
+              zIndex: 1200, // Reducido de 1300 a 1200 para estar debajo del header
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
               width: 50,

@@ -20,18 +20,12 @@ export const useCuentasCobrar = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('🔍 useCuentasCobrar: Obteniendo cuentas por cobrar...');
-      
+
       const response = await apiClient.get('/api/cuentas-cobrar');
-      
-      console.log('✅ useCuentasCobrar: Respuesta recibida:', response.data);
-      
+
       // Asegurar que los datos sean un array
       const cuentasData = Array.isArray(response.data) ? response.data : [];
-      
-      console.log('📊 useCuentasCobrar: Cuentas procesadas:', cuentasData.length);
-      
+
       setCuentas(cuentasData);
       
     } catch (error) {
@@ -46,12 +40,9 @@ export const useCuentasCobrar = () => {
   // Función para crear una nueva cuenta por cobrar
   const createCuenta = useCallback(async (cuentaData) => {
     try {
-      console.log('🔍 useCuentasCobrar: Creando cuenta:', cuentaData);
-      
+
       const response = await apiClient.post('/api/cuentas-cobrar', cuentaData);
-      
-      console.log('✅ useCuentasCobrar: Cuenta creada:', response.data);
-      
+
       // Recargar las cuentas después de crear una nueva
       await fetchCuentas();
       
@@ -66,12 +57,9 @@ export const useCuentasCobrar = () => {
   // Función para actualizar una cuenta por cobrar
   const updateCuenta = useCallback(async (id, updateData) => {
     try {
-      console.log('🔍 useCuentasCobrar: Actualizando cuenta:', id, updateData);
-      
+
       const response = await apiClient.put(`/api/cuentas-cobrar/${id}`, updateData);
-      
-      console.log('✅ useCuentasCobrar: Cuenta actualizada:', response.data);
-      
+
       // Actualizar la cuenta en el estado local
       setCuentas(prevCuentas => 
         prevCuentas.map(cuenta => 
@@ -90,12 +78,9 @@ export const useCuentasCobrar = () => {
   // Función para eliminar una cuenta por cobrar
   const deleteCuenta = useCallback(async (id) => {
     try {
-      console.log('🔍 useCuentasCobrar: Eliminando cuenta:', id);
-      
+
       await apiClient.delete(`/api/cuentas-cobrar/${id}`);
-      
-      console.log('✅ useCuentasCobrar: Cuenta eliminada');
-      
+
       // Remover la cuenta del estado local
       setCuentas(prevCuentas => 
         prevCuentas.filter(cuenta => cuenta.id !== id)
@@ -110,12 +95,9 @@ export const useCuentasCobrar = () => {
   // Función para obtener una cuenta por ID
   const getCuentaById = useCallback(async (id) => {
     try {
-      console.log('🔍 useCuentasCobrar: Obteniendo cuenta por ID:', id);
-      
+
       const response = await apiClient.get(`/api/cuentas-cobrar/${id}`);
-      
-      console.log('✅ useCuentasCobrar: Cuenta obtenida:', response.data);
-      
+
       return response.data;
       
     } catch (error) {
@@ -127,12 +109,9 @@ export const useCuentasCobrar = () => {
   // Función para obtener estadísticas
   const getEstadisticas = useCallback(async () => {
     try {
-      console.log('🔍 useCuentasCobrar: Obteniendo estadísticas...');
-      
+
       const response = await apiClient.get('/api/cuentas-cobrar/estadisticas');
-      
-      console.log('✅ useCuentasCobrar: Estadísticas obtenidas:', response.data);
-      
+
       return response.data;
       
     } catch (error) {
@@ -144,14 +123,11 @@ export const useCuentasCobrar = () => {
   // Función para exportar cuentas
   const exportarCuentas = useCallback(async (formato = 'csv') => {
     try {
-      console.log('🔍 useCuentasCobrar: Exportando cuentas en formato:', formato);
-      
+
       const response = await apiClient.get(`/api/cuentas-cobrar/exportar/${formato}`, {
         responseType: 'blob'
       });
-      
-      console.log('✅ useCuentasCobrar: Cuentas exportadas');
-      
+
       return response.data;
       
     } catch (error) {

@@ -74,8 +74,7 @@ router.get('/project-roles', async (req, res) => {
 // ENDPOINT PARA DATOS REALES DE TU BASE DE DATOS
 router.get('/projects-real', async (req, res) => {
   try {
-    console.log('🔍 PROJECTS-REAL - Consultando datos REALES de tu base de datos');
-    
+
     const { search } = req.query;
 
     // Datos EXACTOS de tu base de datos
@@ -217,7 +216,7 @@ router.get('/projects-real', async (req, res) => {
         (project.client?.nombre && project.client.nombre.toLowerCase().includes(searchLower)) ||
         project.status.toLowerCase().includes(searchLower)
       );
-      console.log(`🔍 Filtrado por búsqueda "${search}": ${projects.length} proyectos`);
+
     }
 
     // Procesar proyectos para agregar información de cliente
@@ -255,9 +254,6 @@ router.get('/projects-real', async (req, res) => {
     });
 
     const groups = Array.from(groupMap.values());
-
-    console.log('✅ PROJECTS-REAL - Proyectos procesados:', processedProjects.length);
-    console.log('✅ PROJECTS-REAL - Grupos creados:', groups.length);
 
     res.json({
       success: true,

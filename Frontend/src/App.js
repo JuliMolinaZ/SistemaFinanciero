@@ -1,12 +1,14 @@
 // src/App.js
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate
+  Navigate,
+  useLocation
 } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GlobalContext } from './context/GlobalState';
 import LoadingScreen from './components/LoadingScreen';
 import BackendError from './components/BackendError';
@@ -31,7 +33,7 @@ import CategoriasForm from './modules/Categorias/CategoriasForm';
 import RecuperacionForm from './modules/Recuperacion/RecuperacionForm';
 
 import UsersManagementMain from './modules/Usuarios/UsersManagementMain';
-import MyProfile from './modules/Usuarios/MyProfile';
+import MyProfile from './modules/Usuarios/MyProfileEnhanced';
 import ProfileCompletionForm from './modules/Usuarios/ProfileCompletionForm';
 import HorasExtra from './modules/HorasExtra/HorasExtra';
 import PhasesModule from './modules/Fases/PhasesModule';
@@ -47,63 +49,73 @@ import ErrorTestPanel from './components/ErrorTestPanel';
 import RequisicionesForm from './modules/Requisiciones/RequisicionesForm';
 import ProjectRedirect from './components/ProjectRedirect';
 
-// Componente completamente aislado para usuarios invitados
-const InvitationProfile = () => {
-  console.log('🚀 COMPONENTE INVITATION PROFILE RENDERIZADO');
-  console.log('🚀 URL actual:', window.location.pathname);
-  console.log('🚀 Timestamp:', new Date().toISOString());
-  console.log('🚀 User Agent:', navigator.userAgent);
-  
-  // Importar dinámicamente el componente InvitationHandler
-  const InvitationHandler = React.lazy(() => import('./components/InvitationHandler'));
+// Componente wrapper para animaciones de página
+const PageTransition = ({ children }) => {
+  const location = useLocation();
+  const { sidebarFullyMinimized } = useContext(GlobalContext);
   
   return (
-    <React.Suspense fallback={<div>Cargando...</div>}>
-      <InvitationHandler />
-    </React.Suspense>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, x: sidebarFullyMinimized ? 0 : 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: sidebarFullyMinimized ? 0 : -20 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        style={{ width: '100%', height: '100%' }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
-// Componente interno que maneja la lógica de invitación
-function AppContent() {
+// Componente principal de la aplicación
+const AppContent = () => {
   const { 
     currentUser, 
     profileComplete, 
-    sidebarCollapsed, 
-    sidebarFullyMinimized,
-    profileData, 
-    authLoading,
-    backendConnected,
-    backendError,
-    checkBackendConnection
+    profileData,
+    authLoading, 
+    backendConnected, 
+    backendError, 
+    checkBackendConnection,
+    sidebarCollapsed,
+    sidebarFullyMinimized 
   } = useContext(GlobalContext);
-  
-  // Detectar si es un usuario invitado basado en la URL - DETECCIÓN AGRESIVA
-  const isInvitedUser = window.location.pathname.includes('/complete-profile/');
-  
-  // Redirección automática para usuarios con perfil incompleto
-  useEffect(() => {
-    if (currentUser && !profileComplete && !isInvitedUser) {
-      console.log('🔄 Usuario con perfil incompleto - Redirigiendo a Mi Perfil');
-      // Solo redirigir si no estamos ya en /mi-perfil
-      if (window.location.pathname !== '/mi-perfil') {
-        window.location.href = '/mi-perfil';
-      }
-    }
-  }, [currentUser, profileComplete, isInvitedUser]);
-  
-  // Debug: Log para verificar la detección
-  console.log('🔍 DEBUG - AppContent RENDERIZADO');
-  console.log('🔍 DEBUG - URL actual:', window.location.pathname);
-  console.log('🔍 DEBUG - ¿Es usuario invitado?', isInvitedUser);
-  console.log('🔍 DEBUG - currentUser:', currentUser);
-  console.log('🔍 DEBUG - profileComplete:', profileComplete);
-  console.log('🔍 DEBUG - authLoading:', authLoading);
-  console.log('🔍 DEBUG - Timestamp:', new Date().toISOString());
 
-  // Margen dinámico basado en el estado del sidebar con transiciones suaves
-  const mainMarginLeft = sidebarFullyMinimized ? '0px' : (sidebarCollapsed ? '80px' : '300px');
+  // Detectar si es usuario invitado
+  const isInvitedUser = window.location.pathname.includes('/complete-profile/');
+
+  // Calcular margen izquierdo del contenido principal
+  const mainMarginLeft = sidebarFullyMinimized ? '0px' : (sidebarCollapsed ? '80px' : '280px');
+
+  // Estado para prevenir redirecciones múltiples
+  const [lastRedirectPath, setLastRedirectPath] = useState(null);
+  const [redirectInProgress, setRedirectInProgress] = useState(false);
+  const [redirectBlocked, setRedirectBlocked] = useState(false);
+
+  // DESHABILITADO TEMPORALMENTE: Redirecciones automáticas que causan bucles infinitos
+  // Las redirecciones se manejan ahora solo a través de PrivateRoute
   
+  // useEffect(() => {
+  //   // Redirección automática deshabilitada para evitar bucles infinitos
+  // }, []);
+
+  // Resetear el estado de redirección cuando cambie la ruta
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setRedirectInProgress(false);
+    };
+
+    // Escuchar cambios en la URL
+    window.addEventListener('popstate', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
+
   // Estilos para el contenido principal con transiciones
   const mainContentStyle = {
     marginLeft: mainMarginLeft,
@@ -118,7 +130,6 @@ function AppContent() {
 
   // PRIORIDAD 1: Si hay error de backend, mostrar pantalla de error bonita
   if (!backendConnected && backendError) {
-    console.log('🔌 RENDERIZANDO BackendError por problema de conexión');
     return (
       <BackendError 
         errorType={backendError.type}
@@ -129,15 +140,20 @@ function AppContent() {
 
   // PRIORIDAD 2: Si es un usuario invitado, mostrar CompleteProfile directamente
   if (isInvitedUser) {
-    console.log('🎯 RENDERIZANDO CompleteProfile para usuario invitado - DETECCIÓN AGRESIVA');
-    return <InvitationProfile />;
+    return <CompleteProfile />;
   }
 
-  // PREVENCIÓN ADICIONAL: Si la URL contiene complete-profile, NO mostrar nada más
-  if (window.location.pathname.includes('/complete-profile/')) {
-    console.log('🚫 PREVENCIÓN ADICIONAL: URL contiene complete-profile, bloqueando AppContent');
-    return <InvitationProfile />;
-  }
+  // Componente para manejar redirección de usuarios restringidos
+  const RestrictedUserRedirect = () => {
+    const userRole = profileData?.role?.toLowerCase();
+    const isRestrictedUser = ['desarrollador', 'operador'].includes(userRole);
+    
+    if (isRestrictedUser) {
+      return <Navigate to="/project-management" replace />;
+    }
+    
+    return <Home />;
+  };
 
   return (
     <>
@@ -152,8 +168,9 @@ function AppContent() {
               marginTop: '80px'
             }}
           >
-            <Routes>
-              <Route path="/" element={<Home />} />
+            <PageTransition>
+              <Routes>
+              <Route path="/" element={<RestrictedUserRedirect />} />
               <Route path="/dashboard-ultra" element={<DashboardUltra />} />
 
               <Route path="/usuarios" element={<UsersManagementMain />} />
@@ -269,7 +286,6 @@ function AppContent() {
                   }
                 />
 
-
                 <Route
                   path="/emitidas"
                   element={
@@ -305,6 +321,7 @@ function AppContent() {
                 <Route path="/test" element={<ErrorTestPanel />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+            </PageTransition>
             </main>
           </>
         ) : (
@@ -321,22 +338,18 @@ function AppContent() {
           </Routes>
         )
       )}
-      
-
     </>
   );
 }
 
 function App() {
-  console.log('🚀 APP COMPONENT RENDERIZADO');
-  console.log('🚀 URL actual:', window.location.pathname);
-  console.log('🚀 Timestamp:', new Date().toISOString());
-  console.log('🚀 ===========================================');
-  console.log('🚀 SISTEMA DE INVITACIONES ACTIVADO');
-  console.log('🚀 ===========================================');
-  
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <Routes>
         {/* RUTA PRIORITARIA para usuarios invitados - SIEMPRE PRIMERA */}
         <Route path="/complete-profile/:token" element={<ProfileCompletionForm />} />

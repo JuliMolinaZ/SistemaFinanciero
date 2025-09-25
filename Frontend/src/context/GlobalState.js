@@ -5,76 +5,30 @@ import axios from 'axios';
 import AuthErrorModal from '../components/AuthErrorModal';
 import { authGet } from '../utils/authAxios';
 
+// Variables globales para los handlers de errores
+let globalAuthErrorHandler = null;
+let globalBackendErrorHandler = null;
+
 // Configuración global de Axios
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8765";
 axios.defaults.baseURL = API_BASE_URL;
 
-console.log('🌐 Configuración de Axios:');
-console.log('🌐 API_BASE_URL:', API_BASE_URL);
-console.log('🌐 axios.defaults.baseURL:', axios.defaults.baseURL);
-console.log('🌐 process.env.REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-console.log('🌐 process.env.NODE_ENV:', process.env.NODE_ENV);
-console.log('🌐 Todas las variables REACT_APP:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP')));
-console.log('🌐 window.location:', window.location.href);
-console.log('🌐 window.location.port:', window.location.port);
-console.log('🌐 ===========================================');
-console.log('🌐 DIAGNÓSTICO DE CONFIGURACIÓN:');
-console.log('🌐 ===========================================');
-
-// INTERCEPTOR GLOBAL para detectar y redirigir usuarios invitados
-console.log('🔒 INTERCEPTOR GLOBAL INICIADO');
-console.log('🔒 ===========================================');
-console.log('🔒 SISTEMA DE BLOQUEO ACTIVADO');
-console.log('🔒 ===========================================');
-
-// Variables globales para almacenar los handlers de errores
-let globalAuthErrorHandler = null;
-let globalBackendErrorHandler = null;
-
-// Interceptor de Request - Agregar token automáticamente
+// Interceptor de Request - Agregar token de Firebase automáticamente
 axios.interceptors.request.use(
   async (config) => {
-    console.log('🔒 INTERCEPTOR: Interceptando llamada a:', config.url);
-    console.log('🔒 INTERCEPTOR: URL completa:', `${config.baseURL}${config.url}`);
-    console.log('🔒 INTERCEPTOR: Método:', config.method);
-    console.log('🔒 INTERCEPTOR: URL actual:', window.location.pathname);
-    
-    // Solo bloquear si la URL actual contiene complete-profile Y la llamada es específicamente para crear usuarios
-    if (window.location.pathname.includes('/complete-profile/') && 
-        config.url === '/api/usuarios' && 
-        config.method === 'POST') {
-      console.log('🎯 INTERCEPTOR: USUARIO INVITADO DETECTADO!');
-      console.log('🎯 INTERCEPTOR: ===========================================');
-      console.log('🚫 INTERCEPTOR: BLOQUEANDO LLAMADA A /api/usuarios (POST)');
-      console.log('🚫 INTERCEPTOR: URL bloqueada:', config.url);
-      console.log('🚫 INTERCEPTOR: Método:', config.method);
-      console.log('🚫 INTERCEPTOR: Redirigiendo a:', window.location.pathname);
-      
-      // Redirigir automáticamente a la ruta de invitación
-      setTimeout(() => {
-        window.location.href = window.location.pathname;
-      }, 100);
-      
-      return Promise.reject(new Error('Usuario invitado - Redirigiendo automáticamente'));
-    }
-    
-    // Agregar token de Firebase automáticamente a TODAS las llamadas
     try {
       if (auth.currentUser && !config.headers['x-firebase-token']) {
-        console.log('🔐 INTERCEPTOR: Agregando token de Firebase a la llamada...');
         const token = await auth.currentUser.getIdToken();
         config.headers['x-firebase-token'] = token;
-        console.log('✅ INTERCEPTOR: Token agregado exitosamente');
       } else if (!auth.currentUser) {
-        console.log('⚠️ INTERCEPTOR: No hay usuario autenticado - continuando sin token');
+        // Usuario no autenticado - continuar sin token
       }
     } catch (tokenError) {
-      console.warn('⚠️ INTERCEPTOR: Error obteniendo token de Firebase:', tokenError);
+
       // Continuar sin token - el backend decidirá si es requerido
     }
     
     // Permitir todas las demás llamadas
-    console.log('✅ INTERCEPTOR: Llamada permitida - URL:', config.url, 'Método:', config.method);
     return config;
   },
   (error) => {
@@ -87,7 +41,7 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   (response) => {
     // Si la respuesta es exitosa, simplemente la devolvemos
-    console.log('✅ INTERCEPTOR RESPONSE: Respuesta exitosa:', response.status, response.config?.url);
+
     return response;
   },
   (error) => {
@@ -102,10 +56,7 @@ axios.interceptors.response.use(
 
     // Si es un error de conexión, manejarlo con el sistema de errores de backend
     if (!error.response || error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
-      console.log('🔌 ERROR DE CONEXIÓN DETECTADO - Activando manejo de errores de backend');
-      console.log('🔌 URL que falló:', error.config?.url);
-      console.log('🔌 Tipo de error:', error.code || error.message);
-      
+
       if (globalBackendErrorHandler) {
         globalBackendErrorHandler(error);
         
@@ -119,11 +70,7 @@ axios.interceptors.response.use(
     
     // Si es un error 401 (No autorizado), manejarlo con el sistema de errores amigables
     if (error.response && error.response.status === 401) {
-      console.log('🔥 ERROR 401 DETECTADO - Activando manejo amigable de errores');
-      console.log('🔥 URL que falló:', error.config?.url);
-      console.log('🔥 Método:', error.config?.method);
-      console.log('🔥 Respuesta del servidor:', error.response?.data);
-      
+
       // Evitar loops infinitos si el error viene de una llamada de auth
       const isAuthCall = error.config?.url?.includes('/api/usuarios/firebase/') || 
                         error.config?.url?.includes('/api/auth/') ||
@@ -131,8 +78,7 @@ axios.interceptors.response.use(
       
       // NO mostrar modal de error para llamadas de autenticación básicas
       if (isAuthCall) {
-        console.log('🔥 Error 401 en llamada de auth - NO mostrando modal');
-        console.log('🔥 URL:', error.config?.url, 'Status:', error.response?.status);
+
         // Para llamadas de auth, devolver una respuesta controlada en lugar de rechazar
         return Promise.resolve({
           data: { 
@@ -146,7 +92,7 @@ axios.interceptors.response.use(
       }
       
       if (!isAuthCall && globalAuthErrorHandler) {
-        console.log('🔥 Usando handler global para mostrar modal');
+
         globalAuthErrorHandler(error, `Error de autenticación en ${error.config?.url}`);
         
         // NO re-lanzar el error para evitar que aparezca en consola
@@ -157,7 +103,7 @@ axios.interceptors.response.use(
         });
       } else if (!globalAuthErrorHandler) {
         // Fallback: mostrar alert simple si no tenemos el handler
-        console.log('🔥 No hay handler global - usando fallback');
+
         alert('Tu sesión ha expirado o no tienes permisos para realizar esta acción. Por favor, inicia sesión nuevamente.');
         window.location.href = '/login';
       }
@@ -171,17 +117,14 @@ axios.interceptors.response.use(
 export const GlobalContext = createContext();
 
 export const GlobalProvider = ({ children }) => {
-  console.log('🌐 GLOBAL STATE PROVIDER INICIADO');
-  console.log('🌐 ===========================================');
-  console.log('🌐 SISTEMA DE DETECCIÓN AUTOMÁTICA ACTIVADO');
-  console.log('🌐 ===========================================');
-  
+
   const [clientes, setClientes] = useState([]);
   const [proyectos, setProyectos] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [profileComplete, setProfileComplete] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [profileManuallyUpdated, setProfileManuallyUpdated] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarFullyMinimized, setSidebarFullyMinimized] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -292,8 +235,7 @@ export const GlobalProvider = ({ children }) => {
         error.message?.includes('ERR_CONNECTION_REFUSED') ||
         error.message?.includes('fetch') ||
         !error.response) {
-      
-      console.log('🔌 Detectado error de conexión - Backend desconectado');
+
       setBackendConnected(false);
       setBackendError({
         type: 'connection',
@@ -301,7 +243,7 @@ export const GlobalProvider = ({ children }) => {
         timestamp: new Date().toISOString()
       });
     } else if (error.response && error.response.status >= 500) {
-      console.log('🔌 Detectado error del servidor - Backend con problemas');
+
       setBackendConnected(false);
       setBackendError({
         type: 'server',
@@ -329,7 +271,7 @@ export const GlobalProvider = ({ children }) => {
       });
       
       if (response.ok) {
-        console.log('✅ Backend conectado correctamente');
+
         setBackendConnected(true);
         setBackendError(null);
         return true;
@@ -341,6 +283,35 @@ export const GlobalProvider = ({ children }) => {
       handleBackendError(error);
       return false;
     }
+  };
+
+  // Función para actualizar el perfil del usuario sin recargar desde Firebase
+  const updateUserProfile = (updatedProfileData) => {
+    const now = new Date();
+    
+    setProfileData(prevData => ({
+      ...prevData,
+      ...updatedProfileData,
+      updated_at: now.toISOString(), // Actualizar timestamp
+      profile_complete: null // Se calculará abajo
+    }));
+    
+    // Calcular si el perfil está completo
+    const isComplete = !!(updatedProfileData.name &&
+                         updatedProfileData.phone &&
+                         updatedProfileData.phone_country_code &&
+                         updatedProfileData.department &&
+                         updatedProfileData.position &&
+                         updatedProfileData.birth_date);
+    
+    setProfileComplete(isComplete);
+    setProfileManuallyUpdated(true); // Marcar como actualizado manualmente
+    
+    // Actualizar también el profileData con el estado completo calculado
+    setProfileData(prevData => ({
+      ...prevData,
+      profile_complete: isComplete
+    }));
   };
   
   // Configurar los handlers globales para los interceptors
@@ -363,14 +334,14 @@ export const GlobalProvider = ({ children }) => {
   //   const fetchPermisos = async () => {
   //     try {
   //       const response = await axios.get('/api/permisos');
-  //       console.log("Permisos obtenidos en GlobalState:", response.data);
+
   //       
   //       if (response.data && response.data.success && Array.isArray(response.data.data)) {
   //         setPermisos(response.data.data);
   //       } else if (Array.isArray(response.data)) {
   //         setPermisos(response.data);
   //       } else {
-  //         console.warn("Estructura de permisos inesperada:", response.data);
+
   //         setPermisos([]);
   //       }
   //     } catch (error) {
@@ -385,10 +356,7 @@ export const GlobalProvider = ({ children }) => {
   useEffect(() => {
     const checkIfInvitedUser = () => {
       if (window.location.pathname.includes('/complete-profile/')) {
-        console.log('🎯 DETECCIÓN AUTOMÁTICA: Usuario invitado detectado');
-        console.log('🎯 URL actual:', window.location.pathname);
-        console.log('🎯 Limpiando estados de Firebase');
-        
+
         // Limpiar todos los estados relacionados con Firebase
         setCurrentUser(null);
         setProfileData(null);
@@ -397,9 +365,9 @@ export const GlobalProvider = ({ children }) => {
         // Forzar logout de Firebase si está autenticado
         if (auth.currentUser) {
           auth.signOut().then(() => {
-            console.log('🎯 Firebase logout exitoso para usuario invitado');
+
           }).catch((error) => {
-            console.log('🎯 Error en Firebase logout:', error);
+
           });
         }
       }
@@ -427,40 +395,24 @@ export const GlobalProvider = ({ children }) => {
 
   // Manejo de autenticación y perfil
   useEffect(() => {
-    console.log('🔐 AUTH STATE CHANGED - Iniciando listener');
-    console.log('🔐 authLoading actual:', authLoading);
-    console.log('🔐 Configuración actual:', {
-      API_BASE_URL,
-      'axios.defaults.baseURL': axios.defaults.baseURL,
-      'window.location': window.location.href,
-      'NODE_ENV': process.env.NODE_ENV
-    });
-    
+
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      console.log('🔐 Firebase Auth State Changed:', user ? user.email : 'No hay usuario');
-      
+
       // DETECCIÓN AUTOMÁTICA: Si es un usuario invitado, redirigir automáticamente
       if (window.location.pathname.includes('/complete-profile/')) {
-        console.log("🎯 USUARIO INVITADO DETECTADO - Redirigiendo automáticamente");
-        console.log("🎯 URL actual:", window.location.pathname);
-        console.log("🎯 No se procesará autenticación de Firebase");
+
         setCurrentUser(null);
         setProfileData(null);
         setProfileComplete(false);
         setAuthLoading(false);
         return;
       }
-      
-      console.log('🔐 Usuario Firebase detectado:', user ? user.email : 'No hay usuario');
+
       setCurrentUser(user);
       
       if (user) {
         try {
-          console.log('🔐 Intentando cargar perfil para usuario:', user.email);
-          console.log('🔐 Firebase UID:', user.uid);
-          console.log('🔐 API_BASE_URL configurado:', API_BASE_URL);
-          console.log('🔐 URL que se va a llamar:', `${API_BASE_URL}/api/usuarios/firebase/${user.uid}`);
-          
+
           // Agregar timeout para la llamada a la API
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
@@ -468,14 +420,13 @@ export const GlobalProvider = ({ children }) => {
           let response;
           try {
             // Usar la función autenticada
-            console.log('🔐 Intentando llamada autenticada...');
+
             response = await authGet(`/api/usuarios/firebase/${user.uid}`, {
               signal: controller.signal
             });
-            console.log('✅ Llamada autenticada exitosa');
+
           } catch (authError) {
-            console.log('⚠️ Llamada autenticada falló, usando handleAuthError:', authError.message);
-            
+
             // Usar el manejador de errores de autenticación
             if (authError.response && authError.response.status === 401) {
               handleAuthError(authError, 'Error al cargar perfil de usuario');
@@ -487,27 +438,24 @@ export const GlobalProvider = ({ children }) => {
           }
           
           clearTimeout(timeoutId);
-          console.log("✅ Conexión exitosa al backend. Datos del usuario:", response.data);
-          console.log("✅ Status de la respuesta:", response.status);
-          console.log("✅ Headers de la respuesta:", response.headers);
-          
+
           // Verificar la estructura de la respuesta
           let userData;
           if (response.data && response.data.success && response.data.data) {
             userData = response.data.data;
-            console.log('✅ Datos del usuario extraídos correctamente:', userData);
+
           } else if (response.data) {
             userData = response.data;
-            console.log('✅ Datos del usuario (formato alternativo):', userData);
-          } else {
-            throw new Error('Estructura de respuesta inesperada');
+
           }
           
-          setProfileData(userData);
-          setProfileComplete(userData.profile_complete || false);
-          console.log('✅ Perfil del usuario cargado exitosamente');
-          console.log('✅ Profile complete status:', userData.profile_complete);
-          
+          // Solo actualizar si no fue actualizado manualmente
+          if (!profileManuallyUpdated) {
+            setProfileData(userData);
+            setProfileComplete(userData.profile_complete || false);
+          } else {
+            }
+
         } catch (err) {
           console.error("❌ Error al cargar perfil:", err);
           console.error("❌ Detalles del error:", {
@@ -532,9 +480,7 @@ export const GlobalProvider = ({ children }) => {
           
           // VERIFICACIÓN AGRESIVA: Si es un usuario invitado, NO crear automáticamente
           if (window.location.pathname.includes('/complete-profile/')) {
-            console.log("🚫 USUARIO INVITADO DETECTADO - BLOQUEANDO CREACIÓN AUTOMÁTICA");
-            console.log("🚫 URL actual:", window.location.pathname);
-            console.log("🚫 No se creará perfil automáticamente");
+
             setProfileData(null);
             setProfileComplete(false);
             setCurrentUser(null); // Forzar logout del usuario Firebase
@@ -543,26 +489,24 @@ export const GlobalProvider = ({ children }) => {
           }
           
           if (err.response && err.response.status === 404) {
-            console.log('🔐 Usuario no encontrado en el backend');
-            
+
             // Si es un usuario invitado, verificar si existe por email
             if (window.location.pathname.includes('/complete-profile/')) {
-              console.log('🎯 Usuario invitado detectado, verificando por email...');
+
               try {
                 const verifyResponse = await axios.get(`/api/user-registration/verify-user/${user.email}`);
                 if (verifyResponse.data.success) {
-                  console.log('✅ Usuario invitado encontrado por email:', verifyResponse.data.data);
+
                   setProfileData(verifyResponse.data.data);
                   setProfileComplete(verifyResponse.data.data.profile_complete);
                   setAuthLoading(false);
                   return;
                 }
               } catch (verifyError) {
-                console.log('⚠️ No se pudo verificar usuario invitado:', verifyError.message);
+
               }
             }
-            
-            console.log('🔐 Usuario no encontrado, intentando crear perfil...');
+
             try {
               const createResponse = await axios.post('/api/user-registration/create-from-firebase', {
                 firebase_uid: user.uid,
@@ -571,8 +515,7 @@ export const GlobalProvider = ({ children }) => {
                 role: "usuario",
                 avatar: user.photoURL || ""
               });
-              console.log("✅ Usuario creado en el backend:", createResponse.data);
-              
+
               // Verificar la estructura de la respuesta
               let userData;
               if (createResponse.data && createResponse.data.success && createResponse.data.data) {
@@ -583,10 +526,13 @@ export const GlobalProvider = ({ children }) => {
                 throw new Error('Estructura de respuesta inesperada');
               }
               
-              setProfileData(userData);
-              setProfileComplete(userData.profile_complete || false);
-              console.log('✅ Perfil del usuario creado exitosamente');
-              console.log('✅ Profile complete status:', userData.profile_complete);
+              // Solo actualizar si no fue actualizado manualmente
+              if (!profileManuallyUpdated) {
+                setProfileData(userData);
+                setProfileComplete(userData.profile_complete || false);
+              } else {
+                }
+
             } catch (createError) {
               console.error("❌ Error al crear el usuario:", createError);
               console.error("❌ Detalles del error de creación:", {
@@ -605,16 +551,14 @@ export const GlobalProvider = ({ children }) => {
             
             // Debug adicional: probar con fetch directamente
             try {
-              console.log('🔍 DEBUG: Probando con fetch directamente...');
+
               const debugResponse = await fetch(`${API_BASE_URL}/api/usuarios/firebase/${user.uid}`);
-              console.log('🔍 DEBUG: Response status:', debugResponse.status);
-              console.log('🔍 DEBUG: Response headers:', debugResponse.headers);
-              
+
               if (debugResponse.ok) {
                 const debugData = await debugResponse.json();
-                console.log('🔍 DEBUG: Data obtenida con fetch:', debugData);
+
               } else {
-                console.log('🔍 DEBUG: Response no OK:', debugResponse.statusText);
+
               }
             } catch (debugError) {
               console.error('🔍 DEBUG: Error con fetch:', debugError);
@@ -626,7 +570,7 @@ export const GlobalProvider = ({ children }) => {
           }
         }
       } else {
-        console.log('🔐 No hay usuario autenticado, limpiando estados');
+
         setProfileData(null);
         setProfileComplete(false);
         localStorage.removeItem('profileData');
@@ -636,6 +580,13 @@ export const GlobalProvider = ({ children }) => {
     });
     return () => unsubscribe();
   }, []);
+
+  // Resetear flag de actualización manual cuando cambie el usuario
+  useEffect(() => {
+    if (currentUser) {
+      setProfileManuallyUpdated(false);
+    }
+  }, [currentUser]);
 
   // Cargar datos desde localStorage
   useEffect(() => {
@@ -668,6 +619,7 @@ export const GlobalProvider = ({ children }) => {
         setProfileComplete,
         profileData,
         setProfileData,
+        updateUserProfile,
         sidebarCollapsed,
         setSidebarCollapsed,
         sidebarFullyMinimized,

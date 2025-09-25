@@ -1,7 +1,7 @@
 // 🎬 ROW ACTIONS - ACCIONES DE TABLA ENTERPRISE
 // =============================================
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Eye, Pencil, FileText, Trash2 } from 'lucide-react';
 import { IconButton } from './Button';
 import { TableButtonGroup } from './ButtonGroup';
@@ -11,10 +11,28 @@ import ProjectFormDialog from '../modals/ProjectFormDialog';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import projectManagementService from '../../services/projectManagementService';
 import { useNotify } from '../../hooks/useNotify.js';
+import { GlobalContext } from '../../context/GlobalState';
 
 // 🎯 COMPONENTE PRINCIPAL - ROW ACTIONS
 const RowActions = ({ project, onUpdate }) => {
   const notify = useNotify();
+  const { profileData } = useContext(GlobalContext);
+
+  // 🔐 Verificar si el usuario actual puede eliminar este proyecto
+  const canDeleteProject = () => {
+    // Si no hay información del usuario o del proyecto, no permitir
+    if (!profileData || !project) {
+      return false;
+    }
+
+    // Si el proyecto no tiene created_by, no permitir eliminar
+    if (!project.created_by) {
+      return false;
+    }
+
+    // Solo el creador puede eliminar el proyecto
+    return profileData.id === project.created_by;
+  };
 
   // Estados de modales
   const [openView, setOpenView] = useState(false);
@@ -32,8 +50,7 @@ const RowActions = ({ project, onUpdate }) => {
   const handleExportReport = async () => {
     try {
       setLoading(prev => ({ ...prev, report: true }));
-      console.log('📊 Exportando reporte para:', project.nombre);
-      
+
       // Simular descarga de PDF
       const link = document.createElement('a');
       link.href = `data:text/plain;charset=utf-8,Reporte del proyecto: ${project.nombre}`;
@@ -65,8 +82,7 @@ const RowActions = ({ project, onUpdate }) => {
       setLoading(prev => ({ ...prev, edit: true }));
       
       const result = await projectManagementService.updateProject(project.id, projectData);
-      
-      console.log('✅ Proyecto actualizado:', result);
+
       notify.success({
         title: 'Proyecto actualizado',
         description: `Los cambios en "${project.nombre}" se guardaron correctamente`
@@ -97,8 +113,7 @@ const RowActions = ({ project, onUpdate }) => {
       setLoading(prev => ({ ...prev, delete: true }));
       
       const result = await projectManagementService.deleteProject(project.id);
-      
-      console.log('✅ Proyecto eliminado:', project.nombre);
+
       notify.success({
         title: 'Proyecto eliminado',
         description: `"${project.nombre}" fue eliminado permanentemente`
@@ -162,18 +177,20 @@ const RowActions = ({ project, onUpdate }) => {
           <FileText size={16} strokeWidth={1.8} />
         </IconButton>
 
-        {/* Eliminar - Menos prominente */}
-        <IconButton
-          size="table"
-          variant="ghost"
-          tooltip="Eliminar proyecto"
-          aria-label={`Eliminar proyecto ${project.nombre}`}
-          onClick={() => setOpenDelete(true)}
-          loading={loading.delete}
-          className="table-action-delete"
-        >
-          <Trash2 size={16} strokeWidth={1.8} />
-        </IconButton>
+        {/* Eliminar - Solo si el usuario es el creador */}
+        {canDeleteProject() && (
+          <IconButton
+            size="table"
+            variant="ghost"
+            tooltip="Eliminar proyecto"
+            aria-label={`Eliminar proyecto ${project.nombre}`}
+            onClick={() => setOpenDelete(true)}
+            loading={loading.delete}
+            className="table-action-delete"
+          >
+            <Trash2 size={16} strokeWidth={1.8} />
+          </IconButton>
+        )}
       </TableButtonGroup>
 
       {/* 📋 MODALES */}

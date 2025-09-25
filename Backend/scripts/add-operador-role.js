@@ -9,20 +9,17 @@ async function addOperadorRole() {
   const prisma = new PrismaClient();
   
   try {
-    console.log('🔍 Verificando si el rol "Operador" ya existe...');
-    
+
     // Verificar si el rol ya existe
     const existingRole = await prisma.roles.findFirst({
       where: { name: 'Operador' }
     });
     
     if (existingRole) {
-      console.log('✅ El rol "Operador" ya existe con ID:', existingRole.id);
+
       return existingRole;
     }
-    
-    console.log('➕ Creando nuevo rol "Operador"...');
-    
+
     // Crear el rol Operador
     const newRole = await prisma.roles.create({
       data: {
@@ -32,21 +29,13 @@ async function addOperadorRole() {
         is_active: true
       }
     });
-    
-    console.log('✅ Rol "Operador" creado exitosamente:');
-    console.log('   ID:', newRole.id);
-    console.log('   Nombre:', newRole.name);
-    console.log('   Descripción:', newRole.description);
-    console.log('   Nivel:', newRole.level);
-    
+
     // Obtener todos los módulos del sistema
-    console.log('\n🔍 Obteniendo módulos del sistema...');
+
     const modules = await prisma.modules.findMany();
-    console.log(`📦 Se encontraron ${modules.length} módulos`);
-    
+
     // Configurar permisos básicos para Operador
-    console.log('\n🔧 Configurando permisos para Operador...');
-    
+
     const allowedModules = ['project_management', 'dashboard']; // Solo estos módulos
     
     for (const module of modules) {
@@ -75,7 +64,7 @@ async function addOperadorRole() {
             can_approve: false
           }
         });
-        console.log(`   ✅ Actualizado: ${module.name} - Lectura: ${canRead}`);
+
       } else {
         // Crear nuevo permiso
         await prisma.permissions.create({
@@ -90,16 +79,10 @@ async function addOperadorRole() {
             can_approve: false
           }
         });
-        console.log(`   ➕ Creado: ${module.name} - Lectura: ${canRead}`);
+
       }
     }
-    
-    console.log('\n🎉 ¡Rol "Operador" creado y configurado exitosamente!');
-    console.log('📋 Permisos configurados:');
-    console.log('   ✅ Gestión de Proyectos: Lectura, Creación, Actualización');
-    console.log('   ✅ Dashboard: Solo Lectura');
-    console.log('   ❌ Todos los demás módulos: Sin acceso');
-    
+
     return newRole;
     
   } catch (error) {
@@ -114,7 +97,7 @@ async function addOperadorRole() {
 if (require.main === module) {
   addOperadorRole()
     .then(() => {
-      console.log('\n✅ Script completado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

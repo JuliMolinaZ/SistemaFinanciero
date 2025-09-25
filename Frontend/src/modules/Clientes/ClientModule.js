@@ -326,8 +326,6 @@ const ClientModule = () => {
   const { getCachedData, setCachedData } = useDataCache();
 
       const API_URL = `${process.env.REACT_APP_API_URL || 'https://sigma.runsolutions-services.com'}/api/clients`;
-  
-  
 
   // Estadísticas optimizadas - Total, Activos e Inactivos
   const stats = useMemo(() => {
@@ -424,8 +422,6 @@ const ClientModule = () => {
   useEffect(() => {
     filterClients();
   }, [filterClients]);
-
-
 
   // Datos paginados memoizados
   const paginatedClients = useMemo(() => {
@@ -605,18 +601,18 @@ const ClientModule = () => {
     
     // Cargar selectores geográficos si hay país
     if (client.pais) {
-      console.log('🌍 País encontrado:', client.pais);
+
       const newStates = getStates(client.pais);
       setStates(newStates);
       setPhoneCode(getPhoneCode(client.pais));
       
       if (client.estado) {
-        console.log('🏛️ Estado encontrado:', client.estado);
+
         const newCities = getCities(client.pais, client.estado);
         setCities(newCities);
       }
     } else {
-      console.log('🌍 Sin país, estableciendo estados y ciudades vacíos');
+
       setStates([]);
       setCities([]);
       setPhoneCode('');
@@ -958,7 +954,6 @@ const ClientModule = () => {
               ))}
             </Grid>
           </Box>
-
 
           {/* Filtros y búsqueda */}
           <StyledCard sx={{ p: 3, mb: 3 }}>
@@ -1731,5 +1726,4 @@ const ClientModule = () => {
 };
 
 export default ClientModule;
-
 

@@ -394,8 +394,6 @@ const RealTimeUpdates = ({ kpis, onRefresh }) => {
         message: 'El flujo de efectivo ha disminuido un 15% esta semana.',
         details: 'Se recomienda revisar las cuentas por cobrar pendientes y acelerar los pagos de clientes.',
         actions: [
-          { label: 'Ver Cuentas por Cobrar', onClick: () => console.log('Navigate to AR') },
-          { label: 'Generar Reporte', onClick: () => console.log('Generate report') }
         ]
       },
       {
@@ -405,8 +403,6 @@ const RealTimeUpdates = ({ kpis, onRefresh }) => {
         message: '5 facturas han superado su fecha de vencimiento.',
         details: 'Total adeudado: $47,500. Clientes: ABC Corp ($15,000), XYZ Ltd ($12,500), DEF Inc ($8,000), GHI LLC ($7,000), JKL Co ($5,000).',
         actions: [
-          { label: 'Contactar Clientes', onClick: () => console.log('Contact clients') },
-          { label: 'Aplicar Intereses', onClick: () => console.log('Apply interest') }
         ]
       },
       {

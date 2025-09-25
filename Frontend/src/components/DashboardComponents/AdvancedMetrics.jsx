@@ -221,7 +221,6 @@ const AdvancedMetrics = ({ kpis }) => {
       trend: trends.growth,
       description: 'Diferencia entre ingresos y gastos',
       prefix: '$',
-      action: () => console.log('Navigate to cash flow details')
     },
     {
       id: 'monthly-revenue',

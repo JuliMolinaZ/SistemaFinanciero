@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useTransition, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
 import {
   Container,
@@ -239,7 +239,7 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
-const UsersList = () => {
+const UsersList = forwardRef((props, ref) => {
   // Estados principales
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -298,58 +298,87 @@ const UsersList = () => {
     ];
   }, [users]);
 
-  // Fetch usuarios con caché
+  // Fetch usuarios sin caché para datos en tiempo real
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const cached = getCachedData('users');
-      if (cached) {
-        setUsers(cached);
-        setFilteredUsers(cached);
-        setLoading(false);
-        return;
-      }
-
-      const response = await axios.get('/api/user-registration/all-users');
+      // Agregar timestamp para evitar caché del navegador
+      const timestamp = new Date().getTime();
+      const response = await axios.get(`/api/user-registration/all-users?t=${timestamp}`);
       const userData = response.data.success ? response.data.data : [];
-      
       // Transformar datos del backend para el frontend
-      const transformedUsers = userData.map(user => ({
-        id: user.id,
-        full_name: user.name || 'Sin nombre',
-        email: user.email,
-        phone: user.phone || 'No disponible',
-        role_name: user.roles?.name || user.role || 'Sin rol',
-        status: user.is_active ? 'active' : 'inactive',
-        profile_complete: user.profile_complete || false,
-        last_login: user.last_login,
-        created_at: user.created_at,
-        avatar: user.avatar,
-        department: user.department || 'No asignado',
-        position: user.position || 'No especificado',
-        firebase_uid: user.firebase_uid,
-        role_id: user.role_id,
-        is_first_login: user.is_first_login,
-        access_token: user.access_token ? 'Activo' : 'Inactivo'
-      }));
+      const transformedUsers = userData.map(user => {
+        // Lógica mejorada para determinar si el perfil está completo
+        const hasName = user.name && user.name.trim() !== '';
+        const hasEmail = user.email && user.email.trim() !== '';
+        const hasPhone = user.phone && user.phone.trim() !== '';
+        const hasDepartment = user.department && user.department.trim() !== '';
+        const hasPosition = user.position && user.position.trim() !== '';
+        
+        // Un perfil se considera completo si tiene al menos nombre, email y teléfono
+        const isProfileComplete = hasName && hasEmail && hasPhone;
+        
+        // Determinar el estado del usuario
+        const userStatus = user.is_active ? 'Activo' : 'Inactivo';
+        
+        // Determinar si ha iniciado sesión
+        const hasLoggedIn = user.last_login !== null && user.last_login !== undefined;
+        const lastLoginText = hasLoggedIn ? 
+          new Date(user.last_login).toLocaleDateString('es-ES') : 
+          'Nunca ha iniciado sesión';
 
-      console.log('✅ Usuarios cargados desde el backend:', transformedUsers);
+        const transformed = {
+          id: user.id,
+          full_name: user.name || 'Sin nombre',
+          email: user.email || 'No disponible',
+          phone: user.phone || 'No disponible',
+          role_name: user.roles?.name || user.role || 'Sin rol',
+          status: userStatus,
+          profile_complete: isProfileComplete,
+          profile_complete_text: isProfileComplete ? 'Perfil Completo' : 'Perfil Incompleto',
+          last_login: user.last_login,
+          last_login_text: lastLoginText,
+          created_at: user.created_at,
+          avatar: user.avatar,
+          department: user.department || 'No asignado',
+          position: user.position || 'No especificado',
+          firebase_uid: user.firebase_uid,
+          role_id: user.role_id,
+          is_first_login: user.is_first_login,
+          access_token: user.access_token ? 'Activo' : 'Inactivo'
+        };
+        
+        return transformed;
+      });
 
       setUsers(transformedUsers);
       setFilteredUsers(transformedUsers);
-      setCachedData('users', transformedUsers);
       
-    } catch (error) {
-      console.error('Error al cargar usuarios:', error);
+      // Limpiar caché para forzar actualización
+      setCachedData('users', null);
+      
       setSnackbar({
         open: true,
-        message: 'Error al cargar usuarios',
+        message: `✅ ${transformedUsers.length} usuarios cargados correctamente`,
+        severity: 'success'
+      });
+      
+    } catch (error) {
+      console.error('❌ Error al cargar usuarios:', error);
+      setSnackbar({
+        open: true,
+        message: '❌ Error al cargar usuarios: ' + (error.response?.data?.message || error.message),
         severity: 'error'
       });
     } finally {
       setLoading(false);
     }
-  }, [getCachedData, setCachedData]);
+  }, [setCachedData]);
+
+  // Exponer la función fetchUsers al componente padre
+  useImperativeHandle(ref, () => ({
+    fetchUsers
+  }), [fetchUsers]);
 
   // Filtros y búsqueda optimizada
   useEffect(() => {
@@ -453,13 +482,13 @@ const UsersList = () => {
     if (!user.profile_complete) {
       return <StyledChip label="Perfil Incompleto" status="pending" size="small" />;
     }
-    if (user.status === 'active') {
+    if (user.status === 'Activo') {
       return <StyledChip label="Activo" status="active" size="small" />;
     }
-    if (user.status === 'pending') {
+    if (user.status === 'Pendiente') {
       return <StyledChip label="Pendiente" status="pending" size="small" />;
     }
-    return <StyledChip label="Bloqueado" status="blocked" size="small" />;
+    return <StyledChip label="Inactivo" status="inactive" size="small" />;
   };
 
   const formatLastLogin = (lastLogin) => {
@@ -472,8 +501,9 @@ const UsersList = () => {
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    // Si es muy reciente (menos de 5 minutos), mostrar como "En línea"
-    if (diffMinutes < 5) return '🟢 En línea ahora';
+    // Solo mostrar "En línea" si es muy reciente (menos de 2 minutos) 
+    // Esto evita mostrar "En línea" cuando solo se consultó el perfil
+    if (diffMinutes < 2) return '🟢 En línea ahora';
     
     // Si es hoy
     if (diffDays === 0) {
@@ -505,8 +535,10 @@ const UsersList = () => {
     const now = new Date();
     const diffMinutes = Math.floor((now - lastLogin) / (1000 * 60));
     
-    if (diffMinutes < 5) return { text: 'En línea', color: '#27ae60', icon: '🟢' };
-    if (diffMinutes < 60) return { text: 'Reciente', color: '#2ecc71', icon: '🟢' };
+    // Solo mostrar "En línea" si es muy reciente (menos de 2 minutos)
+    // Esto evita mostrar "En línea" cuando solo se consultó el perfil
+    if (diffMinutes < 2) return { text: 'En línea', color: '#27ae60', icon: '🟢' };
+    if (diffMinutes < 30) return { text: 'Reciente', color: '#2ecc71', icon: '🟢' };
     if (diffMinutes < 1440) return { text: 'Activo hoy', color: '#3498db', icon: '🔵' };
     
     return { text: 'Inactivo', color: '#95a5a6', icon: '⚪' };
@@ -609,7 +641,13 @@ const UsersList = () => {
                 <Button
                   variant="outlined"
                   startIcon={<RefreshIcon />}
-                  onClick={fetchUsers}
+                  onClick={() => {
+                    // Limpiar caché del navegador
+                    localStorage.removeItem('users');
+                    sessionStorage.clear();
+                    // Recargar datos
+                    fetchUsers();
+                  }}
                   sx={{
                     borderRadius: 3,
                     fontWeight: 600,
@@ -617,7 +655,7 @@ const UsersList = () => {
                     color: '#667eea'
                   }}
                 >
-                  Actualizar
+                  🔄 Forzar Recarga
                 </Button>
                 <Button
                   variant="contained"
@@ -1120,6 +1158,8 @@ const UsersList = () => {
       </Snackbar>
     </Box>
   );
-};
+});
+
+UsersList.displayName = 'UsersList';
 
 export default UsersList;

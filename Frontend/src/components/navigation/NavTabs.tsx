@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, ClipboardList, Users2, Clock3, TrendingUp } from 'lucide-react';
 import './nav-tokens.css';
 
@@ -12,21 +12,88 @@ type NavItem = {
 };
 
 // 🧭 COMPONENTE PRINCIPAL - NAVEGACIÓN PROFESIONAL
-export function NavTabs({ 
-  current, 
+export function NavTabs({
+  current,
   onTabChange,
   userRole = 'administrador' // Rol por defecto
-}: { 
+}: {
   current: NavItem['label'];
   onTabChange?: (tab: NavItem['label']) => void;
   userRole?: string;
 }) {
-  // 🎯 Filtrar tabs según el rol del usuario
+  // Estados para datos reales
+  const [dashboardStats, setDashboardStats] = useState({
+    projects: 0,
+    tasks: 0,
+    sprints: 0
+  });
+
+  // Cargar estadísticas reales
+  useEffect(() => {
+    const loadDashboardStats = async () => {
+      try {
+        // Obtener el ID del usuario actual (asumimos que está en localStorage o contexto)
+        const userStr = localStorage.getItem('user');
+        const currentUser = userStr ? JSON.parse(userStr) : null;
+        const userId = currentUser?.id;
+
+        if (!userId) {
+
+          return;
+        }
+
+        // Cargar datos en paralelo
+        const [projectsResponse, tasksResponse] = await Promise.all([
+          // Obtener proyectos
+          fetch('http://localhost:8765/api/management-projects/', {
+            method: 'GET',
+            credentials: 'include'
+          }),
+          // Obtener tareas del usuario actual
+          fetch(`http://localhost:8765/api/management-tasks/user/${userId}`, {
+            method: 'GET',
+            credentials: 'include'
+          })
+        ]);
+
+        let projectsCount = 0;
+        let tasksCount = 0;
+
+        // Procesar proyectos
+        if (projectsResponse.ok) {
+          const projectsData = await projectsResponse.json();
+          projectsCount = projectsData.data?.length || 0;
+          }
+
+        // Procesar tareas del usuario
+        if (tasksResponse.ok) {
+          const tasksData = await tasksResponse.json();
+          tasksCount = tasksData.data?.length || 0;
+          }
+
+        // Estimar sprints basados en proyectos
+        const sprintsCount = Math.ceil(projectsCount / 2);
+
+        setDashboardStats({
+          projects: projectsCount,
+          tasks: tasksCount,
+          sprints: sprintsCount
+        });
+
+        } catch (error) {
+        console.error('❌ Error cargando estadísticas:', error);
+        // Mantener valores por defecto en caso de error
+      }
+    };
+
+    loadDashboardStats();
+  }, []);
+  // 🎯 Filtrar tabs según el rol del usuario con datos reales
   const getAllItems = (): NavItem[] => [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/projects' },
-    { label: 'Proyectos', icon: ClipboardList, href: '/projects/list', badge: 3 },
-    { label: 'Tareas', icon: Users2, href: '/projects/tasks', badge: 2 },
-    { label: 'Sprints', icon: Clock3, href: '/projects/sprints', badge: 1 },
+    { label: 'Proyectos', icon: ClipboardList, href: '/projects/list', badge: dashboardStats.projects },
+    { label: 'Tareas', icon: Users2, href: '/projects/tasks', badge: dashboardStats.tasks },
+    { label: 'Sprints', icon: Clock3, href: '/projects/sprints', badge: dashboardStats.sprints },
     { label: 'Analytics', icon: TrendingUp, href: '/projects/analytics' },
   ];
 

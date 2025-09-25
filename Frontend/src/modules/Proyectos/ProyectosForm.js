@@ -187,46 +187,26 @@ const ProjectModule = () => {
 
   // Función para obtener solo los campos modificados
   const getModifiedFields = (original, current) => {
-    console.log('🔍 DEBUG getModifiedFields:');
-    console.log('  - Original:', original);
-    console.log('  - Current:', current);
-    
     const modified = {};
     Object.keys(current).forEach(key => {
-      console.log(`  - Comparando campo "${key}":`);
-      console.log(`    Original: "${original[key]}" (tipo: ${typeof original[key]})`);
-      console.log(`    Current: "${current[key]}" (tipo: ${typeof current[key]})`);
-      console.log(`    Son iguales: ${current[key] === original[key]}`);
-      
       // Solo incluir campos que realmente han cambiado
       if (current[key] !== original[key]) {
-        console.log(`    ✅ Campo "${key}" ha cambiado`);
         // No enviar campos vacíos que podrían sobrescribir datos existentes
         if (current[key] !== '' && current[key] !== null && current[key] !== undefined) {
           modified[key] = current[key];
-          console.log(`    ✅ Campo "${key}" agregado a modifiedFields`);
-        } else if (original[key] !== '' && original[key] !== null && original[key] !== undefined) {
-          // Si el campo original tenía valor y ahora está vacío, mantener el original
-          console.log(`Campo ${key} se mantiene con valor original:`, original[key]);
         }
-      } else {
-        console.log(`    ❌ Campo "${key}" NO ha cambiado`);
       }
     });
-    
-    console.log('📊 RESULTADO FINAL:');
-    console.log('  - Campos originales:', original);
-    console.log('  - Campos actuales:', current);
-    console.log('  - Campos modificados:', modified);
-    console.log('  - Total de campos modificados:', Object.keys(modified).length);
-    
     return modified;
   };
 
-  // Estados
+  // Estados del componente
   const [projects, setProjects] = useState([]);
-  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClient, setSelectedClient] = useState('');
+  const [selectedPhase, setSelectedPhase] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [openProjectDialog, setOpenProjectDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -251,10 +231,7 @@ const ProjectModule = () => {
   // Estado para almacenar datos originales del proyecto (para edición)
   const [originalProjectData, setOriginalProjectData] = useState(null);
 
-
-
-  // Estados para clientes y fases
-  const [clients, setClients] = useState([]);
+  // Estados para fases (clients ya declarado arriba)
   const [phases] = useState([
     { id: 1, nombre: 'Planeación', descripcion: 'Fase inicial del proyecto donde se realiza la planeación.' },
     { id: 2, nombre: 'Desarrollo', descripcion: 'Fase donde se implementan las actividades del proyecto.' },
@@ -266,115 +243,192 @@ const ProjectModule = () => {
   const fetchProjects = useCallback(async () => {
     try {
       const response = await axios.get('/api/projects');
-      console.log('Proyectos obtenidos:', response.data); // Debug
-      
-      // La API puede devolver { success: true, data: [...], total: X } o directamente un array
-      const projectsData = response.data.success && Array.isArray(response.data.data) 
-        ? response.data.data 
+      const projectsData = response.data.success && Array.isArray(response.data.data)
+        ? response.data.data
         : response.data;
-      
-      const projectsWithNames = projectsData.map(project => ({
-        ...project,
-        cliente_nombre: project.client?.nombre || 'Sin cliente'
-        // No forzar valor por defecto para estado, usar el valor real de la BD
-      }));
-      
-      console.log('Proyectos procesados:', projectsWithNames); // Debug
-      console.log('Ejemplo de proyecto:', projectsWithNames[0]); // Debug del primer proyecto
-      
-      // Log adicional para verificar estados
-      console.log('🔍 Estados de proyectos recibidos:');
-      projectsWithNames.slice(0, 3).forEach(project => {
-        console.log(`  - Proyecto ID ${project.id}: estado = "${project.estado}"`);
-      });
-      
-      setProjects(projectsWithNames);
-      setFilteredProjects(projectsWithNames);
+      setProjects(projectsData);
     } catch (error) {
       console.error('Error al obtener proyectos:', error);
-      setSnackbar({ open: true, message: 'Error al obtener proyectos', severity: 'error' });
     }
   }, []);
+
+  // useEffect para cargar proyectos
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   // Función para obtener clientes
   const fetchClients = useCallback(async () => {
     try {
       const response = await axios.get('/api/clients');
-      console.log('Respuesta de clientes:', response.data); // Debug
-      
-      // La API devuelve { success: true, data: [...], total: 19 }
-      if (response.data.success && Array.isArray(response.data.data)) {
-        setClients(response.data.data);
-        console.log('Clientes cargados:', response.data.data.length);
-      } else if (Array.isArray(response.data)) {
-        // Fallback: si la respuesta es directamente un array
-        setClients(response.data);
-        console.log('Clientes cargados (fallback):', response.data.length);
-      } else {
-        console.warn('La respuesta de clientes no es válida:', response.data);
-        setClients([]);
-      }
+      const clientsData = response.data.success && Array.isArray(response.data.data)
+        ? response.data.data
+        : response.data;
+      setClients(clientsData);
     } catch (error) {
       console.error('Error al obtener clientes:', error);
-      setClients([]); // Asegurar que siempre sea un array
     }
   }, []);
 
-  // Función para obtener costos del proyecto
-  const fetchCosts = useCallback(async (projectId) => {
-    // Implementar si es necesario
-  }, []);
-
-  // Efectos
+  // useEffect para cargar clientes
   useEffect(() => {
-    fetchProjects();
     fetchClients();
-  }, [fetchProjects, fetchClients]);
+  }, [fetchClients]);
 
-  // Filtrado de proyectos
-  useEffect(() => {
-    const filtered = projects.filter(project =>
-      project.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.cliente_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.estado?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProjects(filtered);
-  }, [projects, searchTerm]);
+  // Estados calculados para estadísticas
+  const stats = useMemo(() => {
+    const totalProjects = projects.length;
+    const totalAmount = projects.reduce((sum, project) => sum + (project.monto_sin_iva || 0), 0);
+    const activeProjects = projects.filter(project => project.estado === 'activo').length;
+    const completedProjects = projects.filter(project => project.estado === 'completado').length;
 
-  // Estadísticas mejoradas
-  const stats = useMemo(() => [
-    {
-      label: 'Total Proyectos',
-      value: projects.length,
-      color: '#667eea',
-      icon: <AssignmentIcon />
-    },
-    {
-      label: 'Total Montos con IVA',
-      value: formatCurrency(projects.reduce((sum, p) => sum + (parseFloat(p.monto_con_iva) || 0), 0)),
-      color: '#f39c12',
-      icon: <AttachMoneyIcon />
-    },
-    {
-      label: 'Proyectos Activos',
-      value: projects.filter(p => p.estado === 'activo').length,
-      color: '#27ae60',
-      icon: <TrendingUpIcon />
-    },
-    {
-      label: 'Completados',
-      value: projects.filter(p => p.estado === 'completado').length,
-      color: '#9b59b6',
-      icon: <CheckCircleIcon />
+    return [
+      {
+        label: 'Total Proyectos',
+        value: totalProjects,
+        icon: <AssignmentIcon />,
+        color: '#3498db'
+      },
+      {
+        label: 'Monto Total',
+        value: formatCurrency(totalAmount),
+        icon: <AttachMoneyIcon />,
+        color: '#27ae60'
+      },
+      {
+        label: 'Activos',
+        value: activeProjects,
+        icon: <TrendingUpIcon />,
+        color: '#e74c3c'
+      },
+      {
+        label: 'Completados',
+        value: completedProjects,
+        icon: <CheckCircleIcon />,
+        color: '#f39c12'
+      }
+    ];
+  }, [projects]);
+
+  // Filtros para proyectos
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => {
+      const matchesSearch = !searchTerm ||
+        project.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.cliente_nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesClient = !selectedClient || project.cliente_id === selectedClient;
+      const matchesPhase = !selectedPhase || project.phase_id === selectedPhase;
+      const matchesStatus = !selectedStatus || project.estado === selectedStatus;
+
+      return matchesSearch && matchesClient && matchesPhase && matchesStatus;
+    });
+  }, [projects, searchTerm, selectedClient, selectedPhase, selectedStatus]);
+
+  // Función para manejar cambios en el formulario
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+
+      // Calcular IVA automáticamente
+      if (name === 'monto_sin_iva') {
+        const montoSinIva = parseFloat(value) || 0;
+        const iva = montoSinIva * 0.16;
+        newData.monto_con_iva = (montoSinIva + iva).toFixed(2);
+      }
+
+      return newData;
+    });
+  };
+
+  // Función para crear proyecto
+  const handleCreateProject = async () => {
+    try {
+      const response = await axios.post('/api/projects', formData);
+      if (response.data.success) {
+        setSnackbar({ open: true, message: 'Proyecto creado exitosamente', severity: 'success' });
+        setOpenProjectDialog(false);
+        resetForm();
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error('Error al crear proyecto:', error);
+      setSnackbar({ open: true, message: 'Error al crear proyecto', severity: 'error' });
     }
-  ], [projects]);
+  };
 
-  // Handlers
-  const handleCloseDialog = useCallback(() => {
-    setOpenProjectDialog(false);
-    setIsEditing(false);
-    setEditingProjectId(null);
-    setOriginalProjectData(null);
+  // Función para actualizar proyecto
+  const handleUpdateProject = async () => {
+    try {
+      const modifiedFields = getModifiedFields(originalProjectData, formData);
+      if (Object.keys(modifiedFields).length === 0) {
+        setSnackbar({ open: true, message: 'No hay cambios para guardar', severity: 'info' });
+        return;
+      }
+
+      const response = await axios.put(`/api/projects/${editingProjectId}`, modifiedFields);
+      if (response.data.success) {
+        setSnackbar({ open: true, message: 'Proyecto actualizado exitosamente', severity: 'success' });
+        setOpenProjectDialog(false);
+        resetForm();
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error('Error al actualizar proyecto:', error);
+      setSnackbar({ open: true, message: 'Error al actualizar proyecto', severity: 'error' });
+    }
+  };
+
+  // Función para eliminar proyecto
+  const handleDelete = async (project) => {
+    if (window.confirm(`¿Estás seguro de eliminar el proyecto "${project.nombre}"?`)) {
+      try {
+        const response = await axios.delete(`/api/projects/${project.id}`);
+        if (response.data.success) {
+          setSnackbar({ open: true, message: 'Proyecto eliminado exitosamente', severity: 'success' });
+          fetchProjects();
+        }
+      } catch (error) {
+        console.error('Error al eliminar proyecto:', error);
+        setSnackbar({ open: true, message: 'Error al eliminar proyecto', severity: 'error' });
+      }
+    }
+  };
+
+  // Función para editar proyecto
+  const handleEdit = (project) => {
+    setIsEditing(true);
+    setEditingProjectId(project.id);
+
+    const projectData = {
+      nombre: project.nombre || '',
+      cliente_id: project.cliente_id || '',
+      monto_sin_iva: project.monto_sin_iva || '',
+      monto_con_iva: project.monto_con_iva || '',
+      phase_id: project.phase_id || '',
+      estado: project.estado || 'activo',
+      descripcion: project.descripcion || ''
+    };
+
+    setOriginalProjectData(projectData);
+    setFormData(projectData);
+    setOpenProjectDialog(true);
+  };
+
+  // Función para ver detalles
+  const handleViewDetails = (project) => {
+    setViewingProject(project);
+    setViewDetailsOpen(true);
+  };
+
+  // Función para cerrar detalles
+  const handleCloseViewDetails = () => {
+    setViewDetailsOpen(false);
+    setViewingProject(null);
+  };
+
+  // Función para resetear formulario
+  const resetForm = () => {
     setFormData({
       nombre: '',
       cliente_id: '',
@@ -384,278 +438,80 @@ const ProjectModule = () => {
       estado: 'activo',
       descripcion: ''
     });
-  }, []);
+    setIsEditing(false);
+    setEditingProjectId(null);
+    setOriginalProjectData(null);
+  };
 
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-    
-    console.log(`🔄 Campo cambiado: ${name} = ${value}`);
-    
-    if (name === 'monto_sin_iva') {
-      // Calcular automáticamente el monto con IVA (16%)
-      const montoSinIva = parseFloat(value) || 0;
-      const montoConIva = montoSinIva * 1.16;
-      
-      setFormData(prev => {
-        const newData = {
-          ...prev,
-          [name]: value,
-          monto_con_iva: montoConIva.toFixed(2)
-        };
-        console.log('Nuevos datos del formulario (monto):', newData);
-        return newData;
-      });
-    } else {
-      setFormData(prev => {
-        const newData = { ...prev, [name]: value };
-        console.log('Nuevos datos del formulario:', newData);
-        return newData;
-      });
-    }
-  }, []);
-
-  const handleSubmit = useCallback(async (e) => {
+  // Función para manejar envío del formulario
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('🚀 handleSubmit ejecutado');
-    console.log('  - isEditing:', isEditing);
-    console.log('  - editingProjectId:', editingProjectId);
-    console.log('  - formData:', formData);
-    console.log('  - originalProjectData:', originalProjectData);
-    
+    if (isEditing) {
+      handleUpdateProject();
+    } else {
+      handleCreateProject();
+    }
+  };
+
+  // Función para cerrar diálogo
+  const handleCloseDialog = () => {
+    setOpenProjectDialog(false);
+    resetForm();
+  };
+
+  // Función para cerrar snackbar
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Función para exportar datos
+  const handleExport = useCallback(async (exportData) => {
     try {
-      if (isEditing) {
-        console.log('🔄 MODO EDICIÓN ACTIVADO');
-        console.log('  - editingProjectId:', editingProjectId);
-        console.log('  - originalProjectData:', originalProjectData);
-        console.log('  - formData actual:', formData);
+      let content = '';
+      let filename = '';
+      let mimeType = '';
+
+      if (exportData.format === 'csv') {
+        const headers = ['ID', 'Nombre', 'Cliente', 'Monto Sin IVA', 'Monto Con IVA', 'Fase', 'Estado', 'Fecha Creación', 'Descripción'];
+        const csvContent = [
+          headers.join(','),
+          ...projects.map(project => [
+            project.id,
+            (project.nombre || '').replace(/,/g, ' '),
+            (project.cliente_nombre || '').replace(/,/g, ' '),
+            project.monto_sin_iva || '',
+            project.monto_con_iva || '',
+            (project.phase_nombre || '').replace(/,/g, ' '),
+            (project.estado || '').replace(/,/g, ' '),
+            project.created_at ? new Date(project.created_at).toLocaleDateString() : '',
+            (project.descripcion || '').replace(/,/g, ' ')
+          ].join(','))
+        ].join('\n');
         
-        // Verificar que tenemos datos originales
-        if (!originalProjectData) {
-          console.log('❌ ERROR: No hay datos originales para comparar');
-          setSnackbar({ open: true, message: 'Error: No hay datos originales para comparar', severity: 'error' });
-          return;
-        }
+        content = csvContent;
+        filename = `proyectos_${new Date().toISOString().split('T')[0]}.csv`;
+        mimeType = 'text/csv';
+      } else if (exportData.format === 'excel') {
+        const headers = ['ID', 'Nombre', 'Cliente', 'Monto Sin IVA', 'Monto Con IVA', 'Fase', 'Estado', 'Fecha Creación', 'Descripción'];
+        const tsvContent = [
+          headers.join('\t'),
+          ...projects.map(project => [
+            project.id,
+            (project.nombre || '').replace(/\t/g, ' '),
+            (project.cliente_nombre || '').replace(/\t/g, ' '),
+            project.monto_sin_iva || '',
+            project.monto_con_iva || '',
+            (project.phase_nombre || '').replace(/\t/g, ' '),
+            (project.estado || '').replace(/\t/g, ' '),
+            project.created_at ? new Date(project.created_at).toLocaleDateString() : '',
+            (project.descripcion || '').replace(/\t/g, ' ')
+          ].join('\t'))
+        ].join('\n');
         
-        // Enviar solo los campos modificados
-        const modifiedFields = getModifiedFields(originalProjectData, formData);
-        console.log('📋 Campos modificados:', modifiedFields);
-        
-        if (Object.keys(modifiedFields).length === 0) {
-          console.log('⚠️ No hay cambios para guardar');
-          setSnackbar({ open: true, message: 'No hay cambios para guardar.', severity: 'info' });
-          return;
-        }
-        
-        console.log('Enviando actualización al backend:', {
-          projectId: editingProjectId,
-          modifiedFields: modifiedFields
-        });
-        
-        console.log('🔍 Detalle de la petición PUT:', {
-          url: `/api/projects/${editingProjectId}`,
-          data: modifiedFields,
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const response = await axios.put(`/api/projects/${editingProjectId}`, modifiedFields);
-        console.log('✅ Respuesta del backend:', response.data);
-        setSnackbar({ open: true, message: 'Proyecto actualizado exitosamente.', severity: 'success' });
-        
-        console.log('🔄 Refrescando lista de proyectos...');
-        await fetchProjects();
-        console.log('✅ Lista de proyectos refrescada');
+        content = tsvContent;
+        filename = `proyectos_${new Date().toISOString().split('T')[0]}.tsv`;
+        mimeType = 'text/tab-separated-values';
       } else {
-        console.log('🆕 MODO CREACIÓN ACTIVADO');
-        await axios.post('/api/projects', formData);
-        setSnackbar({ open: true, message: 'Proyecto creado exitosamente.', severity: 'success' });
-        
-        console.log('🔄 Refrescando lista de proyectos...');
-        await fetchProjects();
-        console.log('✅ Lista de proyectos refrescada');
-      }
-      
-      handleCloseDialog();
-    } catch (error) {
-      console.error('Error al guardar proyecto:', error);
-      setSnackbar({ open: true, message: 'Error al guardar proyecto.', severity: 'error' });
-    }
-  }, [isEditing, editingProjectId, formData, originalProjectData, fetchProjects, handleCloseDialog]);
-
-  const handleDelete = useCallback(async (project) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el proyecto "${project.nombre}"?`)) {
-      try {
-        await axios.delete(`/api/projects/${project.id}`);
-        setSnackbar({ open: true, message: 'Proyecto eliminado exitosamente.', severity: 'success' });
-        fetchProjects();
-      } catch (error) {
-        console.error('Error al eliminar proyecto:', error);
-        setSnackbar({ open: true, message: 'Error al eliminar proyecto.', severity: 'error' });
-      }
-    }
-  }, [fetchProjects]);
-
-  const handleEdit = useCallback((project) => {
-    console.log('🎯 handleEdit ejecutado para proyecto:', project);
-    
-    setIsEditing(true);
-    setEditingProjectId(project.id);
-    
-    // Almacenar datos originales para comparación (sin valores por defecto)
-    const originalData = {
-      nombre: project.nombre,
-      cliente_id: project.cliente_id,
-      monto_sin_iva: project.monto_sin_iva,
-      monto_con_iva: project.monto_con_iva,
-      phase_id: project.phase_id,
-      estado: project.estado,
-      descripcion: project.descripcion
-    };
-    
-    setOriginalProjectData(originalData);
-    
-    // Establecer datos del formulario (con valores por defecto para campos vacíos)
-    const formDataToSet = {
-      nombre: project.nombre || '',
-      cliente_id: project.cliente_id || '',
-      monto_sin_iva: project.monto_sin_iva || '',
-      monto_con_iva: project.monto_con_iva || '',
-      phase_id: project.phase_id || '',
-      estado: project.estado || 'activo',
-      descripcion: project.descripcion || ''
-    };
-    
-    setFormData(formDataToSet);
-    
-    console.log('📋 Datos originales almacenados:', originalData);
-    console.log('📝 FormData establecido:', formDataToSet);
-    console.log('✅ Estado de edición activado');
-    
-    setOpenProjectDialog(true);
-  }, []);
-
-  const handleView = useCallback((project) => {
-    setSelectedProject(project);
-    fetchCosts(project.id);
-    setActiveTab(0);
-  }, [fetchCosts]);
-
-  const handleViewDetails = useCallback((project) => {
-    setViewingProject(project);
-    setViewDetailsOpen(true);
-  }, []);
-
-  const handleCloseViewDetails = useCallback(() => {
-    setViewDetailsOpen(false);
-    setViewingProject(null);
-  }, []);
-
-  const handleSnackbarClose = useCallback(() => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-  }, []);
-
-
-
-  return (
-    <StyledContainer maxWidth="xl">
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          {/* Header con estadísticas */}
-          <Box sx={{ mb: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box>
-                <Typography variant="h3" sx={{ 
-                  fontWeight: 800, 
-                  color: '#fff',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                  mb: 1
-                }}>
-                  Gestión de Proyectos
-                </Typography>
-                <Typography variant="h6" sx={{ 
-                  color: 'rgba(255,255,255,0.8)',
-                  fontWeight: 400
-                }}>
-                  Administra proyectos, costos y fases de desarrollo
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <ExportButton 
-                  modules={[
-                    { id: 'projects', name: 'Proyectos', description: 'Información de proyectos y fases' }
-                  ]}
-                  onExport={async (exportData) => {
-                    console.log('Exportando proyectos:', exportData);
-                    
-                    try {
-                      // Preguntar al usuario si quiere exportar solo los filtrados o todos
-                      const exportFiltered = window.confirm(
-                        `¿Qué quieres exportar?\n\n` +
-                        `• Solo proyectos filtrados (${filteredProjects.length} proyectos)\n` +
-                        `• Todos los proyectos (${projects.length} proyectos)\n\n` +
-                        `Haz clic en "Aceptar" para exportar solo los filtrados, o "Cancelar" para exportar todos.`
-                      );
-                      
-                      // Usar los datos filtrados o todos según la elección del usuario
-                      const projectsData = exportFiltered ? filteredProjects : projects;
-                      
-                      if (projectsData.length === 0) {
-                        setSnackbar({ 
-                          open: true, 
-                          message: 'No hay proyectos para exportar', 
-                          severity: 'warning' 
-                        });
-                        return;
-                      }
-                      
-                      // Crear contenido del archivo según el formato
-                      let content, filename, mimeType;
-                      
-                      if (exportData.format === 'csv') {
-                        const headers = ['ID', 'Nombre', 'Cliente', 'Monto Sin IVA', 'Monto Con IVA', 'Fase', 'Estado', 'Fecha Creación', 'Descripción'];
-                        const csvContent = [
-                          headers.join(','),
-                          ...projectsData.map(project => [
-                            project.id,
-                            (project.nombre || '').replace(/,/g, ';'),
-                            (project.cliente_nombre || '').replace(/,/g, ';'),
-                            project.monto_sin_iva || '',
-                            project.monto_con_iva || '',
-                            (project.phase_nombre || '').replace(/,/g, ';'),
-                            (project.estado || '').replace(/,/g, ';'),
-                            project.created_at ? new Date(project.created_at).toLocaleDateString() : '',
-                            (project.descripcion || '').replace(/,/g, ';')
-                          ].join(','))
-                        ].join('\n');
-                        
-                        content = csvContent;
-                        filename = `proyectos_${new Date().toISOString().split('T')[0]}.csv`;
-                        mimeType = 'text/csv';
-                      } else if (exportData.format === 'excel') {
-                        const headers = ['ID', 'Nombre', 'Cliente', 'Monto Sin IVA', 'Monto Con IVA', 'Fase', 'Estado', 'Fecha Creación', 'Descripción'];
-                        const tsvContent = [
-                          headers.join('\t'),
-                          ...projectsData.map(project => [
-                            project.id,
-                            (project.nombre || '').replace(/\t/g, ' '),
-                            (project.cliente_nombre || '').replace(/\t/g, ' '),
-                            project.monto_sin_iva || '',
-                            project.monto_con_iva || '',
-                            (project.phase_nombre || '').replace(/\t/g, ' '),
-                            (project.estado || '').replace(/\t/g, ' '),
-                            project.created_at ? new Date(project.created_at).toLocaleDateString() : '',
-                            (project.descripcion || '').replace(/\t/g, ' ')
-                          ].join('\t'))
-                        ].join('\n');
-                        
-                        content = tsvContent;
-                        filename = `proyectos_${new Date().toISOString().split('T')[0]}.tsv`;
-                        mimeType = 'text/tab-separated-values';
-                      } else {
                         const htmlContent = `
 <!DOCTYPE html>
 <html lang="es">
@@ -717,72 +573,95 @@ const ProjectModule = () => {
 </body>
 </html>`;
                         
-                        content = htmlContent;
-                        filename = `proyectos_${new Date().toISOString().split('T')[0]}.html`;
-                        mimeType = 'text/html';
+        content = htmlContent;
+        filename = `proyectos_${new Date().toISOString().split('T')[0]}.html`;
+        mimeType = 'text/html';
+      }
+
+      // Descargar archivo
+      const blob = new Blob([content], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setSnackbar({
+        open: true,
+        message: `Proyectos exportados exitosamente: ${filteredProjects.length} proyectos en formato ${exportData.format.toUpperCase()}`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error al exportar:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al exportar proyectos',
+        severity: 'error'
+      });
+    }
+  }, [filteredProjects]);
+
+  return (
+    <StyledContainer maxWidth="xl">
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Header con botón de agregar */}
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid item xs={12}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3
+              }}>
+                <Typography variant="h4" sx={{
+                  fontWeight: 700,
+                  color: '#fff',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                }}>
+                  Gestión de Proyectos
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <ExportButton
+                    data={filteredProjects}
+                    filename="proyectos"
+                    onExport={handleExport}
+                  />
+                  <Button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditingProjectId(null);
+                      setFormData({
+                        nombre: '',
+                        cliente_id: '',
+                        monto_sin_iva: '',
+                        monto_con_iva: '',
+                        phase_id: '',
+                        estado: 'activo',
+                        descripcion: ''
+                      });
+                      setOpenProjectDialog(true);
+                    }}
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #27ae60, #229954)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #229954, #1e8449)'
                       }
-                      
-                      // Descargar archivo
-                      const blob = new Blob([content], { type: mimeType });
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = filename;
-                      document.body.appendChild(a);
-                      a.click();
-                      window.URL.revokeObjectURL(url);
-                      document.body.removeChild(a);
-                      
-                      setSnackbar({ 
-                        open: true, 
-                        message: `Proyectos exportados exitosamente: ${projectsData.length} proyectos en formato ${exportData.format.toUpperCase()}`, 
-                        severity: 'success' 
-                      });
-                    } catch (error) {
-                      console.error('Error al exportar:', error);
-                      setSnackbar({ 
-                        open: true, 
-                        message: 'Error al exportar proyectos', 
-                        severity: 'error' 
-                      });
-                    }
-                  }}
-                />
-
-
-                <IconButton
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditingProjectId(null);
-                    setFormData({
-                      nombre: '',
-                      cliente_id: '',
-                      monto_sin_iva: '',
-                      monto_con_iva: '',
-                      phase_id: '',
-                      estado: 'activo',
-                      descripcion: ''
-                    });
-                    setOpenProjectDialog(true);
-                  }}
-                  sx={{
-                    background: 'linear-gradient(135deg, #27ae60, #229954)',
-                    color: '#fff',
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #229954, #1e8449)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(39, 174, 96, 0.3)'
-                    }
-                  }}
-                >
-                  <AddIcon sx={{ mr: 1 }} />
-                  Agregar Proyecto
-                </IconButton>
+                    }}
+                  >
+                    Agregar Proyecto
+                  </Button>
+                </Box>
               </Box>
-            </Box>
             
             {/* Stats optimizados */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -846,7 +725,6 @@ const ProjectModule = () => {
                 </Grid>
               ))}
             </Grid>
-          </Box>
 
           {/* Filtros y búsqueda */}
           <StyledCard sx={{ p: 3, mb: 3 }}>
@@ -891,8 +769,11 @@ const ProjectModule = () => {
               </Grid>
             </Grid>
           </StyledCard>
+            </Grid>
+          </Grid>
 
           {/* Tabla de Proyectos - Ocupa todo el ancho */}
+          <Grid container spacing={3}>
           <Grid item xs={12}>
               <StyledCard>
                 <StyledTableContainer>
@@ -1090,6 +971,7 @@ const ProjectModule = () => {
                 </motion.div>
               </Grid>
             )}
+          </Grid>
 
           {/* Diálogo de Proyecto */}
           <Dialog
@@ -1426,13 +1308,14 @@ const ProjectModule = () => {
                           <Typography variant="body1" sx={{ mb: 1 }}>
                             <strong>Cliente:</strong> {viewingProject.cliente_nombre || 'No asignado'}
                           </Typography>
-                          <Typography variant="body1" sx={{ mb: 1 }}>
-                            <strong>Estado:</strong> 
+                          <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1" component="span">
+                              <strong>Estado:</strong>
+                            </Typography>
                             <Box component="span" sx={{ 
                               display: 'inline-flex', 
                               alignItems: 'center', 
                               gap: 1, 
-                              ml: 1,
                               px: 1.5,
                               py: 0.5,
                               borderRadius: 1,
@@ -1454,7 +1337,7 @@ const ProjectModule = () => {
                                viewingProject.estado === 'pausado' ? 'Pausado' :
                                viewingProject.estado === 'completado' ? 'Completado' : viewingProject.estado}
                             </Box>
-                          </Typography>
+                          </Box>
                           <Typography variant="body1">
                             <strong>Fase:</strong> {viewingProject.phase_nombre || 'No asignada'}
                           </Typography>

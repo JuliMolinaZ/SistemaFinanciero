@@ -34,10 +34,10 @@ export const useProfileCompletion = (userEmail) => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setFirebaseUID(user.uid);
-        console.log('🔐 Firebase UID obtenido:', user.uid);
+
       } else {
         setFirebaseUID(null);
-        console.log('🔐 No hay usuario autenticado en Firebase');
+
       }
     });
 
@@ -65,7 +65,7 @@ export const useProfileCompletion = (userEmail) => {
       // Si hay Firebase UID, enviarlo también
       if (firebaseUID) {
         submitData.append('firebase_uid', firebaseUID);
-        console.log('🔐 Enviando Firebase UID:', firebaseUID);
+
       }
 
       const response = await axios.put(
@@ -79,7 +79,7 @@ export const useProfileCompletion = (userEmail) => {
       );
 
       if (response.data.success) {
-        console.log('✅ Perfil completado exitosamente');
+
         return { success: true, data: response.data.data };
       } else {
         throw new Error(response.data.message || 'Error al completar perfil');

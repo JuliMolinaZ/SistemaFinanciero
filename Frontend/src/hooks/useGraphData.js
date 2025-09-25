@@ -10,7 +10,6 @@ const useGraphData = (url, intervalTime = 5000) => {
   const fetchGraphData = async () => {
     try {
       const response = await axios.get(url);
-      console.log('Datos obtenidos del backend:', response.data);
 
       const {
         cuentasPorCobrar = 0,

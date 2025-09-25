@@ -98,8 +98,6 @@ app.get('/api/info', (req, res) => {
   });
 });
 
-
-
 // =====================================================
 // RUTAS DE PRUEBA
 // =====================================================
@@ -108,8 +106,7 @@ app.get('/api/info', (req, res) => {
 app.get('/api/test-db', async (req, res) => {
   try {
     const { testConnection } = require('./config/database');
-    console.log('🔍 Probando conexión a la base de datos...');
-    
+
     // Probar la conexión
     const isConnected = await testConnection();
     
@@ -118,16 +115,13 @@ app.get('/api/test-db', async (req, res) => {
       
       // Probar una consulta simple
       const userCount = await prisma.user.count();
-      console.log('👥 Número de usuarios en la base de datos:', userCount);
-      
+
       // Probar consulta de permisos
       const permisosCount = await prisma.permisos.count();
-      console.log('🔐 Número de permisos en la base de datos:', permisosCount);
-      
+
       // Probar consulta de roles
       const rolesCount = await prisma.roles.count();
-      console.log('👑 Número de roles en la base de datos:', rolesCount);
-      
+
       res.json({
         status: 'success',
         message: 'Conexión a la base de datos exitosa',
@@ -162,17 +156,15 @@ app.get('/api/test-db', async (req, res) => {
 app.get('/api/permisos', async (req, res) => {
   try {
     const { prisma } = require('./config/database');
-    console.log('Intentando conectar a la base de datos...');
-    
+
     // Probar la conexión
     const { testConnection } = require('./config/database');
     await testConnection();
-    console.log('Conexión exitosa a la base de datos');
-    
+
     const permisos = await prisma.permisos.findMany({
       orderBy: { id: 'asc' }
     });
-    console.log('Permisos obtenidos:', permisos.length);
+
     res.json({
       success: true,
       data: permisos,
@@ -189,11 +181,13 @@ app.get('/api/permisos', async (req, res) => {
   }
 });
 
-// Ruta de usuarios básica
+// Ruta de usuarios básica - Actualiza last_login cuando se consulta
 app.get('/api/usuarios/firebase/:uid', async (req, res) => {
   try {
     const { prisma } = require('./config/database');
     const { uid } = req.params;
+    
+    // Buscar el usuario
     const usuario = await prisma.user.findUnique({
       where: { firebase_uid: uid }
     });
@@ -202,7 +196,19 @@ app.get('/api/usuarios/firebase/:uid', async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
     
-    res.json(usuario);
+    // Actualizar last_login y is_first_login
+    const usuarioActualizado = await prisma.user.update({
+      where: { firebase_uid: uid },
+      data: {
+        last_login: new Date(),
+        is_first_login: false
+      }
+    });
+
+    res.json({
+      success: true,
+      data: usuarioActualizado
+    });
   } catch (error) {
     console.error('Error al obtener usuario:', error);
     res.status(500).json({ error: 'Error al obtener usuario' });
@@ -213,16 +219,14 @@ app.post('/api/usuarios', async (req, res) => {
   try {
     const { prisma } = require('./config/database');
     const { firebase_uid, email, name, role, avatar } = req.body;
-    
-    console.log('Datos recibidos para crear usuario:', { firebase_uid, email, name, role });
-    
+
     // Verificar si el usuario ya existe
     const existingUser = await prisma.user.findUnique({
       where: { firebase_uid }
     });
     
     if (existingUser) {
-      console.log('Usuario ya existe:', existingUser.id);
+
       return res.json(existingUser);
     }
     
@@ -235,8 +239,7 @@ app.post('/api/usuarios', async (req, res) => {
         avatar
       }
     });
-    
-    console.log('Usuario creado exitosamente:', usuario.id);
+
     res.status(201).json(usuario);
   } catch (error) {
     console.error('Error al crear usuario:', error);
@@ -259,8 +262,7 @@ app.get('/api/users', async (req, res) => {
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' }
     });
-    
-    console.log(`Usuarios obtenidos: ${users.length}`);
+
     res.json({
       success: true,
       data: users,
@@ -283,8 +285,7 @@ app.get('/api/usuarios', async (req, res) => {
     const users = await prisma.user.findMany({
       orderBy: { name: 'asc' }
     });
-    
-    console.log(`Usuarios obtenidos: ${users.length}`);
+
     res.json({
       success: true,
       data: users,
@@ -320,8 +321,7 @@ app.delete('/api/users/:id', async (req, res) => {
     await prisma.user.delete({
       where: { id: parseInt(id) }
     });
-    
-    console.log(`Usuario eliminado: ${id}`);
+
     res.json({
       success: true,
       message: 'Usuario eliminado exitosamente'
@@ -356,8 +356,7 @@ app.delete('/api/usuarios/:id', async (req, res) => {
     await prisma.user.delete({
       where: { id: parseInt(id) }
     });
-    
-    console.log(`Usuario eliminado: ${id}`);
+
     res.json({
       success: true,
       message: 'Usuario eliminado exitosamente'

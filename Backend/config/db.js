@@ -5,7 +5,6 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Verificar que se haya cargado la variable de entorno DB_USER
-console.log("DB_USER:", process.env.DB_USER);
 
 // Parsear DATABASE_URL para obtener los parámetros de conexión
 const parseDatabaseUrl = (url) => {
@@ -44,5 +43,4 @@ const pool = mysql.createPool({
 });
 
 module.exports = pool;
-
 

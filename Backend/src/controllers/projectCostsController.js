@@ -58,5 +58,3 @@ exports.deleteCost = async (req, res) => {
   }
 };
 
-
-

@@ -61,7 +61,7 @@ SENDGRID_FROM_NAME=RunSolutions
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=it@runsolutions-services.com
-SMTP_PASS=llhl cnfz dnch rasg
+SMTP_PASS=tu_app_password_de_gmail_aqui
 
 # Email general
 EMAIL_FROM=RunSolutions <noreply@runsolutions-services.com>

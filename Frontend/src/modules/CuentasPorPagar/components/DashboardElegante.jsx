@@ -64,10 +64,6 @@ const DashboardElegante = ({ cuentas = [] }) => {
   const metrics = useMemo(() => {
     if (!cuentas.length) return {};
 
-    console.log('🔍 Dashboard - Cuentas recibidas:', cuentas.length);
-    console.log('📊 Primera cuenta:', cuentas[0]);
-    console.log('🔍 Campos disponibles:', Object.keys(cuentas[0] || {}));
-
     // Tendencia simple (últimos 4 meses)
     const meses = [];
     const ahora = new Date();
@@ -109,7 +105,6 @@ const DashboardElegante = ({ cuentas = [] }) => {
       distribucionCategorias
     };
 
-    console.log('📊 Métricas calculadas:', result);
     return result;
   }, [cuentas]);
 

@@ -347,21 +347,18 @@ const DesignSystemDemo = () => {
                 <QuickAction
                   variant="primary"
                   icon={<PlusIcon />}
-                  onClick={() => console.log('Primary action')}
                 >
                   Crear Nuevo
                 </QuickAction>
                 <QuickAction
                   variant="secondary"
                   icon={<DownloadIcon />}
-                  onClick={() => console.log('Secondary action')}
                 >
                   Descargar
                 </QuickAction>
                 <QuickAction
                   variant="ghost"
                   icon={<SettingsIcon />}
-                  onClick={() => console.log('Ghost action')}
                 >
                   Configurar
                 </QuickAction>
@@ -422,7 +419,6 @@ const DesignSystemDemo = () => {
           description="Parece que aún no tienes ningún elemento aquí. ¡Crea tu primer elemento para comenzar!"
           actionLabel="Crear Elemento"
           actionIcon={PlusIcon}
-          onAction={() => console.log('Create new item')}
         />
       </Box>
 

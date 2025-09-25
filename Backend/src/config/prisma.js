@@ -47,7 +47,7 @@ const prisma = new PrismaClient({
 
 // Manejo de eventos de conexión
 prisma.$on('query', (e) => {
-  console.log(`[PRISMA QUERY] ${e.query} - ${e.duration}ms`);
+
 });
 
 prisma.$on('error', (e) => {
@@ -55,18 +55,18 @@ prisma.$on('error', (e) => {
 });
 
 prisma.$on('info', (e) => {
-  console.log(`[PRISMA INFO] ${e.message}`);
+
 });
 
 prisma.$on('warn', (e) => {
-  console.warn(`[PRISMA WARN] ${e.message}`);
+
 });
 
 // Función para verificar la conexión
 async function checkConnection() {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    console.log('✅ Conexión a la base de datos establecida');
+
     return true;
   } catch (error) {
     console.error('❌ Error de conexión a la base de datos:', error);
@@ -77,10 +77,10 @@ async function checkConnection() {
 // Función para reconectar automáticamente
 async function reconnect() {
   try {
-    console.log('🔄 Intentando reconectar a la base de datos...');
+
     await prisma.$disconnect();
     await prisma.$connect();
-    console.log('✅ Reconexión exitosa');
+
     return true;
   } catch (error) {
     console.error('❌ Error en la reconexión:', error);
@@ -94,7 +94,7 @@ async function withConnectionRetry(operation) {
     return await operation();
   } catch (error) {
     if (error.code === 'P1001' || error.code === 'P1008' || error.message.includes('connection')) {
-      console.log('🔄 Conexión perdida, intentando reconectar...');
+
       const reconnected = await reconnect();
       if (reconnected) {
         return await operation();

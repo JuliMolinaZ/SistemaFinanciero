@@ -38,68 +38,82 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import CountryCodeSelector from '../../components/CountryCodeSelector';
 
 const steps = ['Información Personal', 'Información Laboral', 'Seguridad'];
 
 const CompleteProfile = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  
-  // Debug: Log para verificar que CompleteProfile se está ejecutando
-  console.log('🎯 COMPLETE PROFILE COMPONENT RENDERIZADO');
-  console.log('🎯 Token recibido:', token);
-  console.log('🎯 URL actual:', window.location.pathname);
-  console.log('🎯 Timestamp:', new Date().toISOString());
-  
-  const [activeStep, setActiveStep] = useState(0);
+
+  // Estados del componente
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  
-  // Formulario
+  const [submitting, setSubmitting] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    phone_country_code: '+57',
     department: '',
     position: '',
     hire_date: '',
+    birth_date: '',
     password: '',
     confirmPassword: '',
     avatar: null
   });
-  
-  // Estados de validación
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState({});
 
-  // Verificar token al cargar
+  // Debug: Log para verificar que CompleteProfile se está ejecutando
+  // Verificar token al montar el componente
   useEffect(() => {
     verifyToken();
   }, [token]);
 
+  // Función para verificar el token
   const verifyToken = async () => {
     try {
       setLoading(true);
+      setError('');
+
+      if (!token) {
+        navigate('/');
+        return;
+      }
+
+      // Verificar el token con el backend
       const response = await axios.get(`/api/user-registration/verify-token/${token}`);
-      
-      if (response.data.success) {
-        setUserData(response.data.data);
+
+      if (response.data.success && response.data.data) {
+        const user = response.data.data;
+        setUserData(user);
+
+        // Pre-llenar formulario con datos existentes
         setFormData(prev => ({
           ...prev,
-          name: response.data.data.name || '',
-          phone: response.data.data.phone || '',
-          department: response.data.data.department || '',
-          position: response.data.data.position || '',
-          hire_date: response.data.data.hire_date || ''
+          name: user.name || '',
+          phone: user.phone || '',
+          phone_country_code: user.phone_country_code || '+57',
+          department: user.department || '',
+          position: user.position || '',
+          hire_date: user.hire_date ? user.hire_date.split('T')[0] : '',
+          birth_date: user.birth_date ? user.birth_date.split('T')[0] : ''
         }));
-      } else {
-        setError('Token inválido o expirado');
+
+        } else {
+        navigate('/');
+        return;
       }
+
     } catch (error) {
-      setError('Error al verificar el token. Intenta nuevamente.');
+      // En lugar de mostrar error, redirigir directamente al login
+      navigate('/');
+      return;
     } finally {
       setLoading(false);
     }
@@ -120,6 +134,8 @@ const CompleteProfile = () => {
       case 0: // Información Personal
         if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
         if (!formData.phone.trim()) newErrors.phone = 'El teléfono es requerido';
+        if (!formData.phone_country_code) newErrors.phone_country_code = 'El código de país es requerido';
+        if (!formData.birth_date) newErrors.birth_date = 'La fecha de nacimiento es requerida';
         break;
         
       case 1: // Información Laboral
@@ -178,10 +194,10 @@ const CompleteProfile = () => {
 
         if (currentUser && currentUser.uid) {
           firebaseUID = currentUser.uid;
-          console.log('🔐 Firebase UID obtenido para envío:', firebaseUID);
+
         }
       } catch (firebaseError) {
-        console.log('ℹ️ No se pudo obtener Firebase UID, continuando sin él:', firebaseError.message);
+
       }
 
       const submitData = {
@@ -190,12 +206,9 @@ const CompleteProfile = () => {
         firebase_uid: firebaseUID // Incluir Firebase UID si está disponible
       };
 
-      console.log('📤 Enviando datos de completar perfil:', { ...submitData, password: '[HIDDEN]', confirmPassword: '[HIDDEN]' });
-
       const response = await axios.post(`/api/user-registration/complete-profile/${token}`, submitData);
       
       if (response.data.success) {
-        console.log('✅ Perfil completado exitosamente');
 
         // Si no se incluyó Firebase UID en la llamada inicial, intentar actualizarlo ahora
         if (!firebaseUID) {
@@ -211,20 +224,19 @@ const CompleteProfile = () => {
             });
 
             if (currentUser && currentUser.uid) {
-              console.log('🔐 Actualizando Firebase UID posterior:', currentUser.uid);
 
               const updateResponse = await axios.put(`/api/user-registration/update-firebase-uid/${userData.email}`, {
                 firebase_uid: currentUser.uid
               });
 
               if (updateResponse.data.success) {
-                console.log('✅ Firebase UID actualizado exitosamente');
+
               } else {
-                console.warn('⚠️ No se pudo actualizar el Firebase UID:', updateResponse.data.message);
+
               }
             }
           } catch (firebaseError) {
-            console.warn('⚠️ Error al actualizar Firebase UID posterior:', firebaseError.message);
+
           }
         }
 
@@ -375,6 +387,15 @@ const CompleteProfile = () => {
               </Grid>
               
               <Grid item xs={12} sm={6}>
+                <CountryCodeSelector
+                  value={formData.phone_country_code}
+                  onChange={(value) => handleInputChange('phone_country_code', value)}
+                  error={!!errors.phone_country_code}
+                  helperText={errors.phone_country_code}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Teléfono"
@@ -388,6 +409,28 @@ const CompleteProfile = () => {
                         <Phone />
                       </InputAdornment>
                     ),
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Fecha de Nacimiento"
+                  type="date"
+                  value={formData.birth_date}
+                  onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                  error={!!errors.birth_date}
+                  helperText={errors.birth_date}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarToday />
+                      </InputAdornment>
+                    ),
+                  }}
+                  InputLabelProps={{
+                    shrink: true,
                   }}
                 />
               </Grid>
@@ -426,39 +469,47 @@ const CompleteProfile = () => {
               </Grid>
               
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Departamento"
-                  value={formData.department}
-                  onChange={(e) => handleInputChange('department', e.target.value)}
-                  error={!!errors.department}
-                  helperText={errors.department}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Business />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <FormControl fullWidth error={!!errors.department}>
+                  <InputLabel>Departamento</InputLabel>
+                  <Select
+                    value={formData.department}
+                    onChange={(e) => handleInputChange('department', e.target.value)}
+                    label="Departamento"
+                  >
+                    <MenuItem value="Tecnología">Tecnología</MenuItem>
+                    <MenuItem value="Operaciones">Operaciones</MenuItem>
+                    <MenuItem value="Administrativo">Administrativo</MenuItem>
+                    <MenuItem value="Contable">Contable</MenuItem>
+                  </Select>
+                  {errors.department && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                      {errors.department}
+                    </Typography>
+                  )}
+                </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Cargo"
-                  value={formData.position}
-                  onChange={(e) => handleInputChange('position', e.target.value)}
-                  error={!!errors.position}
-                  helperText={errors.position}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Work />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <FormControl fullWidth error={!!errors.position}>
+                  <InputLabel>Cargo</InputLabel>
+                  <Select
+                    value={formData.position}
+                    onChange={(e) => handleInputChange('position', e.target.value)}
+                    label="Cargo"
+                  >
+                    <MenuItem value="Project Manager">Project Manager</MenuItem>
+                    <MenuItem value="Desarrollador">Desarrollador</MenuItem>
+                    <MenuItem value="Gerente">Gerente</MenuItem>
+                    <MenuItem value="Auxiliar Operativo">Auxiliar Operativo</MenuItem>
+                    <MenuItem value="Contador">Contador</MenuItem>
+                    <MenuItem value="Administrador">Administrador</MenuItem>
+                  </Select>
+                  {errors.position && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                      {errors.position}
+                    </Typography>
+                  )}
+                </FormControl>
               </Grid>
               
               <Grid item xs={12}>

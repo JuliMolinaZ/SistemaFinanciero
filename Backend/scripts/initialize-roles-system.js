@@ -276,10 +276,9 @@ const getRolePermissions = (roleName) => {
 
 async function initializeRolesSystem() {
   try {
-    console.log('🚀 Iniciando sistema de roles y permisos...');
-    
+
     // 1. Crear módulos del sistema
-    console.log('📦 Creando módulos del sistema...');
+
     for (const module of systemModules) {
       const existingModule = await prisma.systemModules.findUnique({
         where: { name: module.name }
@@ -289,14 +288,14 @@ async function initializeRolesSystem() {
         await prisma.systemModules.create({
           data: module
         });
-        console.log(`✅ Módulo creado: ${module.display_name}`);
+
       } else {
-        console.log(`ℹ️ Módulo ya existe: ${module.display_name}`);
+
       }
     }
     
     // 2. Crear roles del sistema
-    console.log('👥 Creando roles del sistema...');
+
     for (const role of systemRoles) {
       const existingRole = await prisma.roles.findUnique({
         where: { name: role.name }
@@ -306,14 +305,14 @@ async function initializeRolesSystem() {
         await prisma.roles.create({
           data: role
         });
-        console.log(`✅ Rol creado: ${role.name}`);
+
       } else {
-        console.log(`ℹ️ Rol ya existe: ${role.name}`);
+
       }
     }
     
     // 3. Configurar permisos para cada rol
-    console.log('🔐 Configurando permisos para cada rol...');
+
     for (const role of systemRoles) {
       const dbRole = await prisma.roles.findUnique({
         where: { name: role.name }
@@ -354,13 +353,10 @@ async function initializeRolesSystem() {
             }
           });
         }
-        
-        console.log(`✅ Permisos configurados para: ${role.name}`);
+
       }
     }
-    
-    console.log('🎉 Sistema de roles y permisos inicializado exitosamente!');
-    
+
   } catch (error) {
     console.error('❌ Error al inicializar sistema de roles:', error);
     throw error;
@@ -376,7 +372,7 @@ async function initializeRolesSystem() {
 if (require.main === module) {
   initializeRolesSystem()
     .then(() => {
-      console.log('✅ Script ejecutado exitosamente');
+
       process.exit(0);
     })
     .catch((error) => {

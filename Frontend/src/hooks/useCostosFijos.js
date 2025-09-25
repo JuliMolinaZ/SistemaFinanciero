@@ -21,15 +21,11 @@ export const useCostosFijos = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('🔍 useCostosFijos: Obteniendo costos fijos...');
-      
+
       const response = await apiClient.get('/api/costos-fijos', {
         params: { mes: mesFiltro }
       });
-      
-      console.log('✅ useCostosFijos: Respuesta recibida:', response.data);
-      
+
       // La API devuelve {success: true, data: [...]}
       const costosData = response.data.data || response.data || [];
       
@@ -48,9 +44,7 @@ export const useCostosFijos = () => {
         impuestos_imss: parseFloat(costo.impuestos_imss) || 0,
         cuenta_creada: costo.cuenta_creada || false,
       }));
-      
-      console.log('📊 useCostosFijos: Costos procesados:', costosFormateados.length);
-      
+
       setCostosFijos(costosFormateados);
       
     } catch (error) {
@@ -66,13 +60,9 @@ export const useCostosFijos = () => {
   const createCostoFijo = useCallback(async (data) => {
     try {
       setError(null);
-      
-      console.log('🔍 useCostosFijos: Creando costo fijo:', data);
-      
+
       const response = await apiClient.post('/api/costos-fijos', data);
-      
-      console.log('✅ useCostosFijos: Costo creado:', response.data);
-      
+
       // Refrescar la lista
       await fetchCostosFijos();
       
@@ -89,13 +79,9 @@ export const useCostosFijos = () => {
   const updateCostoFijo = useCallback(async (id, data) => {
     try {
       setError(null);
-      
-      console.log('🔍 useCostosFijos: Actualizando costo fijo:', id, data);
-      
+
       const response = await apiClient.put(`/api/costos-fijos/${id}`, data);
-      
-      console.log('✅ useCostosFijos: Costo actualizado:', response.data);
-      
+
       // Refrescar la lista
       await fetchCostosFijos();
       
@@ -112,13 +98,9 @@ export const useCostosFijos = () => {
   const enviarACuentasPagar = useCallback(async (id) => {
     try {
       setError(null);
-      
-      console.log('🔍 useCostosFijos: Enviando a cuentas por pagar:', id);
-      
+
       const response = await apiClient.post(`/api/costos-fijos/${id}/enviar`);
-      
-      console.log('✅ useCostosFijos: Enviado a cuentas por pagar:', response.data);
-      
+
       // Actualizar el estado local para marcar como enviado
       setCostosFijos(prev => prev.map(costo => 
         costo.id === id ? { ...costo, cuenta_creada: true } : costo
@@ -140,7 +122,7 @@ export const useCostosFijos = () => {
 
   // Cargar datos al montar el hook
   useEffect(() => {
-    console.log('🚀 Hook useCostosFijos inicializado');
+
     fetchCostosFijos();
   }, [fetchCostosFijos]);
 

@@ -13,7 +13,7 @@ prisma.$use(async (params, next) => {
   const after = Date.now();
   
   if (process.env.NODE_ENV === 'development') {
-    console.log(`Query ${params.model}.${params.action} took ${after - before}ms`);
+
   }
   
   return result;
@@ -38,7 +38,7 @@ prisma.$use(async (params, next) => {
 const testConnection = async () => {
   try {
     await prisma.$connect();
-    console.log('✅ Conexión a la base de datos exitosa');
+
     return true;
   } catch (error) {
     console.error('❌ Error conectando a la base de datos:', error);
@@ -50,7 +50,7 @@ const testConnection = async () => {
 const closeConnection = async () => {
   try {
     await prisma.$disconnect();
-    console.log('✅ Conexión a la base de datos cerrada');
+
   } catch (error) {
     console.error('❌ Error cerrando conexión a la base de datos:', error);
   }

@@ -4,7 +4,7 @@ const { prisma } = require('../config/database');
 // Obtener todos los registros de flow recovery v2
 exports.getAllFlowRecoveryV2 = async (req, res) => {
   try {
-    console.log('🔍 Iniciando getAllFlowRecoveryV2...');
+
     const { page = 1, limit = 50, fecha_inicio, fecha_fin, concepto, monto_min, monto_max } = req.query;
     const offset = (page - 1) * limit;
 
@@ -28,8 +28,6 @@ exports.getAllFlowRecoveryV2 = async (req, res) => {
       if (monto_max) whereClause.monto.lte = parseFloat(monto_max);
     }
 
-    console.log('🔍 Consultando base de datos con whereClause:', whereClause);
-
     const [flowRecovery, total] = await Promise.all([
       prisma.recuperacion.findMany({
         where: whereClause,
@@ -43,8 +41,6 @@ exports.getAllFlowRecoveryV2 = async (req, res) => {
       }),
       prisma.recuperacion.count({ where: whereClause })
     ]);
-
-    console.log('✅ Datos obtenidos:', { count: flowRecovery.length, total });
 
     res.json({
       success: true,
@@ -104,9 +100,7 @@ exports.getFlowRecoveryV2ById = async (req, res) => {
 // Crear un nuevo registro de flow recovery v2
 exports.createFlowRecoveryV2 = async (req, res) => {
   try {
-    console.log('🔍 Iniciando createFlowRecoveryV2...');
-    console.log('📝 Datos recibidos en req.body:', req.body);
-    
+
     const { concepto, monto, fecha, cliente_id, proyecto_id, categoria, estado, descripcion, prioridad, notas, fecha_vencimiento, recuperado } = req.body;
 
     // PROTECCIÓN CRÍTICA: Validar monto
@@ -125,21 +119,6 @@ exports.createFlowRecoveryV2 = async (req, res) => {
       });
     }
 
-    console.log('📊 Datos procesados para crear:', {
-      concepto: concepto.trim(),
-      monto: montoFinal,
-      fecha: fecha ? new Date(fecha) : new Date(),
-      cliente_id: cliente_id ? parseInt(cliente_id) : null,
-      proyecto_id: proyecto_id ? parseInt(proyecto_id) : null,
-      categoria: categoria?.trim() || '',
-      estado: estado || 'pendiente',
-      descripcion: descripcion?.trim() || '',
-      prioridad: prioridad || 'media',
-      notas: notas?.trim() || '',
-      fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento) : null,
-      recuperado: recuperado || false
-    });
-
     const flowRecovery = await prisma.recuperacion.create({
       data: {
         concepto: concepto.trim(),
@@ -156,8 +135,6 @@ exports.createFlowRecoveryV2 = async (req, res) => {
         recuperado: recuperado || false
       }
     });
-
-    console.log('✅ Flow recovery creado exitosamente:', flowRecovery);
 
     res.status(201).json({
       success: true,
@@ -177,10 +154,7 @@ exports.createFlowRecoveryV2 = async (req, res) => {
 // Actualizar un registro de flow recovery v2
 exports.updateFlowRecoveryV2 = async (req, res) => {
   try {
-    console.log('🔍 Iniciando updateFlowRecoveryV2...');
-    console.log('📝 ID a actualizar:', req.params.id);
-    console.log('📝 Datos recibidos en req.body:', req.body);
-    
+
     const { id } = req.params;
     const { concepto, monto, fecha, cliente_id, proyecto_id, categoria, estado, descripcion, prioridad, notas, fecha_vencimiento, recuperado } = req.body;
 
@@ -203,7 +177,7 @@ exports.updateFlowRecoveryV2 = async (req, res) => {
       if (!isNaN(montoNuevo) && montoNuevo > 0) {
         montoFinal = montoNuevo;
       } else {
-        console.log(`⚠️ Monto no válido recibido: ${monto}, manteniendo valor original: ${montoFinal}`);
+
       }
     }
 
@@ -258,9 +232,7 @@ exports.updateFlowRecoveryV2 = async (req, res) => {
     if (recuperado !== undefined && recuperado !== null) {
       updateData.recuperado = Boolean(recuperado);
     }
-    
-    console.log('🛡️ Datos a actualizar (solo campos modificados):', updateData);
-    
+
     const flowRecovery = await prisma.recuperacion.update({
       where: { id: parseInt(id) },
       data: updateData

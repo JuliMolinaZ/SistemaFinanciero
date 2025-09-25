@@ -3,7 +3,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import ProjectTableOnly from './ProjectTableOnly';
-import ProjectDialogWorking from '../../../components/ui/ProjectDialogWorking';
 
 // 🎯 COMPONENTE PRINCIPAL
 const ProjectList = ({
@@ -19,13 +18,6 @@ const ProjectList = ({
   ...props
 }) => {
   // Log para debugging cuando cambian los props
-  console.log('🔄 ProjectList re-renderizado:', {
-    projectsCount: projects.length,
-    groupsCount: groups.length,
-    timestamp: new Date().toLocaleTimeString()
-  });
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // 📊 Agrupar proyectos por cliente si no vienen agrupados
   const processedGroups = useMemo(() => {
@@ -57,32 +49,20 @@ const ProjectList = ({
     return Array.from(groupsMap.values());
   }, [projects, groups]);
 
-  // 🎯 HANDLE VIEW PROJECT
+  // 🎯 HANDLE VIEW PROJECT - Solo pasar la función al componente hijo
   const handleView = useCallback((project) => {
-    console.log('👁️ Ver proyecto:', project.nombre || project.name);
-    setSelectedProject(project);
-    setDrawerOpen(true);
     onView?.(project);
   }, [onView]);
 
-  // 🎯 HANDLE PROJECT UPDATE
+  // 🎯 HANDLE PROJECT UPDATE - Solo pasar la función al componente hijo
   const handleProjectUpdate = useCallback((projectId, updatedProject) => {
-    console.log('🔄 Proyecto actualizado en ProjectList:', { projectId, updatedProject });
-
-    // Pasar ambos parámetros al componente padre
     if (onEdit) {
       onEdit(projectId, updatedProject);
     }
-
-    // Update local selected project
-    setSelectedProject(updatedProject);
   }, [onEdit]);
 
-  // 🎯 HANDLE PROJECT DELETE
+  // 🎯 HANDLE PROJECT DELETE - Solo pasar la función al componente hijo
   const handleProjectDelete = useCallback((deletedProject) => {
-    console.log('🗑️ Proyecto eliminado:', deletedProject);
-    setDrawerOpen(false);
-    setSelectedProject(null);
     if (onDelete) {
       onDelete(deletedProject);
     }
@@ -101,18 +81,6 @@ const ProjectList = ({
         {...props}
       />
 
-      {/* 🎪 PROJECT DIALOG - MODAL CENTRADO */}
-      <ProjectDialogWorking
-        open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setSelectedProject(null);
-        }}
-        project={selectedProject}
-        onUpdate={handleProjectUpdate}
-        onDelete={handleProjectDelete}
-        phases={phases}
-      />
     </>
   );
 };

@@ -19,8 +19,7 @@ try {
   validateContentType = middlewares.validateContentType;
   validatePayloadSize = middlewares.validatePayloadSize;
 } catch (error) {
-  console.warn('⚠️ Algunos middlewares no están disponibles, usando middlewares básicos');
-  
+
   // Middlewares básicos de respaldo
   requestLogger = (req, res, next) => next();
   errorLogger = (err, req, res, next) => next(err);

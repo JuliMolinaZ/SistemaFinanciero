@@ -512,11 +512,11 @@ const updateProject = async (req, res) => {
 
           // Verificar que la fecha sea válida
           if (updateData[fieldName] && isNaN(updateData[fieldName].getTime())) {
-            console.warn(`Fecha inválida para ${fieldName}: ${dateStr}, convirtiendo a null`);
+
             updateData[fieldName] = null;
           }
         } catch (error) {
-          console.warn(`Error convirtiendo fecha ${fieldName}: ${updateData[fieldName]}, convirtiendo a null`);
+
           updateData[fieldName] = null;
         }
       }

@@ -5,8 +5,7 @@ const { Parser } = require('json2csv');
 // Obtener todas las cuentas por pagar con información completa del proveedor
 exports.getAllCuentasPagar = async (req, res) => {
   try {
-    console.log('🔍 getAllCuentasPagar: Iniciando consulta con Prisma...');
-    
+
     // Consulta usando Prisma con relaciones
     const cuentasPagar = await prisma.cuentaPagar.findMany({
       include: {
@@ -70,13 +69,10 @@ exports.getAllCuentasPagar = async (req, res) => {
         monto_pendiente: montoPendiente
       };
     });
-    
-    console.log("✅ getAllCuentasPagar: Se obtuvieron", transformedData.length, "registros.");
-    
+
     // Log de la primera cuenta para debugging
     if (transformedData.length > 0) {
-      console.log("📊 Primera cuenta completa:", JSON.stringify(transformedData[0], null, 2));
-      console.log("🏷️ Campos disponibles:", Object.keys(transformedData[0]));
+
     }
     
     res.json(transformedData);
@@ -173,8 +169,7 @@ exports.getEstadisticasCuentasPagar = async (req, res) => {
 exports.getCuentaPagarById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("🔍 getCuentaPagarById: id =", id);
-    
+
     const cuentaPagar = await prisma.cuentaPagar.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -196,8 +191,7 @@ exports.getCuentaPagarById = async (req, res) => {
       console.error("❌ getCuentaPagarById: Cuenta no encontrada para id =", id);
       return res.status(404).json({ message: 'Cuenta por Pagar no encontrada' });
     }
-    
-    console.log("✅ getCuentaPagarById: Cuenta encontrada");
+
     res.json(cuentaPagar);
   } catch (error) {
     console.error("❌ Error al obtener cuenta por pagar:", error);
@@ -208,8 +202,7 @@ exports.getCuentaPagarById = async (req, res) => {
 // Crear una nueva cuenta por pagar
 exports.createCuentaPagar = async (req, res) => {
   try {
-    console.log("🔍 createCuentaPagar: Datos recibidos:", req.body);
-    
+
     const {
       // Información básica
       concepto,
@@ -280,8 +273,6 @@ exports.createCuentaPagar = async (req, res) => {
       }
     });
 
-    console.log("✅ createCuentaPagar: Cuenta creada con ID:", cuentaPagar.id);
-    
     // Incluir información del proveedor en la respuesta
     const cuentaConProveedor = await prisma.cuentaPagar.findUnique({
       where: { id: cuentaPagar.id },
@@ -360,7 +351,6 @@ exports.updateCuentaPagar = async (req, res) => {
       }
     });
 
-    console.log("✅ updateCuentaPagar: Cuenta actualizada con ID:", cuentaPagar.id);
     res.json(cuentaPagar);
   } catch (error) {
     console.error("❌ Error al actualizar cuenta por pagar:", error);
@@ -436,7 +426,4 @@ exports.exportarCuentasPagarCSV = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
 

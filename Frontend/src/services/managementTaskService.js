@@ -31,7 +31,6 @@ class ManagementTaskService {
    * Obtener todas las tareas de un proyecto
    */
   async getTasksByProject(projectId, filters = {}) {
-    console.log('🔍 Obteniendo tareas del proyecto:', projectId);
 
     const queryParams = new URLSearchParams();
 
@@ -49,7 +48,6 @@ class ManagementTaskService {
       const response = await makeRequest(url);
       const data = await handleApiResponse(response);
 
-      console.log('✅ Tareas obtenidas:', data.data?.stats || {});
       return data.data;
     } catch (error) {
       console.error('❌ Error obteniendo tareas:', error);
@@ -61,13 +59,11 @@ class ManagementTaskService {
    * Obtener una tarea específica
    */
   async getTaskById(taskId) {
-    console.log('🔍 Obteniendo tarea:', taskId);
 
     try {
       const response = await makeRequest(`/management-tasks/${taskId}`);
       const data = await handleApiResponse(response);
 
-      console.log('✅ Tarea obtenida:', data.data.title);
       return data.data;
     } catch (error) {
       console.error('❌ Error obteniendo tarea:', error);
@@ -79,7 +75,6 @@ class ManagementTaskService {
    * Crear nueva tarea
    */
   async createTask(taskData) {
-    console.log('📝 Creando nueva tarea:', taskData.title);
 
     try {
       const response = await makeRequest('/management-tasks', {
@@ -89,7 +84,6 @@ class ManagementTaskService {
 
       const data = await handleApiResponse(response);
 
-      console.log('✅ Tarea creada:', data.data.title);
       return data.data;
     } catch (error) {
       console.error('❌ Error creando tarea:', error);
@@ -101,7 +95,6 @@ class ManagementTaskService {
    * Actualizar tarea completa
    */
   async updateTask(taskId, updates) {
-    console.log('✏️ Actualizando tarea:', taskId);
 
     try {
       const response = await makeRequest(`/management-tasks/${taskId}`, {
@@ -111,7 +104,6 @@ class ManagementTaskService {
 
       const data = await handleApiResponse(response);
 
-      console.log('✅ Tarea actualizada:', data.data.title);
       return data.data;
     } catch (error) {
       console.error('❌ Error actualizando tarea:', error);
@@ -123,7 +115,6 @@ class ManagementTaskService {
    * Actualizar solo el estado de una tarea (para drag & drop)
    */
   async updateTaskStatus(taskId, status, position = null) {
-    console.log('🔄 Actualizando estado de tarea:', { taskId, status, position });
 
     try {
       const response = await makeRequest(`/management-tasks/${taskId}/status`, {
@@ -133,7 +124,6 @@ class ManagementTaskService {
 
       const data = await handleApiResponse(response);
 
-      console.log('✅ Estado actualizado:', data.data.title, '->', status);
       return data.data;
     } catch (error) {
       console.error('❌ Error actualizando estado:', error);
@@ -145,7 +135,6 @@ class ManagementTaskService {
    * Eliminar tarea
    */
   async deleteTask(taskId) {
-    console.log('🗑️ Eliminando tarea:', taskId);
 
     try {
       const response = await makeRequest(`/management-tasks/${taskId}`, {
@@ -154,7 +143,6 @@ class ManagementTaskService {
 
       const data = await handleApiResponse(response);
 
-      console.log('✅ Tarea eliminada exitosamente');
       return data;
     } catch (error) {
       console.error('❌ Error eliminando tarea:', error);
@@ -168,13 +156,11 @@ class ManagementTaskService {
    * Obtener estadísticas de tareas del proyecto
    */
   async getProjectTaskStats(projectId) {
-    console.log('📊 Obteniendo estadísticas de tareas del proyecto:', projectId);
 
     try {
       const response = await makeRequest(`/management-projects/${projectId}/tasks/stats`);
       const data = await handleApiResponse(response);
 
-      console.log('✅ Estadísticas obtenidas:', data.data);
       return data.data;
     } catch (error) {
       console.error('❌ Error obteniendo estadísticas:', error);
@@ -188,7 +174,6 @@ class ManagementTaskService {
    * Mover tarea entre columnas (drag & drop)
    */
   async moveTask(taskId, fromStatus, toStatus, position = null) {
-    console.log('🔄 Moviendo tarea:', { taskId, fromStatus, toStatus, position });
 
     try {
       // Usar updateTaskStatus para el movimiento
@@ -209,7 +194,6 @@ class ManagementTaskService {
    * Obtener tareas organizadas para el board Kanban
    */
   async getTaskBoard(projectId, filters = {}) {
-    console.log('📋 Obteniendo board de tareas para proyecto:', projectId);
 
     try {
       const result = await this.getTasksByProject(projectId, filters);
@@ -250,8 +234,6 @@ class ManagementTaskService {
       due_date_from = '',
       due_date_to = ''
     } = searchConfig;
-
-    console.log('🔍 Búsqueda avanzada de tareas:', searchConfig);
 
     try {
       const filters = {};

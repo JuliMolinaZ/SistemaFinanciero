@@ -11,7 +11,7 @@ const useMoneyFlowRecoveryData = (url, intervalTime = 10000) => {
   const fetchData = async () => {
     try {
       const response = await axios.get(url);
-      console.log("Datos MoneyFlow Recovery (raw):", response.data);
+
       // Si response.data es un arreglo, sumamos manualmente
       if (Array.isArray(response.data)) {
         const totalRecuperado = response.data
