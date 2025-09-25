@@ -90,7 +90,7 @@ const sendEmail = async (emailData) => {
     }
 
     // 2. FALLBACK A SMTP SI SENDGRID FALLA
-    if (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD) {
+    if (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || process.env.SMTP_USER) {
       try {
 
         const transporter = createTransporter();
@@ -126,7 +126,7 @@ const sendEmail = async (emailData) => {
     // Intento final con configuración más simple
     try {
       const nodemailer = require('nodemailer');
-      const simpleTransporter = nodemailer.createTransporter({
+      const simpleTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.SMTP_USER || process.env.GMAIL_USER,
