@@ -1,7 +1,9 @@
 // 🚀 SERVICIO DE TAREAS DE GESTIÓN - ULTRA MODERNO
 // ==================================================
 
-const API_BASE_URL = 'http://localhost:8765/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL
+  ? `${process.env.REACT_APP_API_URL}/api`
+  : 'http://localhost:8765/api';
 
 // 🔧 Utilidad para manejar respuestas de la API
 const handleApiResponse = async (response) => {
