@@ -1270,6 +1270,15 @@ exports.updateUserFirebaseUID = async (req, res) => {
 exports.createUserFromFirebase = async (req, res) => {
   const start = Date.now();
   try {
+    // Verificar que Prisma esté disponible
+    if (!prisma) {
+      console.error('❌ ERROR CRÍTICO: Prisma no está disponible');
+      return res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor: Base de datos no disponible',
+        error: 'PRISMA_NOT_AVAILABLE'
+      });
+    }
 
     const { firebase_uid, email, name, role, avatar } = req.body;
 
@@ -1286,13 +1295,23 @@ exports.createUserFromFirebase = async (req, res) => {
     }
 
     // 🚨 VALIDACIÓN CRÍTICA: Solo usuarios invitados pueden registrarse
-    const invitedUser = await prisma.user.findFirst({
-      where: {
-        email: email.trim().toLowerCase(),
-        is_first_login: true,
-        profile_complete: false
-      }
-    });
+    let invitedUser;
+    try {
+      invitedUser = await prisma.user.findFirst({
+        where: {
+          email: email.trim().toLowerCase(),
+          is_first_login: true,
+          profile_complete: false
+        }
+      });
+    } catch (dbError) {
+      console.error('❌ Error consultando usuario invitado:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor: No se pudo verificar invitación',
+        error: 'DATABASE_ERROR'
+      });
+    }
 
     if (!invitedUser) {
       return res.status(403).json({
@@ -1307,38 +1326,57 @@ exports.createUserFromFirebase = async (req, res) => {
     }
 
     // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { firebase_uid },
-          { email: email.trim().toLowerCase() }
-        ]
-      }
-    });
+    let existingUser;
+    try {
+      existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { firebase_uid },
+            { email: email.trim().toLowerCase() }
+          ]
+        }
+      });
+    } catch (dbError) {
+      console.error('❌ Error consultando usuario existente:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor: No se pudo verificar usuario existente',
+        error: 'DATABASE_ERROR'
+      });
+    }
 
     if (existingUser) {
       // Si existe pero no tiene firebase_uid, actualizarlo (caso de usuario invitado)
       if (existingUser.email === email.trim().toLowerCase() && !existingUser.firebase_uid) {
-
-        const updatedUser = await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            firebase_uid: firebase_uid,
-            name: name || existingUser.name,
-            avatar: avatar || existingUser.avatar,
-            updated_at: new Date()
-          },
-          include: {
-            roles: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-                level: true
+        let updatedUser;
+        try {
+          updatedUser = await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              firebase_uid: firebase_uid,
+              name: name || existingUser.name,
+              avatar: avatar || existingUser.avatar,
+              updated_at: new Date()
+            },
+            include: {
+              roles: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  level: true
+                }
               }
             }
-          }
-        });
+          });
+        } catch (updateError) {
+          console.error('❌ Error actualizando usuario:', updateError);
+          return res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor: No se pudo actualizar usuario',
+            error: 'DATABASE_ERROR'
+          });
+        }
 
         return res.status(200).json({
           success: true,
@@ -1379,13 +1417,38 @@ exports.createUserFromFirebase = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error creando usuario desde Firebase:', error);
-    logDatabaseOperation('INSERT', 'users', Date.now() - start, false);
-    logAuth('create_firebase', null, false, req.ip, req.get('User-Agent'));
+    console.error('❌ Stack trace:', error.stack);
+    
+    // Log de operación fallida
+    try {
+      logDatabaseOperation('INSERT', 'users', Date.now() - start, false);
+      logAuth('create_firebase', null, false, req.ip, req.get('User-Agent'));
+    } catch (logError) {
+      console.error('❌ Error en logging:', logError);
+    }
+
+    // Determinar tipo de error
+    let errorMessage = 'Error interno del servidor';
+    let errorCode = 'INTERNAL_ERROR';
+    
+    if (error.message && error.message.includes('findFirst')) {
+      errorMessage = 'Error de conexión con la base de datos';
+      errorCode = 'DATABASE_CONNECTION_ERROR';
+    } else if (error.message && error.message.includes('update')) {
+      errorMessage = 'Error actualizando datos del usuario';
+      errorCode = 'DATABASE_UPDATE_ERROR';
+    } else if (process.env.NODE_ENV === 'development') {
+      errorMessage = error.message;
+    }
 
     res.status(500).json({
       success: false,
-      message: 'Error interno del servidor',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno'
+      message: errorMessage,
+      error: errorCode,
+      details: process.env.NODE_ENV === 'development' ? {
+        stack: error.stack,
+        originalError: error.message
+      } : undefined
     });
   }
 };
