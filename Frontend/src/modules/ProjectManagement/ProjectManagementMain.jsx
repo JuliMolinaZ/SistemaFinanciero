@@ -42,6 +42,9 @@ import { useNotify, notifyResult, notifyOperations } from '../../hooks/useNotify
 import { NotificationProvider } from '../../components/ui/NotificationSystem';
 import { ModernToastProvider } from '../../components/ui/ModernToast';
 
+// 🔐 Importar sistema de permisos
+import { usePermissions } from '../../hooks/usePermissions';
+
 // 🎨 Importar sistema de diseño optimizado
 import {
   UnifiedContainer,
@@ -156,6 +159,9 @@ const ProjectManagementContent = () => {
   
   // 🔐 Obtener información del usuario desde el contexto global
   const { profileData } = React.useContext(GlobalContext);
+
+  // 🔑 Hook de permisos
+  const { canCreate } = usePermissions();
 
   // 📋 PROJECT DRAWER STATE
   const [selectedProject, setSelectedProject] = useState(null);
@@ -627,8 +633,8 @@ const ProjectManagementContent = () => {
                   </Typography>
               </Box>
 
-            {/* 🚀 CONTEXTUAL BRUTAL BUTTON - Solo en módulos específicos */}
-            {state.activeTab !== 'Dashboard' && (
+            {/* 🚀 CONTEXTUAL BRUTAL BUTTON - Solo en módulos específicos con permisos */}
+            {state.activeTab !== 'Dashboard' && canCreate('project_management') && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <ContextualBrutalButton
               activeTab={state.activeTab}

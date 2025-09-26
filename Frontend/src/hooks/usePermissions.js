@@ -100,9 +100,34 @@ export const usePermissions = () => {
         // Acceso técnico
         dashboard: { can_read: true, can_create: false, can_update: false, can_delete: false, can_export: true, can_approve: false },
         proyectos: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
+        project_management: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
         fases: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
         assets: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
+        clientes: { can_read: true, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        usuarios: { can_read: true, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
         // ... otros módulos técnicos
+      },
+      'Operador': {
+        // Acceso operacional similar a Desarrollador pero enfocado en proyectos
+        dashboard: { can_read: true, can_create: false, can_update: false, can_delete: false, can_export: true, can_approve: false },
+        proyectos: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
+        project_management: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
+        fases: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
+        assets: { can_read: true, can_create: true, can_update: true, can_delete: false, can_export: true, can_approve: false },
+        clientes: { can_read: true, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        usuarios: { can_read: true, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        // Módulos restringidos
+        configuracion: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        roles: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        contabilidad: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        cuentas_por_pagar: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        cuentas_por_cobrar: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        costos_fijos: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        impuestos_imss: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        reportes: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        realtime_graph: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        auditoria: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false },
+        permisos: { can_read: false, can_create: false, can_update: false, can_delete: false, can_export: false, can_approve: false }
       },
       'usuario': {
         // Acceso básico similar a Desarrollador pero más limitado
