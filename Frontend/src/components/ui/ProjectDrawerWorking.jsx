@@ -348,7 +348,7 @@ const ProjectDrawerWorking = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${project.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8765'}/api/projects-working/projects/${project.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -388,7 +388,7 @@ const ProjectDrawerWorking = ({
   // Handle inline updates (progress)
   const handleInlineUpdate = async (field, value) => {
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${project.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8765'}/api/projects-working/projects/${project.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -425,7 +425,7 @@ const ProjectDrawerWorking = ({
   // Handle delete
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${project.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8765'}/api/projects-working/projects/${project.id}`, {
         method: 'DELETE',
         credentials: 'include'
       });

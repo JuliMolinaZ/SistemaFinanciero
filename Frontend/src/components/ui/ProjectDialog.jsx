@@ -10,20 +10,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 const useScrollLock = (isLocked) => {
   useEffect(() => {
     if (isLocked) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      const originalPaddingRight = window.getComputedStyle(document.body).paddingRight;
+      // Store original overflow value
+      const originalOverflow = document.body.style.overflow;
 
-      // Calcular el ancho de la scrollbar
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-      // Bloquear scroll y compensar la scrollbar
+      // Simply hide body scroll without fixing position
       document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${parseInt(originalPaddingRight) + scrollbarWidth}px`;
 
       return () => {
-        document.body.style.overflow = originalStyle;
-        document.body.style.paddingRight = originalPaddingRight;
+        // Restore original overflow
+        document.body.style.overflow = originalOverflow;
       };
+    } else {
+      // If not locked, ensure body is scrollable
+      document.body.style.overflow = '';
     }
   }, [isLocked]);
 };

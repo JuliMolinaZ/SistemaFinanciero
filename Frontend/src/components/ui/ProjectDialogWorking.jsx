@@ -121,7 +121,8 @@ const ProjectDialogWorking = ({
     if (open) {
       const loadUsers = async () => {
         try {
-          const response = await fetch('http://localhost:8765/api/usuarios', {
+          const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+          const response = await fetch(`${API_BASE_URL}/api/usuarios`, {
             method: 'GET',
             credentials: 'include'
           });
@@ -165,7 +166,8 @@ const ProjectDialogWorking = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+      const response = await fetch(`${API_BASE_URL}/api/projects-working/projects/${safeProject.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

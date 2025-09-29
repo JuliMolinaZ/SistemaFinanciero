@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Save, Calendar, Users, Building, Flag, Clock, Plus } from 'lucide-react';
-import TeamTable from '../ui/TeamTable';
+import { X, Save, Calendar, Users, Building, Flag, Clock, Edit } from 'lucide-react';
+import TeamTable from './TeamTable';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import '../../styles/EditProjectModal.css';
 
-const CreateProjectForm = ({
-  isOpen,
+const EditProjectModal = ({
+  open,
   onClose,
-  onSave,
-  mode = 'create'
+  project,
+  onUpdate,
+  clients = [],
+  users = [],
+  phases = []
 }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,51 +25,36 @@ const CreateProjectForm = ({
     current_phase_id: ''
   });
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [phases, setPhases] = useState([]);
 
   const dialogRef = useRef(null);
   const firstFocusableRef = useRef(null);
 
-  useBodyScrollLock(isOpen);
+  useBodyScrollLock(open);
 
   useEffect(() => {
-    if (isOpen) {
+    if (project && open) {
+      setFormData({
+        nombre: project.nombre || '',
+        descripcion: project.descripcion || '',
+        cliente_id: project.cliente_id || '',
+        status: project.status || 'planning',
+        priority: project.priority || 'medium',
+        start_date: project.start_date ? project.start_date.split('T')[0] : '',
+        end_date: project.end_date ? project.end_date.split('T')[0] : '',
+        current_phase_id: project.current_phase_id || ''
+      });
+      setSelectedUsers(project.members || []);
+    }
+  }, [project, open]);
+
+  useEffect(() => {
+    if (open) {
       setTimeout(() => firstFocusableRef.current?.focus(), 100);
-      loadAdditionalData();
     }
-  }, [isOpen]);
-
-  const loadAdditionalData = async () => {
-    try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
-
-      const [clientsResponse, usersResponse, phasesResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/clients`, {
-          method: 'GET',
-          credentials: 'include'
-        }).then(res => res.json()).catch(() => ({ data: [] })),
-        fetch(`${API_BASE_URL}/api/usuarios`, {
-          method: 'GET',
-          credentials: 'include'
-        }).then(res => res.json()).catch(() => ({ data: [] })),
-        fetch(`${API_BASE_URL}/api/phases`, {
-          method: 'GET',
-          credentials: 'include'
-        }).then(res => res.json()).catch(() => ({ data: [] }))
-      ]);
-
-      setClients(clientsResponse.data || []);
-      setUsers(usersResponse.data || []);
-      setPhases(phasesResponse.data || []);
-    } catch (error) {
-      console.error('Error cargando datos:', error);
-    }
-  };
+  }, [open]);
 
   const handleKeyDown = useCallback((e) => {
-    if (!isOpen) return;
+    if (!open) return;
     if (e.key === 'Escape') onClose();
 
     if (e.key === 'Tab') {
@@ -91,7 +79,7 @@ const CreateProjectForm = ({
         }
       }
     }
-  }, [isOpen, onClose]);
+  }, [open, onClose]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -104,13 +92,29 @@ const CreateProjectForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!project) return;
 
     setLoading(true);
     try {
-      await onSave({ ...formData, members: selectedUsers });
-      onClose();
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+
+      const response = await fetch(`${API_BASE_URL}/api/projects-working/projects/${project.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ...formData, members: selectedUsers })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        onUpdate?.(data.data);
+        onClose();
+      } else {
+        console.error('Error updating project:', data.message);
+      }
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error('Error updating project:', error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +129,7 @@ const CreateProjectForm = ({
     });
   };
 
-  if (!isOpen) return null;
+  if (!open || !project) return null;
 
   const statusOptions = [
     { value: 'planning', label: 'Planeación' },
@@ -144,23 +148,23 @@ const CreateProjectForm = ({
 
   return (
     <div
-      className="create-modal-overlay"
+      className="edit-modal-overlay"
       onClick={handleBackdropClick}
       data-testid="modal-overlay"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="create-modal-dialog" ref={dialogRef} data-testid="modal-dialog">
-        <header className="create-modal-header" data-testid="modal-header">
-          <div className="create-modal-title">
+      <div className="edit-modal-dialog" ref={dialogRef} data-testid="modal-dialog">
+        <header className="edit-modal-header" data-testid="modal-header">
+          <div className="edit-modal-title">
             <h2 id="modal-title">
-              <Plus size={24} />
-              Crear Proyecto
+              <Edit size={24} />
+              Editar Proyecto
             </h2>
             <button
               ref={firstFocusableRef}
-              className="create-modal-close"
+              className="edit-modal-close"
               onClick={onClose}
               type="button"
               aria-label="Cerrar modal"
@@ -170,7 +174,7 @@ const CreateProjectForm = ({
           </div>
         </header>
 
-        <div className="create-modal-content" data-testid="modal-content">
+        <div className="edit-modal-content" data-testid="modal-content">
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="form-section">
@@ -338,11 +342,11 @@ const CreateProjectForm = ({
           </form>
         </div>
 
-        <footer className="create-modal-footer" data-testid="modal-footer">
-          <div className="create-modal-actions">
+        <footer className="edit-modal-footer" data-testid="modal-footer">
+          <div className="edit-modal-actions">
             <button
               type="button"
-              className="create-modal-btn create-modal-btn--secondary"
+              className="edit-modal-btn edit-modal-btn--secondary"
               onClick={onClose}
               disabled={loading}
             >
@@ -350,12 +354,12 @@ const CreateProjectForm = ({
             </button>
             <button
               type="submit"
-              className={`create-modal-btn create-modal-btn--primary ${loading ? 'create-modal-btn--loading' : ''}`}
+              className={`edit-modal-btn edit-modal-btn--primary ${loading ? 'edit-modal-btn--loading' : ''}`}
               onClick={handleSubmit}
               disabled={loading}
             >
               <Save size={18} />
-              {loading ? 'Creando...' : 'Crear Proyecto'}
+              {loading ? 'Guardando...' : 'Guardar Cambios'}
             </button>
           </div>
         </footer>
@@ -364,4 +368,4 @@ const CreateProjectForm = ({
   );
 };
 
-export default CreateProjectForm;
+export default EditProjectModal;

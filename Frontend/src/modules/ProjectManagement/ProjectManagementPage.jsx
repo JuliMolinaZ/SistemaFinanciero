@@ -440,12 +440,19 @@ export function ProjectManagementPage() {
           isOpen={drawerOpen}
           onClose={handleCloseDrawer}
           project={selectedProject}
-          mode="view"
-          onSave={async (updatedData) => {
+          mode={selectedProject ? "edit" : "create"}
+          onSave={async (projectData) => {
             try {
-              await updateProject?.(selectedProject?.id, updatedData);
+              if (selectedProject) {
+                // Edit mode
+                await updateProject?.(selectedProject?.id, projectData);
+              } else {
+                // Create mode - refresh project list
+                await loadProjects?.();
+              }
+              handleCloseDrawer();
             } catch (error) {
-              console.error('Error actualizando proyecto:', error);
+              console.error('Error guardando proyecto:', error);
             }
           }}
           onDelete={async (projectId) => {

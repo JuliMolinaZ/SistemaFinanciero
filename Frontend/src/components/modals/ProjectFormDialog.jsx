@@ -44,13 +44,15 @@ const ProjectFormDialog = ({
       // Función simple para cargar datos
       const loadData = async () => {
         try {
+          const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+
           // Cargar clientes y usuarios en paralelo
           const [clientsRes, usersRes] = await Promise.all([
-            fetch('http://localhost:8765/api/clients', {
+            fetch(`${API_BASE_URL}/api/clients`, {
               method: 'GET',
               credentials: 'include'
             }),
-            fetch('http://localhost:8765/api/usuarios', {
+            fetch(`${API_BASE_URL}/api/usuarios`, {
               method: 'GET',
               credentials: 'include'
             })

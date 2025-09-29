@@ -80,15 +80,14 @@ const AppContent = () => {
     backendConnected, 
     backendError, 
     checkBackendConnection,
-    sidebarCollapsed,
-    sidebarFullyMinimized 
+    sidebarFullyMinimized
   } = useContext(GlobalContext);
 
   // Detectar si es usuario invitado
   const isInvitedUser = window.location.pathname.includes('/complete-profile/');
 
-  // Calcular margen izquierdo del contenido principal
-  const mainMarginLeft = sidebarFullyMinimized ? '0px' : (sidebarCollapsed ? '80px' : '280px');
+  // Calcular margen izquierdo del contenido principal (solo 2 estados)
+  const mainMarginLeft = sidebarFullyMinimized ? '0px' : '280px';
 
   // Estado para prevenir redirecciones múltiples
   const [lastRedirectPath, setLastRedirectPath] = useState(null);
@@ -165,7 +164,7 @@ const AppContent = () => {
             style={{
               ...mainContentStyle,
               padding: '1rem',
-              marginTop: '80px'
+              marginTop: '60px'
             }}
           >
             <PageTransition>

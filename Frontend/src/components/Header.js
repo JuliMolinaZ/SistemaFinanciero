@@ -34,16 +34,7 @@ const Header = () => {
     useContext(GlobalContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [logo, setLogo] = useState('SigmaBlack.jpeg');
-  const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
-
-  // Actualizar tiempo cada segundo
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Alterna el logo cada 2 horas
   useEffect(() => {
@@ -82,22 +73,6 @@ const Header = () => {
     }
   };
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
 
   return (
     <motion.div
@@ -108,20 +83,20 @@ const Header = () => {
       <AppBar
         position="fixed"
         sx={{
-          background: 'rgba(26, 26, 46, 0.8)',
+          background: 'rgba(26, 26, 46, 0.95)',
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
           zIndex: 1100,
-          height: 80,
+          height: 60,
           display: 'flex',
           justifyContent: 'center',
         }}
       >
-        <Toolbar sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          minHeight: 80, 
+        <Toolbar sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          minHeight: 60,
           px: 3,
           width: '100%',
           maxWidth: '100%'
@@ -146,11 +121,11 @@ const Header = () => {
                   src={logo}
                   alt="Logo"
                   sx={{
-                    width: 56,
-                    height: 56,
+                    width: 44,
+                    height: 44,
                     objectFit: 'contain',
                     filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
-                    borderRadius: '12px',
+                    borderRadius: '10px',
                     border: '2px solid rgba(255,255,255,0.1)',
                   }}
                 />
@@ -161,14 +136,14 @@ const Header = () => {
                   variant="h4"
                   sx={{
                     fontWeight: 900,
-                    letterSpacing: 3,
+                    letterSpacing: 2,
                     background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                     backgroundSize: '200% 200%',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
                     animation: 'gradientShift 3s ease infinite',
-                    fontSize: { xs: '1.5rem', sm: '2.2rem' },
+                    fontSize: { xs: '1.4rem', sm: '1.8rem' },
                     textShadow: '0 0 20px rgba(79, 172, 254, 0.5)',
                     '@keyframes gradientShift': {
                       '0%, 100%': { backgroundPosition: '0% 50%' },
@@ -182,8 +157,8 @@ const Header = () => {
                   variant="caption"
                   sx={{
                     color: 'rgba(255,255,255,0.7)',
-                    fontSize: '0.7rem',
-                    letterSpacing: 1,
+                    fontSize: '0.65rem',
+                    letterSpacing: 0.8,
                     fontWeight: 500,
                   }}
                 >
@@ -193,47 +168,6 @@ const Header = () => {
             </Box>
           </motion.div>
 
-          {/* Centro: Información del sistema */}
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
-          >
-            {/* Estado del sistema */}
-            <Chip
-              label="SISTEMA ACTIVO"
-              size="small"
-              sx={{
-                background: 'linear-gradient(135deg, #00d4aa 0%, #00b894 100%)',
-                color: 'white',
-                fontWeight: 700,
-                fontSize: '0.7rem',
-                letterSpacing: 0.5,
-                boxShadow: '0 4px 12px rgba(0, 212, 170, 0.3)',
-                animation: 'pulse 2s infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.8 },
-                },
-              }}
-            />
-            
-            {/* Tiempo en tiempo real */}
-            <Box sx={{ 
-              display: { xs: 'none', md: 'flex' }, 
-              flexDirection: 'column', 
-              alignItems: 'center',
-              color: 'rgba(255,255,255,0.9)',
-            }}>
-              <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: 600 }}>
-                {formatTime(currentTime)}
-              </Typography>
-              <Typography variant="caption" sx={{ fontSize: '0.6rem', opacity: 0.7 }}>
-                {formatDate(currentTime)}
-              </Typography>
-            </Box>
-          </motion.div>
 
           {/* Derecha: Perfil y Notificaciones */}
           <motion.div
@@ -261,7 +195,7 @@ const Header = () => {
                     display: 'flex',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    p: 1.5,
+                    p: 1,
                     borderRadius: 2,
                     background: 'rgba(255,255,255,0.1)',
                     backdropFilter: 'blur(10px)',
@@ -278,10 +212,10 @@ const Header = () => {
                     src={profileData.avatar || 'default-avatar.png'}
                     alt="Avatar"
                     sx={{
-                      width: 48,
-                      height: 48,
-                      border: '3px solid rgba(255,255,255,0.3)',
-                      mr: 2,
+                      width: 36,
+                      height: 36,
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      mr: 1.2,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                     }}
                   />
@@ -291,7 +225,8 @@ const Header = () => {
                       sx={{
                         color: 'white',
                         fontWeight: 600,
-                        fontSize: '0.9rem',
+                        fontSize: '0.8rem',
+                        lineHeight: 1.2,
                       }}
                     >
                       {profileData.name}
@@ -300,7 +235,7 @@ const Header = () => {
                       variant="caption"
                       sx={{
                         color: 'rgba(255,255,255,0.7)',
-                        fontSize: '0.7rem',
+                        fontSize: '0.65rem',
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
                       }}

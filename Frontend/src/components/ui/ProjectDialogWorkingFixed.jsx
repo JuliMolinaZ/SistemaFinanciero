@@ -137,7 +137,7 @@ const ProjectDialogWorking = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8765/api/projects-working/projects/${safeProject.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8765'}/api/projects-working/projects/${safeProject.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

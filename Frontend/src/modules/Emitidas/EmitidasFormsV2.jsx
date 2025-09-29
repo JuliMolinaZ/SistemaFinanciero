@@ -326,7 +326,8 @@ const EmitidasFormsV2 = () => {
 
   const fetchClientes = useCallback(async () => {
     try {
-      const response = await axios.get('/api/clients');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+      const response = await axios.get(`${API_BASE_URL}/api/clients`);
       if (response.data && response.data.success && Array.isArray(response.data.data)) {
         setClientes(response.data.data);
       } else if (Array.isArray(response.data)) {

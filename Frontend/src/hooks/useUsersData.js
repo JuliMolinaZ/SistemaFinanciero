@@ -10,7 +10,8 @@ const useUsersData = () => {
   useEffect(() => {
     const fetchUsersData = async () => {
       try {
-        const response = await axios.get('/api/usuarios');
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+        const response = await axios.get(`${API_BASE_URL}/api/usuarios`);
         const responseData = response.data;
         
         // Verificar la estructura de la respuesta

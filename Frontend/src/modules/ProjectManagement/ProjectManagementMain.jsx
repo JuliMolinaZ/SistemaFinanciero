@@ -247,7 +247,8 @@ const ProjectManagementContent = () => {
         // Cargar fases desde la API
         let phases = [];
         try {
-          const phasesResponse = await fetch('http://localhost:8765/api/phases', {
+          const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+          const phasesResponse = await fetch(`${API_BASE_URL}/api/phases`, {
             method: 'GET',
             credentials: 'include'
           });

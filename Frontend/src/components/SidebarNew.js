@@ -308,7 +308,7 @@ const modulesConfig = [
 ];
 
 const SidebarNew = () => {
-  const { sidebarCollapsed, setSidebarCollapsed, sidebarFullyMinimized, setSidebarFullyMinimized, profileData, profileComplete } = useContext(GlobalContext);
+  const { sidebarFullyMinimized, setSidebarFullyMinimized, profileData, profileComplete } = useContext(GlobalContext);
   const { 
     permissions, 
     loading: permissionsLoading, 
@@ -318,26 +318,9 @@ const SidebarNew = () => {
     hasPermission 
   } = usePermissions();
 
+  // Función única para alternar entre abierto y cerrado (solo 2 estados)
   const toggleSidebar = () => {
-    // Si está completamente minimizado, primero lo expandimos
-    if (sidebarFullyMinimized) {
-      setSidebarFullyMinimized(false);
-      setSidebarCollapsed(false);
-    } else {
-      setSidebarCollapsed(!sidebarCollapsed);
-    }
-  };
-
-  const toggleFullMinimize = () => {
-    if (sidebarFullyMinimized) {
-      // Si está completamente minimizado, lo expandimos
-      setSidebarFullyMinimized(false);
-      setSidebarCollapsed(false);
-    } else {
-      // Si está expandido o colapsado, lo minimizamos completamente
-      setSidebarFullyMinimized(true);
-      setSidebarCollapsed(false);
-    }
+    setSidebarFullyMinimized(!sidebarFullyMinimized);
   };
 
   // Función para verificar si un módulo debe ser visible
@@ -391,15 +374,15 @@ const SidebarNew = () => {
     modules: category.modules.filter(isModuleVisible)
   })).filter(category => category.modules.length > 0);
 
-  // Estilos mejorados
+  // Estilos simplificados (solo estado abierto)
   const drawerSx = {
-    top: '80px',
-    width: sidebarCollapsed ? drawerWidthClosed : drawerWidthOpen,
+    top: '60px',
+    width: drawerWidthOpen,
     flexShrink: 0,
     '& .MuiDrawer-paper': {
-      top: '80px',
-      height: 'calc(100vh - 80px)',
-      width: sidebarCollapsed ? drawerWidthClosed : drawerWidthOpen,
+      top: '60px',
+      height: 'calc(100vh - 60px)',
+      width: drawerWidthOpen,
       boxSizing: 'border-box',
       background: 'linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(26, 26, 46, 0.85) 100%)',
       backdropFilter: 'blur(20px)',
@@ -416,7 +399,7 @@ const SidebarNew = () => {
 
   const headerSx = {
     display: 'flex',
-    justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+    justifyContent: 'space-between',
     alignItems: 'center',
     px: 2,
     py: 2,
@@ -470,7 +453,7 @@ const SidebarNew = () => {
 
   const listItemIconSx = {
     minWidth: 0,
-    mr: sidebarCollapsed ? 0 : 2,
+    mr: 2,
     justifyContent: 'center',
     fontSize: '1.3rem',
     color: 'inherit',
@@ -558,7 +541,7 @@ const SidebarNew = () => {
       <>
         <Zoom in={sidebarFullyMinimized}>
           <Fab
-            onClick={toggleFullMinimize}
+            onClick={toggleSidebar}
             sx={{
               position: 'fixed',
               top: 100, // Cambiado de 20 a 100 para evitar superposición con el header
@@ -597,11 +580,9 @@ const SidebarNew = () => {
         transition={{ duration: 0.6 }}
       >
         <Box sx={headerSx}>
-          {!sidebarCollapsed && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Diamond sx={{ color: '#667eea', fontSize: '1.5rem' }} />
-            </Box>
-          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Diamond sx={{ color: '#667eea', fontSize: '1.5rem' }} />
+          </Box>
           <IconButton 
             onClick={toggleSidebar} 
             sx={{ 
@@ -616,35 +597,14 @@ const SidebarNew = () => {
               transition: 'all 0.3s ease',
             }}
           >
-            {sidebarCollapsed ? <ChevronRight /> : <ChevronLeft />}
+            <CloseIcon />
           </IconButton>
           
-          {/* Botón adicional para minimización completa */}
-          {!sidebarCollapsed && (
-            <IconButton 
-              onClick={toggleFullMinimize} 
-              sx={{ 
-                color: '#fff',
-                background: 'rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                ml: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  transform: 'scale(1.1)',
-                },
-                transition: 'all 0.3s ease',
-              }}
-              title="Minimizar completamente"
-            >
-              <CloseIcon sx={{ fontSize: '1rem' }} />
-            </IconButton>
-          )}
         </Box>
       </motion.div>
 
       {/* Información del usuario */}
-      {!sidebarCollapsed && profileData && (
+      {profileData && (
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -727,11 +687,9 @@ const SidebarNew = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: categoryIndex * 0.1 }}
               >
-                {!sidebarCollapsed && (
-                  <Typography sx={categoryHeaderSx}>
-                    {category.category}
-                  </Typography>
-                )}
+                <Typography sx={categoryHeaderSx}>
+                  {category.category}
+                </Typography>
                 {category.modules.map((module, moduleIndex) => (
                   <motion.div
                     key={module.id}
@@ -742,8 +700,8 @@ const SidebarNew = () => {
                       delay: (categoryIndex * 0.1) + (moduleIndex * 0.05) 
                     }}
                   >
-                    <Tooltip 
-                      title={sidebarCollapsed ? module.description : ''} 
+                    <Tooltip
+                      title=""
                       placement="right"
                       arrow
                     >
@@ -766,15 +724,13 @@ const SidebarNew = () => {
                             {module.icon}
                           </Box>
                         </ListItemIcon>
-                        {!sidebarCollapsed && (
-                          <ListItemText 
-                            primary={module.name} 
-                            sx={listItemTextSx}
-                          />
-                        )}
-                        {module.featured && !sidebarCollapsed && (
-                          <Star sx={{ 
-                            fontSize: '1rem', 
+                        <ListItemText
+                          primary={module.name}
+                          sx={listItemTextSx}
+                        />
+                        {module.featured && (
+                          <Star sx={{
+                            fontSize: '1rem',
                             color: '#ffd700',
                             ml: 1
                           }} />
@@ -790,8 +746,7 @@ const SidebarNew = () => {
       </Box>
 
       {/* Footer del Sidebar */}
-      {!sidebarCollapsed && (
-        <motion.div
+      <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
@@ -815,7 +770,6 @@ const SidebarNew = () => {
             </Typography>
           </Box>
         </motion.div>
-      )}
       </Drawer>
       
     </>

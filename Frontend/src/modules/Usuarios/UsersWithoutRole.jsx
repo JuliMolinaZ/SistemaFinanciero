@@ -65,9 +65,10 @@ const UsersWithoutRole = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
       const [usersResponse, rolesResponse] = await Promise.all([
-        axios.get('/api/usuarios'),
-        axios.get('/api/roles')
+        axios.get(`${API_BASE_URL}/api/usuarios`),
+        axios.get(`${API_BASE_URL}/api/roles`)
       ]);
       
       // Filtrar usuarios sin rol asignado
@@ -86,7 +87,8 @@ const UsersWithoutRole = () => {
 
   const handleAssignRole = async () => {
     try {
-      const response = await axios.put(`/api/usuarios/${selectedUser.id}`, roleForm);
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+      const response = await axios.put(`${API_BASE_URL}/api/usuarios/${selectedUser.id}`, roleForm);
       
       if (response.data.success) {
         // Cerrar diálogo y actualizar datos

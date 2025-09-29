@@ -42,15 +42,17 @@ export function NavTabs({
           return;
         }
 
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+
         // Cargar datos en paralelo
         const [projectsResponse, tasksResponse] = await Promise.all([
           // Obtener proyectos
-          fetch('http://localhost:8765/api/management-projects/', {
+          fetch(`${API_BASE_URL}/api/management-projects/`, {
             method: 'GET',
             credentials: 'include'
           }),
           // Obtener tareas del usuario actual
-          fetch(`http://localhost:8765/api/management-tasks/user/${userId}`, {
+          fetch(`${API_BASE_URL}/api/management-tasks/user/${userId}`, {
             method: 'GET',
             credentials: 'include'
           })
@@ -135,7 +137,7 @@ function NavTab({
   onTabChange
 }: NavItem & {
   active?: boolean;
-  onTabChange?: (tab: string) => void;
+  onTabChange?: (tab: NavItem['label']) => void;
 }) {
   
   const handleClick = (e: React.MouseEvent) => {

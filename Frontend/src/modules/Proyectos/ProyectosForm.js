@@ -260,7 +260,8 @@ const ProjectModule = () => {
   // Función para obtener clientes
   const fetchClients = useCallback(async () => {
     try {
-      const response = await axios.get('/api/clients');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8765';
+      const response = await axios.get(`${API_BASE_URL}/api/clients`);
       const clientsData = response.data.success && Array.isArray(response.data.data)
         ? response.data.data
         : response.data;
